@@ -85,7 +85,6 @@ app.get('/api/owner/middleware', (req, res) => {
     try {
         payload_jwt = jwt.verify(token, JWT_KEY);
     } catch (err) {
-        // jsonwebtoken ตั้งชื่อ error ไว้ ใช้แยกว่าหมดอายุหรือผิด
         const message = err.name === 'TokenExpiredError' ? 'token หมดอายุแล้ว' : 'token ไม่ถูกต้อง';
         return res.status(401).json({ message });
     }
@@ -93,7 +92,7 @@ app.get('/api/owner/middleware', (req, res) => {
     //ด่านตรวจที่ 2 ตั้งด่านเชคสถานะว่ายศใหญ่อะป่าว check user role ตรงอะป่าว
     const role = payload_jwt.role;
     if (role !== 'owner') {
-        return res.status(401).json({ message: "Wrong user role มาจากไหนนิ admin อะป่าว เฉพาะ owner นะ" });
+        return res.status(403).json({ message: "Wrong user role มาจากไหนนิ admin อะป่าว เฉพาะ owner นะ" });
     }
 
     // ด่านตรวจที่ 3 เช็คว่า owner is_verified รึยัง กัน scammer นะ ตรวจผ่าน DB เลยเพื่อให้ได้ค่าล่าสุด
@@ -145,7 +144,71 @@ app.post('/api/auth/register', (req, res) => {
     });
 });
 
+// ========================Dormitory CRUD===================================
+app.post('/api/owner/dormitories', (req, res) => {
+    // ---- middleware (เหมือนเดิม) ----
+    const header = req.headers['authorization'];
+    if (!header) {
+        return res.status(401).json({ message: "ม่ายมี header นะ" });
+    }
+    if (!header.startsWith('Bearer ')) {
+        return res.status(401).json({ message: "ต้องขึ้นต้นด้วย Bearer" });
+    }
+    const token = header.split(' ')[1];
+    let payload_jwt;
+    try {
+        payload_jwt = jwt.verify(token, JWT_KEY);
+    } catch (err) {
+        const message = err.name === 'TokenExpiredError' ? 'token หมดอายุแล้ว' : 'token ไม่ถูกต้อง';
+        return res.status(401).json({ message });
+    }
+    if (payload_jwt.role !== 'owner') {
+        return res.status(403).json({ message: 'เฉพาะ owner เท่านั้น' });
+    }
 
-app.listen(3000, () => {
-    console.log('server running at http://localhost:3000');
+    // ---- 4. ตรวจข้อมูลที่ส่งมา ----
+    const { name, zone, latitude, longitude, price_per_month } = req.body;
+    if (!name || !zone || latitude == null || longitude == null || price_per_month == null) {
+        return res.status(400).json({ message: 'กรอกข้อมูลให้ครบ' });
+    }
+    if (!['หน้ามอ', 'หลังมอ', 'คชพลแลนด์'].includes(zone)) {
+        return res.status(400).json({ message: 'zone ไม่ถูกต้อง' });
+    }
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+        return res.status(400).json({ message: 'พิกัดไม่ถูกต้อง' });
+    }
+    if (!Number.isInteger(price_per_month) || price_per_month <= 0) {
+        return res.status(400).json({ message: 'ราคาต้องเป็นจำนวนเต็มบวก' });
+    }
+
+    // ---- 5. เช็ก is_verified จาก DB ----
+    const checkSql = 'SELECT is_verified FROM users WHERE id = ?';
+    con.query(checkSql, [payload_jwt.id], (err, users) => {
+        if (err) {
+            return res.status(500).json({ message: 'DB error' });
+        }
+        if (users.length !== 1) {
+            return res.status(403).json({ message: 'ไม่พบผู้ใช้งาน' });
+        }
+        if (!users[0].is_verified) {
+            return res.status(403).json({ message: 'ผู้ใช้งานยังไม่ได้ยืนยันตัวตน' });
+        }
+
+        // ---- 6. INSERT โดยใช้ owner_id จาก token ----
+        const sql = 'INSERT INTO dormitories (owner_id, name, zone, latitude, longitude, price_per_month) VALUES (?, ?, ?, ?, ?, ?)';
+        con.query(sql, [payload_jwt.id, name, zone, latitude, longitude, price_per_month], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: 'DB error' });
+            }
+
+            // ---- 7. สำเร็จ ----
+            res.status(201).json({ message: 'เพิ่มหอพักสำเร็จ', id: result.insertId });
+        });
+    });
 });
+
+
+    app.listen(3000, () => {
+        console.log('server running at http://localhost:3000');
+    });
