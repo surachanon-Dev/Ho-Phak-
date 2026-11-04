@@ -13,13 +13,14 @@ const JWT_KEY = process.env.JWT_KEY;
 if (!JWT_KEY) {
     throw new Error('ยังไม่ได้ตั้งค่า JWT_KEY ใน .env');
 }
-
+// ================================ Hash ================== เดี่ยวลบตอนทำ register ให้ SQL hush เอา
 // Hash password 
 app.get('/api/password/:raw', (req, res) => {
     const hush = argon2.hashSync(req.params.raw);
     console.log(hush.length);
     res.send(hush);
 });
+// ========================================Login======================================
 
 // Login
 app.post('/api/login', (req, res) => {
@@ -63,6 +64,8 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+// =========================================Middleware======================
+
 // รับข้อมูลของ owner (ทดสอบ middleware)
 app.get('/api/owner/middleware', (req, res) => {
     // get JWT from http header
@@ -89,29 +92,58 @@ app.get('/api/owner/middleware', (req, res) => {
 
     //ด่านตรวจที่ 2 ตั้งด่านเชคสถานะว่ายศใหญ่อะป่าว check user role ตรงอะป่าว
     const role = payload_jwt.role;
-    if(role !== 'owner') {
+    if (role !== 'owner') {
         return res.status(401).json({ message: "Wrong user role มาจากไหนนิ admin อะป่าว เฉพาะ owner นะ" });
     }
 
     // ด่านตรวจที่ 3 เช็คว่า owner is_verified รึยัง กัน scammer นะ ตรวจผ่าน DB เลยเพื่อให้ได้ค่าล่าสุด
     const sql = 'SELECT is_verified FROM users WHERE id = ?';
-    con.query(sql , [payload_jwt.id] , (err, result) => {
-        
-        if(err) {
-            return res.status(500).json({message:'DB Error ละ'})
+    con.query(sql, [payload_jwt.id], (err, result) => {
+
+        if (err) {
+            return res.status(500).json({ message: 'DB Error ละ' })
         }
-        if(result.length !== 1) {
-            return res.status(403).json({message:'ไม่พบผู้ใช้งานละ'})
+        if (result.length !== 1) {
+            return res.status(403).json({ message: 'ไม่พบผู้ใช้งานละ' })
         }
-        if(!result[0].is_verified) {
-            return res.status(403).json({message:'ผู้ใช้งานยังไม่ได้ยืนยันตัวตนนะ'})
+        if (!result[0].is_verified) {
+            return res.status(403).json({ message: 'ผู้ใช้งานยังไม่ได้ยืนยันตัวตนนะ' })
         }
 
         // ผ่านทุกด่านตรวจ ส่งข้อมูลกลับไปทดสอบ
-    res.json({ message: "Welcome ครับ", user: payload_jwt });
+        res.json({ message: "Welcome ครับ", user: payload_jwt });
     });
 });
 
+
+// ========================Register===================================
+app.post('/api/auth/register', (req, res) => {
+    const { username, password } = req.body;
+    // 1. ตรวจว่ากรอกครบและ password ยาวพอไหม 
+    if (!username || !password) {
+        return res.status(400).json({ message: "กรอกข้อมูลให้ครบจ้าว" })
+    }
+    if (password.length < 8) {
+        return res.status(400).json({ message: 'password ต้องยาวอย่างน้อย 8 ตัว' });
+    }
+    // 2. hash password ก่อนเก็บลง DB 
+    const hash = argon2.hashSync(password);
+    // 3. INSERT INTO users (username, password, role, is_verified) VALUES (?, ?, 'owner', 0)
+    const sql = 'INSERT INTO users (username, password, role, is_verified) VALUES (?, ?, ?, ?)';
+    con.query(sql, [username, hash, 'owner', 0], (err, result) => {
+        // username ซ้ำ (ต้องมี UNIQUE ที่คอลัมน์ username)
+        if (err && err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ message: 'username นี้ถูกใช้แล้ว' });
+        }
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'DB error' });
+        }
+
+        // 4. สำเร็จ
+        res.status(201).json({ message: 'สมัครสมาชิกสำเร็จ', id: result.insertId });
+    });
+});
 
 
 app.listen(3000, () => {
