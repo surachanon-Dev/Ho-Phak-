@@ -16,4 +16,6 @@ Obsolete
 - npx json-server todo.json
 
 อันนี้เอาไว้ run
-node --watch app
+node --watch App.js
+สำหรัยรันพร้อม .env JWT_Key อู่ในนี้
+node --env-file=.env --watch App.js
