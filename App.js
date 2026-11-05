@@ -173,7 +173,7 @@ app.post('/api/auth/register', (req, res) => {
 
 // สร้างหอพักสำหรับเจ้าของหอ
 app.post('/api/owner/dormitories', (req, res) => {
-    // ---- middleware (เหมือนเดิม) ----
+    // middleware 
     const header = req.headers['authorization'];
     if (!header) {
         return res.status(401).json({ message: "ม่ายมี header นะ" });
@@ -193,7 +193,7 @@ app.post('/api/owner/dormitories', (req, res) => {
         return res.status(403).json({ message: 'เฉพาะ owner เท่านั้น' });
     }
 
-    // ---- 4. ตรวจข้อมูลที่ส่งมา ----
+    // ตรวจข้อมูลที่ส่งมา 
     const { name, zone, latitude, longitude, price_per_month } = req.body;
     if (!name || !zone || latitude == null || longitude == null || price_per_month == null) {
         return res.status(400).json({ message: 'กรอกข้อมูลให้ครบ' });
@@ -208,7 +208,7 @@ app.post('/api/owner/dormitories', (req, res) => {
         return res.status(400).json({ message: 'ราคาต้องเป็นจำนวนเต็มบวก' });
     }
 
-    // ---- 5. เช็ก is_verified จาก DB ----
+    // เช็ก is_verified จาก DB 
     const checkSql = 'SELECT is_verified FROM users WHERE id = ?';
     con.query(checkSql, [payload_jwt.id], (err, users) => {
         if (err) {
@@ -221,7 +221,7 @@ app.post('/api/owner/dormitories', (req, res) => {
             return res.status(403).json({ message: 'ผู้ใช้งานยังไม่ได้ยืนยันตัวตน' });
         }
 
-        // ---- 6. INSERT โดยใช้ owner_id จาก token ----
+        // INSERT โดยใช้ owner_id จาก token 
         const sql = 'INSERT INTO dormitories (owner_id, name, zone, latitude, longitude, price_per_month) VALUES (?, ?, ?, ?, ?, ?)';
         con.query(sql, [payload_jwt.id, name, zone, latitude, longitude, price_per_month], (err, result) => {
             if (err) {
@@ -229,7 +229,7 @@ app.post('/api/owner/dormitories', (req, res) => {
                 return res.status(500).json({ message: 'DB error' });
             }
 
-            // ---- 7. สำเร็จ ----
+            // 7. สำเร็จ 
             res.status(201).json({ message: 'เพิ่มหอพักสำเร็จ', id: result.insertId });
         });
     });
@@ -237,7 +237,7 @@ app.post('/api/owner/dormitories', (req, res) => {
 
 //  GET รายการหอของ owner คนนี้ 
 app.get('/api/owner/dormitories', (req, res) => {
-    // ---- middleware ----
+    //  middleware 
     const header = req.headers['authorization'];
     if (!header) {
         return res.status(401).json({ message: "ม่ายมี header นะ" });
@@ -257,7 +257,7 @@ app.get('/api/owner/dormitories', (req, res) => {
         return res.status(403).json({ message: 'เฉพาะ owner เท่านั้น' });
     }
 
-    // ---- เช็ก is_verified จาก DB ----
+    //  เช็ก is_verified จาก DB 
     const checkSql = 'SELECT is_verified FROM users WHERE id = ?';
     con.query(checkSql, [payload_jwt.id], (err, users) => {
         if (err) {
@@ -267,7 +267,7 @@ app.get('/api/owner/dormitories', (req, res) => {
             return res.status(403).json({ message: 'ผู้ใช้งานยังไม่ได้ยืนยันตัวตน' });
         }
 
-        // ---- ดึงรายการหอของ owner คนนี้ ----
+        //  ดึงรายการหอของ owner คนนี้ 
         const sql = 'SELECT * FROM dormitories WHERE owner_id = ?';
         con.query(sql, [payload_jwt.id], (err, dormitories) => {
             if (err) {
@@ -279,9 +279,9 @@ app.get('/api/owner/dormitories', (req, res) => {
     });
 });
 
-// ---- GET หอเดียว ----
+// GET หอเดียว 
 app.get('/api/owner/dormitories/:id', (req, res) => {
-    // ---- middleware ----
+    //  middleware 
     const header = req.headers['authorization'];
     if (!header) {
         return res.status(401).json({ message: "ม่ายมี header นะ" });
@@ -301,13 +301,13 @@ app.get('/api/owner/dormitories/:id', (req, res) => {
         return res.status(403).json({ message: 'เฉพาะ owner เท่านั้น' });
     }
 
-    // ---- ตรวจ id ต้องเป็นตัวเลข ----
+    //  ตรวจ id ต้องเป็นตัวเลข 
     const id = Number(req.params.id);
     if (!Number.isInteger(id)) {
         return res.status(404).json({ message: 'ไม่พบหอพัก' });
     }
 
-    // ---- เช็ก is_verified จาก DB ----
+    //  เช็ก is_verified จาก DB 
     const checkSql = 'SELECT is_verified FROM users WHERE id = ?';
     con.query(checkSql, [payload_jwt.id], (err, users) => {
         if (err) {
@@ -317,7 +317,7 @@ app.get('/api/owner/dormitories/:id', (req, res) => {
             return res.status(403).json({ message: 'ผู้ใช้งานยังไม่ได้ยืนยันตัวตน' });
         }
 
-        // ---- ดึงหอเดียว ต้องเป็นของ owner คนนี้ ----
+        //  ดึงหอเดียว ต้องเป็นของ owner คนนี้ 
         const sql = 'SELECT * FROM dormitories WHERE id = ? AND owner_id = ?';
         con.query(sql, [id, payload_jwt.id], (err, result) => {
             if (err) {
@@ -332,9 +332,9 @@ app.get('/api/owner/dormitories/:id', (req, res) => {
     });
 });
 
-// ---- PUT แก้ไขหอ (ส่งทุก field มาใหม่) ----
+//  PUT แก้ไขหอ 
 app.put('/api/owner/dormitories/:id', (req, res) => {
-    // ---- middleware ----
+    //  middleware 
     const header = req.headers['authorization'];
     if (!header) {
         return res.status(401).json({ message: "ม่ายมี header นะ" });
@@ -354,13 +354,13 @@ app.put('/api/owner/dormitories/:id', (req, res) => {
         return res.status(403).json({ message: 'เฉพาะ owner เท่านั้น' });
     }
 
-    // ---- ตรวจ id ----
+    //  ตรวจ id 
     const id = Number(req.params.id);
     if (!Number.isInteger(id)) {
         return res.status(404).json({ message: 'ไม่พบหอพัก' });
     }
 
-    // ---- ตรวจข้อมูลที่ส่งมา (เหมือน POST) ----
+    //  ตรวจข้อมูลที่ส่งมา 
     const { name, zone, latitude, longitude, price_per_month } = req.body;
     if (!name || !zone || latitude == null || longitude == null || price_per_month == null) {
         return res.status(400).json({ message: 'กรอกข้อมูลให้ครบ' });
@@ -375,7 +375,7 @@ app.put('/api/owner/dormitories/:id', (req, res) => {
         return res.status(400).json({ message: 'ราคาต้องเป็นจำนวนเต็มบวก' });
     }
 
-    // ---- เช็ก is_verified จาก DB ----
+    //  เช็ก is_verified จาก DB 
     const checkSql = 'SELECT is_verified FROM users WHERE id = ?';
     con.query(checkSql, [payload_jwt.id], (err, users) => {
         if (err) {
@@ -385,7 +385,7 @@ app.put('/api/owner/dormitories/:id', (req, res) => {
             return res.status(403).json({ message: 'ผู้ใช้งานยังไม่ได้ยืนยันตัวตน' });
         }
 
-        // ---- UPDATE เฉพาะหอของ owner คนนี้ ----
+        //  UPDATE เฉพาะหอของ owner คนนี้ 
         const sql = 'UPDATE dormitories SET name = ?, zone = ?, latitude = ?, longitude = ?, price_per_month = ? WHERE id = ? AND owner_id = ?';
         con.query(sql, [name, zone, latitude, longitude, price_per_month, id, payload_jwt.id], (err, result) => {
             if (err) {
@@ -400,9 +400,9 @@ app.put('/api/owner/dormitories/:id', (req, res) => {
     });
 });
 
-// ---- DELETE ลบหอ ----
+//  DELETE ลบหอ 
 app.delete('/api/owner/dormitories/:id', (req, res) => {
-    // ---- middleware ----
+    //  middleware 
     const header = req.headers['authorization'];
     if (!header) {
         return res.status(401).json({ message: "ม่ายมี header นะ" });
@@ -422,13 +422,13 @@ app.delete('/api/owner/dormitories/:id', (req, res) => {
         return res.status(403).json({ message: 'เฉพาะ owner เท่านั้น' });
     }
 
-    // ---- ตรวจ id ----
+    //  ตรวจ id 
     const id = Number(req.params.id);
     if (!Number.isInteger(id)) {
         return res.status(404).json({ message: 'ไม่พบหอพัก' });
     }
 
-    // ---- เช็ก is_verified จาก DB ----
+    //  เช็ก is_verified จาก DB 
     const checkSql = 'SELECT is_verified FROM users WHERE id = ?';
     con.query(checkSql, [payload_jwt.id], (err, users) => {
         if (err) {
@@ -438,7 +438,7 @@ app.delete('/api/owner/dormitories/:id', (req, res) => {
             return res.status(403).json({ message: 'ผู้ใช้งานยังไม่ได้ยืนยันตัวตน' });
         }
 
-        // ---- DELETE เฉพาะหอของ owner คนนี้ ----
+        //  DELETE เฉพาะหอของ owner คนนี้ 
         const sql = 'DELETE FROM dormitories WHERE id = ? AND owner_id = ?';
         con.query(sql, [id, payload_jwt.id], (err, result) => {
             if (err) {
