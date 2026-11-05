@@ -373,6 +373,59 @@ app.put('/api/owner/dormitories/:id', (req, res) => {
     });
 });
 
+// ---- DELETE ลบหอ ----
+app.delete('/api/owner/dormitories/:id', (req, res) => {
+    // ---- middleware ----
+    const header = req.headers['authorization'];
+    if (!header) {
+        return res.status(401).json({ message: "ม่ายมี header นะ" });
+    }
+    if (!header.startsWith('Bearer ')) {
+        return res.status(401).json({ message: "ต้องขึ้นต้นด้วย Bearer" });
+    }
+    const token = header.split(' ')[1];
+    let payload_jwt;
+    try {
+        payload_jwt = jwt.verify(token, JWT_KEY);
+    } catch (err) {
+        const message = err.name === 'TokenExpiredError' ? 'token หมดอายุแล้ว' : 'token ไม่ถูกต้อง';
+        return res.status(401).json({ message });
+    }
+    if (payload_jwt.role !== 'owner') {
+        return res.status(403).json({ message: 'เฉพาะ owner เท่านั้น' });
+    }
+
+    // ---- ตรวจ id ----
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) {
+        return res.status(404).json({ message: 'ไม่พบหอพัก' });
+    }
+
+    // ---- เช็ก is_verified จาก DB ----
+    const checkSql = 'SELECT is_verified FROM users WHERE id = ?';
+    con.query(checkSql, [payload_jwt.id], (err, users) => {
+        if (err) {
+            return res.status(500).json({ message: 'DB error' });
+        }
+        if (users.length !== 1 || !users[0].is_verified) {
+            return res.status(403).json({ message: 'ผู้ใช้งานยังไม่ได้ยืนยันตัวตน' });
+        }
+
+        // ---- DELETE เฉพาะหอของ owner คนนี้ ----
+        const sql = 'DELETE FROM dormitories WHERE id = ? AND owner_id = ?';
+        con.query(sql, [id, payload_jwt.id], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: 'DB error' });
+            }
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ message: 'ไม่พบหอพัก' });
+            }
+            res.status(200).json({ message: 'ลบหอพักสำเร็จ' });
+        });
+    });
+});
+
 
     app.listen(3000, () => {
         console.log('server running at http://localhost:3000');
