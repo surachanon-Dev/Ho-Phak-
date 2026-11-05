@@ -1,21 +1,26 @@
 # Ho-Phak-
-Project Mobile Appication รวบรวมหอพักใกล้มหาลัย
 
-ติดตั้งอันนี้ก่อนใช้นะ
-- node -v   
-- cmd   
-- npm init -y   
-- npm install express mysql2 cors   
-- npm install @node-rs/argon2   
-- npm install jsonwebtoken   
+แอปรวบรวมหอพักใกล้มหาวิทยาลัยแม่ฟ้าหลวง แบ่งเป็นสองฝั่งอยู่ในโปรเจกต์เดียวกัน
 
-อันนี้อย่าเพิ่งไปยุ่งมัน
-Obsolete   
-- npm install json-server   
-- create todo.json   
-- npx json-server todo.json
+| ฝั่ง | โฟลเดอร์ | เทคโนโลยี | README |
+|---|---|---|---|
+| Backend | `backend/` | Node.js, Express, MySQL | [backend/README.md](backend/README.md) |
+| Frontend | `frontend/` | Flutter | [frontend/README.md](frontend/README.md) |
 
-อันนี้เอาไว้ run
-node --watch App.js
-สำหรัยรันพร้อม .env JWT_Key อู่ในนี้
-node --env-file=.env --watch App.js
+## เริ่มต้นอย่างย่อ
+
+1. เปิด MySQL ใน XAMPP
+2. รัน backend ตามขั้นตอนใน [backend/README.md](backend/README.md)
+3. รัน frontend ตามขั้นตอนใน [frontend/README.md](frontend/README.md)
+
+## บทบาทในระบบ
+
+- **owner** เจ้าของหอ สมัครเองและต้องยืนยันตัวตนก่อนจัดการหอพักได้
+- **student** นักศึกษา (ยังไม่ได้ทำ)
+- **admin** ผู้ดูแลระบบ (ยังไม่ได้ทำ)
+
+## Branch
+
+- `main` ใช้เป็นหลัก
+- `Backend-Bank` งานฝั่ง backend
+- `Frontend-*` งานฝั่ง frontend ของแต่ละคน
