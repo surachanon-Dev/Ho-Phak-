@@ -206,8 +206,8 @@ app.post('/api/owner/dormitories', (req, res) => {
     if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
         return res.status(400).json({ message: 'พิกัดไม่ถูกต้อง' });
     }
-    if (!Number.isInteger(price_per_month) || price_per_month <= 0) {
-        return res.status(400).json({ message: 'ราคาต้องเป็นจำนวนเต็มบวก' });
+    if (!Number.isInteger(price_per_month) || price_per_month <= 0 || price_per_month > 1000000) {
+        return res.status(400).json({ message: 'ราคาต้องเป็นจำนวนเต็มระหว่าง 1 ถึง 1,000,000' });
     }
 
     // เช็ก is_verified จาก DB 
@@ -373,8 +373,8 @@ app.put('/api/owner/dormitories/:id', (req, res) => {
     if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
         return res.status(400).json({ message: 'พิกัดไม่ถูกต้อง' });
     }
-    if (!Number.isInteger(price_per_month) || price_per_month <= 0) {
-        return res.status(400).json({ message: 'ราคาต้องเป็นจำนวนเต็มบวก' });
+    if (!Number.isInteger(price_per_month) || price_per_month <= 0 || price_per_month > 1000000) {
+        return res.status(400).json({ message: 'ราคาต้องเป็นจำนวนเต็มระหว่าง 1 ถึง 1,000,000' });
     }
 
     //  เช็ก is_verified จาก DB 
