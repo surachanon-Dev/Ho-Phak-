@@ -34,7 +34,10 @@ class _DormitoryListScreenState extends State<DormitoryListScreen> {
   }
 
   void _reload() {
-    setState(() => _future = _load());
+    // ห้ามให้ callback ของ setState คืนค่า Future จึงใช้ block แทน arrow
+    setState(() {
+      _future = _load();
+    });
   }
 
   Future<void> _backToLogin() async {
