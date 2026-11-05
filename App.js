@@ -305,6 +305,74 @@ app.get('/api/owner/dormitories/:id', (req, res) => {
     });
 });
 
+// ---- PUT แก้ไขหอ (ส่งทุก field มาใหม่) ----
+app.put('/api/owner/dormitories/:id', (req, res) => {
+    // ---- middleware ----
+    const header = req.headers['authorization'];
+    if (!header) {
+        return res.status(401).json({ message: "ม่ายมี header นะ" });
+    }
+    if (!header.startsWith('Bearer ')) {
+        return res.status(401).json({ message: "ต้องขึ้นต้นด้วย Bearer" });
+    }
+    const token = header.split(' ')[1];
+    let payload_jwt;
+    try {
+        payload_jwt = jwt.verify(token, JWT_KEY);
+    } catch (err) {
+        const message = err.name === 'TokenExpiredError' ? 'token หมดอายุแล้ว' : 'token ไม่ถูกต้อง';
+        return res.status(401).json({ message });
+    }
+    if (payload_jwt.role !== 'owner') {
+        return res.status(403).json({ message: 'เฉพาะ owner เท่านั้น' });
+    }
+
+    // ---- ตรวจ id ----
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) {
+        return res.status(404).json({ message: 'ไม่พบหอพัก' });
+    }
+
+    // ---- ตรวจข้อมูลที่ส่งมา (เหมือน POST) ----
+    const { name, zone, latitude, longitude, price_per_month } = req.body;
+    if (!name || !zone || latitude == null || longitude == null || price_per_month == null) {
+        return res.status(400).json({ message: 'กรอกข้อมูลให้ครบ' });
+    }
+    if (!['หน้ามอ', 'หลังมอ', 'คชพลแลนด์'].includes(zone)) {
+        return res.status(400).json({ message: 'zone ไม่ถูกต้อง' });
+    }
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+        return res.status(400).json({ message: 'พิกัดไม่ถูกต้อง' });
+    }
+    if (!Number.isInteger(price_per_month) || price_per_month <= 0) {
+        return res.status(400).json({ message: 'ราคาต้องเป็นจำนวนเต็มบวก' });
+    }
+
+    // ---- เช็ก is_verified จาก DB ----
+    const checkSql = 'SELECT is_verified FROM users WHERE id = ?';
+    con.query(checkSql, [payload_jwt.id], (err, users) => {
+        if (err) {
+            return res.status(500).json({ message: 'DB error' });
+        }
+        if (users.length !== 1 || !users[0].is_verified) {
+            return res.status(403).json({ message: 'ผู้ใช้งานยังไม่ได้ยืนยันตัวตน' });
+        }
+
+        // ---- UPDATE เฉพาะหอของ owner คนนี้ ----
+        const sql = 'UPDATE dormitories SET name = ?, zone = ?, latitude = ?, longitude = ?, price_per_month = ? WHERE id = ? AND owner_id = ?';
+        con.query(sql, [name, zone, latitude, longitude, price_per_month, id, payload_jwt.id], (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ message: 'DB error' });
+            }
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ message: 'ไม่พบหอพัก' });
+            }
+            res.status(200).json({ message: 'แก้ไขหอพักสำเร็จ' });
+        });
+    });
+});
+
 
     app.listen(3000, () => {
         console.log('server running at http://localhost:3000');
