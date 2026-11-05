@@ -64,6 +64,31 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+// ===========================Log out=======================================
+
+app.post('/api/auth/logout', (req, res) => {
+    // ตรวจ header
+    const header = req.headers['authorization'];
+    if (!header) {
+        return res.status(401).json({ message: "ม่ายมี header นะ" });
+    }
+    if (!header.startsWith('Bearer ')) {
+        return res.status(401).json({ message: "ต้องขึ้นต้นด้วย Bearer" });
+    }
+
+    // ตรวจ token
+    const token = header.split(' ')[1];
+    try {
+        jwt.verify(token, JWT_KEY);
+    } catch (err) {
+        const message = err.name === 'TokenExpiredError' ? 'token หมดอายุแล้ว' : 'token ไม่ถูกต้อง';
+        return res.status(401).json({ message });
+    }
+
+    //  ผ่านแล้ว ให้ client ลบ token ที่เก็บไว้ 
+    res.status(200).json({ message: 'ออกจากระบบสำเร็จ' });
+});
+
 // =========================================Middleware======================
 
 // รับข้อมูลของ owner (ทดสอบ middleware)
@@ -145,6 +170,8 @@ app.post('/api/auth/register', (req, res) => {
 });
 
 // ========================Dormitory CRUD===================================
+
+// สร้างหอพักสำหรับเจ้าของหอ
 app.post('/api/owner/dormitories', (req, res) => {
     // ---- middleware (เหมือนเดิม) ----
     const header = req.headers['authorization'];
@@ -208,7 +235,7 @@ app.post('/api/owner/dormitories', (req, res) => {
     });
 });
 
-// ---- GET รายการหอของ owner คนนี้ ----
+//  GET รายการหอของ owner คนนี้ 
 app.get('/api/owner/dormitories', (req, res) => {
     // ---- middleware ----
     const header = req.headers['authorization'];
