@@ -16,6 +16,7 @@ if (!JWT_KEY) {
     throw new Error('ยังไม่ได้ตั้งค่า JWT_KEY ใน .env');
 }
 // ================================ Hash ================== เดี่ยวลบตอนทำ register ให้ SQL hush เอา
+// หมายเหตุ register hush โดยอัตโนมัตอยู่แล้ว ส่งเขาไปใน DB โดยตรงเลย
 // Hash password 
 app.get('/api/password/:raw', (req, res) => {
     const hush = argon2.hashSync(req.params.raw);
