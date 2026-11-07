@@ -1,94 +1,203 @@
 import 'package:flutter/material.dart';
 
-import '../services/api_service.dart';
+import '../services/app_services.dart';
+import '../ui/app_theme.dart';
+import '../ui/error_handling.dart';
 
+/// หน้า Sign Up ตามดีไซน์: ชื่อ, นามสกุล, เบอร์โทร, รหัสผ่าน, ยืนยันรหัสผ่าน
+/// backend สร้างบัญชีเป็นนักศึกษาเสมอ ชื่อ-นามสกุลถูกส่งเป็น username
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  const RegisterScreen({super.key, required this.services});
+
+  final AppServices services;
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _first = TextEditingController();
+  final _surname = TextEditingController();
+  final _phone = TextEditingController();
+  final _password = TextEditingController();
+  final _confirm = TextEditingController();
   bool _loading = false;
+  String? _error;
 
   @override
   void dispose() {
-    _usernameController.dispose();
-    _passwordController.dispose();
+    for (final c in [_first, _surname, _phone, _password, _confirm]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
-  Future<void> _register() async {
-    final username = _usernameController.text.trim();
-    final password = _passwordController.text;
-
-    // ตรวจฝั่งแอปก่อนส่ง backend จะตรวจซ้ำอีกที
-    if (username.isEmpty || password.isEmpty) {
-      _showMessage('กรอก username และ password ให้ครบ');
-      return;
-    }
-    if (password.length < 8) {
-      _showMessage('password ต้องยาวอย่างน้อย 8 ตัวอักษร');
-      return;
-    }
-
-    setState(() => _loading = true);
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
-      await ApiService.register(username, password);
+      await widget.services.auth.register(
+        _phone.text.trim(),
+        _password.text,
+        _confirm.text,
+        username: '${_first.text.trim()} ${_surname.text.trim()}',
+      );
       if (!mounted) return;
-      _showMessage('สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ');
-      Navigator.of(context).pop();
-    } on ApiException catch (e) {
-      _showMessage(e.message);
-    } catch (_) {
-      _showMessage('เชื่อมต่อ server ไม่ได้');
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Sign Up สำเร็จ'),
+          content: const Text('เข้าสู่ระบบด้วยเบอร์โทรและรหัสผ่านที่สมัครไว้'),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('ตกลง'),
+            ),
+          ],
+        ),
+      );
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      // เบอร์ซ้ำจะได้ 409 พร้อมข้อความจาก server แสดงใต้ฟอร์ม
+      if (!mounted) return;
+      final msg = e.toString();
+      if (msg.contains('เบอร์') || msg.contains('ถูกใช้')) {
+        setState(() => _error = 'เบอร์โทรนี้ถูกใช้แล้ว');
+      } else {
+        showApiError(context, widget.services, e);
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  void _showMessage(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-  }
+  Widget _label(String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Text(text, style: const TextStyle(fontSize: 13)),
+  );
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('สมัครสมาชิกเจ้าของหอ')),
+      appBar: AppBar(
+        title: const Text('Hopak'),
+        leading: BackButton(
+          onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
+        ),
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                TextField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(labelText: 'Username', border: OutlineInputBorder()),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password (อย่างน้อย 8 ตัว)',
-                    border: OutlineInputBorder(),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Sign Up',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: _loading ? null : _register,
-                  child: _loading
-                      ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('สมัครสมาชิก'),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  const Text(
+                    'สร้างบัญชีใหม่',
+                    style: TextStyle(color: AppColors.textMuted),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  _label('ชื่อ'),
+                  TextFormField(
+                    controller: _first,
+                    decoration: const InputDecoration(hintText: 'First name'),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'กรุณากรอกชื่อ'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  _label('นามสกุล'),
+                  TextFormField(
+                    controller: _surname,
+                    decoration: const InputDecoration(hintText: 'Surname'),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'กรุณากรอกนามสกุล'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  _label('เบอร์โทรศัพท์'),
+                  TextFormField(
+                    controller: _phone,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      hintText: '+66 000-0000000',
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'กรุณากรอกเบอร์โทรศัพท์'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  _label('รหัสผ่าน'),
+                  TextFormField(
+                    controller: _password,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter password',
+                      helperText: 'อย่างน้อย 8 ตัวอักษร',
+                    ),
+                    validator: (v) => (v == null || v.length < 8)
+                        ? 'รหัสผ่านต้องยาวอย่างน้อย 8 ตัว'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  _label('ยืนยันรหัสผ่าน'),
+                  TextFormField(
+                    controller: _confirm,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Confirm password',
+                    ),
+                    validator: (v) =>
+                        v != _password.text ? 'รหัสผ่านไม่ตรงกัน' : null,
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      _error!,
+                      style: const TextStyle(
+                        color: AppColors.danger,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  FilledButton(
+                    onPressed: _loading ? null : _submit,
+                    child: _loading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Sign Up'),
+                  ),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Already have an account? Sign In'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
