@@ -86,34 +86,49 @@ class _AdminModerationTabState extends State<AdminModerationTab> {
     required bool suspended,
     required VoidCallback onAction,
   }) {
+    // จัดวางแนวตั้ง: ชื่อเต็มความกว้าง แล้วค่อยมีสถานะกับปุ่มด้านล่าง
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-        subtitle: Text(subtitle),
-        trailing: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              statusText,
-              style: TextStyle(
-                fontSize: 12,
-                color: suspended ? AppColors.danger : AppColors.textMuted,
-              ),
+              title,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+              softWrap: true,
             ),
-            const SizedBox(height: 4),
-            if (suspended)
-              OutlinedButton(onPressed: onAction, child: const Text('คืนสถานะ'))
-            else
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.danger,
-                  minimumSize: const Size(0, 36),
+            const SizedBox(height: 2),
+            Text(subtitle, style: const TextStyle(color: AppColors.textMuted)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'สถานะ: $statusText',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: suspended ? AppColors.danger : AppColors.textMuted,
+                    ),
+                  ),
                 ),
-                onPressed: onAction,
-                child: const Text('ระงับ'),
-              ),
+                if (suspended)
+                  OutlinedButton(
+                    onPressed: onAction,
+                    child: const Text('คืนสถานะ'),
+                  )
+                else
+                  FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.danger,
+                      minimumSize: const Size(0, 36),
+                    ),
+                    onPressed: onAction,
+                    child: const Text('ระงับ'),
+                  ),
+              ],
+            ),
           ],
         ),
       ),

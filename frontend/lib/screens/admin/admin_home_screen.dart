@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import '../../services/app_services.dart';
 import 'admin_logs_tab.dart';
 import 'admin_moderation_tab.dart';
+import 'admin_profile_tab.dart';
 import 'admin_queue_tab.dart';
 import 'admin_reviews_tab.dart';
 
-/// โครงหลักของแอดมิน: คิวตรวจ / รีวิว / ระงับ / ประวัติ
+/// โครงหลักของแอดมิน: คิวตรวจ / รีวิว / ระงับ / ประวัติ / โปรไฟล์
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key, required this.services});
 
@@ -30,6 +31,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           AdminReviewsTab(services: s),
           AdminModerationTab(services: s),
           AdminLogsTab(services: s),
+          AdminProfileTab(services: s),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -55,6 +57,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             icon: Icon(Icons.history_outlined),
             selectedIcon: Icon(Icons.history),
             label: 'ประวัติ',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'โปรไฟล์',
           ),
         ],
       ),
