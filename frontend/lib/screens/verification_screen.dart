@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 
 import '../models/verification.dart';
+import '../services/api_client.dart';
 import '../services/app_services.dart';
 import '../ui/error_handling.dart';
 import 'login_screen.dart';
@@ -23,7 +25,28 @@ class VerificationScreen extends StatefulWidget {
 
 class _VerificationScreenState extends State<VerificationScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _docUrl = TextEditingController();
+  UploadFile? _picked;
+
+  /// เลือกไฟล์เอกสาร (pdf, jpg, png) อ่านเป็น bytes เพื่อส่งแบบ multipart
+  Future<void> _pick() async {
+    final f = await FilePicker.pickFile(
+      type: FileType.custom,
+      allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+    if (f == null) return;
+    final size = await f.length() ?? 0;
+    if (size > 10 * 1024 * 1024) {
+      if (mounted) {
+        ScaffoldMessenger.maybeOf(context)
+            ?.showSnackBar(const SnackBar(content: Text('ไฟล์ใหญ่เกิน 10 MB')));
+      }
+      return;
+    }
+    final bytes = await f.readAsBytes();
+    if (!mounted) return;
+    setState(() => _picked = UploadFile(bytes: bytes, filename: f.name));
+  }
+
   Verification? _current;
   bool _loading = true;
   bool _saving = false;
@@ -36,7 +59,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   @override
   void dispose() {
-    _docUrl.dispose();
     super.dispose();
   }
 
@@ -56,8 +78,15 @@ class _VerificationScreenState extends State<VerificationScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     try {
-      await widget.services.verification.submit(_docUrl.text.trim());
-      _docUrl.clear();
+      final file = _picked;
+      if (file == null) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          const SnackBar(content: Text('กรุณาเลือกไฟล์เอกสารก่อน')),
+        );
+        return;
+      }
+      await widget.services.verification.submit(file);
+      setState(() => _picked = null);
       await _load();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -119,7 +148,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 if (v?.documentUrl != null)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Text('เอกสารที่ส่งแล้ว: ${v!.documentUrl}'),
+                    child: const Text('ส่งเอกสารยืนยันแล้ว'),
                   ),
                 const SizedBox(height: 16),
                 if (_canSubmit)
@@ -128,22 +157,14 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        TextFormField(
-                          controller: _docUrl,
-                          keyboardType: TextInputType.url,
-                          decoration: const InputDecoration(
-                            labelText: 'ลิงก์เอกสารยืนยัน',
-                            hintText: 'https://...',
-                            helperText: 'ยังไม่รองรับการอัปโหลดไฟล์ ให้กรอกลิงก์เอกสารไปก่อน',
-                            border: OutlineInputBorder(),
+                        OutlinedButton.icon(
+                          onPressed: _saving ? null : _pick,
+                          icon: const Icon(Icons.upload_file),
+                          label: Text(
+                            _picked == null
+                                ? 'เลือกไฟล์เอกสาร (pdf, jpg, png ไม่เกิน 10 MB)'
+                                : _picked!.filename,
                           ),
-                          validator: (v) {
-                            final t = (v ?? '').trim();
-                            if (t.isEmpty) return 'กรุณากรอกลิงก์เอกสาร';
-                            return t.startsWith('http')
-                                ? null
-                                : 'ลิงก์ต้องขึ้นต้นด้วย http';
-                          },
                         ),
                         const SizedBox(height: 12),
                         FilledButton(

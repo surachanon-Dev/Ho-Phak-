@@ -40,6 +40,38 @@ class _AdminHomeScreenState extends State<AdminQueueTab> {
     }
   }
 
+  /// ดาวน์โหลดเอกสารยืนยันตัวตน: ภาพแสดงตัวอย่างได้ ส่วน PDF แสดงแค่ข้อมูลไฟล์
+  Future<void> _viewDocument(int verificationId) async {
+    try {
+      final bytes = await _admin.verificationDocument(verificationId);
+      if (!mounted) return;
+      final isImage =
+          bytes.length > 3 &&
+          ((bytes[0] == 0xFF && bytes[1] == 0xD8) || // jpg
+              (bytes[0] == 0x89 && bytes[1] == 0x50)); // png
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('เอกสารยืนยัน #$verificationId'),
+          content: isImage
+              ? Image.memory(bytes, fit: BoxFit.contain)
+              : Text(
+                  'ไฟล์ ${(bytes.length / 1024).toStringAsFixed(0)} KB '
+                  '(PDF ยังไม่มีตัวอย่างในแอป)',
+                ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('ปิด'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (mounted) showApiError(context, widget.services, e);
+    }
+  }
+
   Future<void> _approve(Future<void> Function() action) async {
     try {
       await action();
@@ -200,8 +232,12 @@ class _AdminHomeScreenState extends State<AdminQueueTab> {
                     for (final v in q.verifications)
                       _item(
                         'เบอร์ ${v['owner_phone']}',
-                        '${v['document_url']}',
+                        'ส่งเมื่อ ${v['submitted_at']}',
                         [
+                          TextButton(
+                            onPressed: () => _viewDocument(v['id'] as int),
+                            child: const Text('ดูเอกสาร'),
+                          ),
                           TextButton(
                             onPressed: () => _reject(
                               (r) =>

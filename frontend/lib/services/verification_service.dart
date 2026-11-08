@@ -14,8 +14,11 @@ class VerificationService {
     return v == null ? null : Verification.fromJson(v as Map<String, dynamic>);
   }
 
-  /// POST /api/owner/verification { document_url }
-  /// ยังไม่มีการอัปโหลดไฟล์จริง รับเป็น URL ไปก่อน
-  Future<void> submit(String documentUrl) =>
-      _api.post('/api/owner/verification', {'document_url': documentUrl});
+  /// POST /api/owner/verification (multipart) ไฟล์เดียวในช่อง "document"
+  /// รองรับ pdf, jpg, png ไม่เกิน 10 MB
+  Future<void> submit(UploadFile document) => _api.uploadFiles(
+    '/api/owner/verification',
+    fieldName: 'document',
+    files: [document],
+  );
 }

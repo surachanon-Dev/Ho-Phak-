@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../models/dormitory.dart';
+import '../services/api_client.dart';
 import '../services/app_services.dart';
 
 import 'package:latlong2/latlong.dart';
@@ -40,6 +42,8 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
   String? _waterType;
   String? _electricityType;
   bool _saving = false;
+  bool _busyImages = false;
+  List<DormImage> _images = [];
 
   bool get _isEdit => widget.existing != null;
 
@@ -61,6 +65,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
     _lat = TextEditingController(text: d?.latitude.toString() ?? '');
     _lng = TextEditingController(text: d?.longitude.toString() ?? '');
     _zone = d?.zone ?? dormZones.first;
+    _images = List.of(d?.images ?? const []);
     _waterType = d?.waterBillingType;
     _electricityType = d?.electricityBillingType;
   }
@@ -211,6 +216,131 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
   }
 
   Widget _gap() => const SizedBox(height: 12);
+
+  /// ส่วนรูปหอพัก: ดูรูปเดิม ลบทีละรูป และเพิ่มได้สูงสุด 10 รูปต่อหอ
+  Widget _imagesSection() {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'รูปหอพัก (${_images.length}/10)',
+          style: theme.textTheme.titleSmall,
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final img in _images)
+              SizedBox(
+                width: 96,
+                height: 96,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        img.fullUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const ColoredBox(
+                          color: Colors.black12,
+                          child: Icon(Icons.broken_image_outlined),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 2,
+                      right: 2,
+                      child: InkWell(
+                        onTap: _busyImages ? null : () => _deleteImage(img),
+                        child: const CircleAvatar(
+                          radius: 12,
+                          backgroundColor: Colors.black54,
+                          child: Icon(
+                            Icons.close,
+                            size: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (_images.length < 10)
+              OutlinedButton.icon(
+                onPressed: _busyImages ? null : _pickAndUploadImages,
+                icon: const Icon(Icons.add_photo_alternate_outlined),
+                label: const Text('เพิ่มรูป'),
+              ),
+          ],
+        ),
+        if (_busyImages) ...[
+          const SizedBox(height: 8),
+          const LinearProgressIndicator(),
+        ],
+      ],
+    );
+  }
+
+  /// เลือกรูป (สูงสุด 5 รูปต่อครั้ง ไม่เกิน 10 รูปต่อหอ) แล้วอัปโหลด
+  Future<void> _pickAndUploadImages() async {
+    final remaining = 10 - _images.length;
+    final picked = await ImagePicker().pickMultiImage(
+      limit: remaining > 5 ? 5 : remaining,
+      imageQuality: 90,
+    );
+    if (picked.isEmpty) return;
+    final files = <UploadFile>[];
+    for (final p in picked) {
+      final bytes = await p.readAsBytes();
+      if (bytes.length > 5 * 1024 * 1024) {
+        _snack('รูป ${p.name} ใหญ่เกิน 5 MB');
+        return;
+      }
+      files.add(UploadFile(bytes: bytes, filename: p.name));
+    }
+    setState(() => _busyImages = true);
+    try {
+      await widget.services.dormitories.uploadImages(
+        widget.existing!.id,
+        files,
+      );
+      await _reloadImages();
+      _snack('อัปโหลดรูปแล้ว');
+    } catch (e) {
+      if (mounted) showApiError(context, widget.services, e);
+    } finally {
+      if (mounted) setState(() => _busyImages = false);
+    }
+  }
+
+  Future<void> _deleteImage(DormImage img) async {
+    setState(() => _busyImages = true);
+    try {
+      await widget.services.dormitories.deleteImage(
+        widget.existing!.id,
+        img.id,
+      );
+      await _reloadImages();
+    } catch (e) {
+      if (mounted) showApiError(context, widget.services, e);
+    } finally {
+      if (mounted) setState(() => _busyImages = false);
+    }
+  }
+
+  /// โหลดรายการรูปใหม่จากรายละเอียดหอพัก
+  Future<void> _reloadImages() async {
+    final fresh = await widget.services.dormitories.get(widget.existing!.id);
+    if (mounted) setState(() => _images = List.of(fresh.images));
+  }
+
+  void _snack(String text) =>
+      ScaffoldMessenger.maybeOf(context)
+          ?.showSnackBar(SnackBar(content: Text(text)));
 
   /// เปิดหน้าปักหมุด แล้วเอาพิกัดที่เลือกไปใส่ในช่อง lat/lng
   Future<void> _pickLocation() async {
@@ -441,6 +571,10 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                         ),
                       ],
                     ),
+                    if (_isEdit) ...[
+                      const SizedBox(height: 24),
+                      _imagesSection(),
+                    ],
                     const SizedBox(height: 24),
                     FilledButton(
                       onPressed: _saving ? null : _save,

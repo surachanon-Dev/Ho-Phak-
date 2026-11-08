@@ -7,6 +7,7 @@ const userModel = require('../models/userModel');
 const reviewModel = require('../models/reviewModel');
 const adminLogModel = require('../models/adminLogModel');
 const notificationModel = require('../models/notificationModel');
+const verificationService = require('./verificationService');
 const { withTransaction } = require('../utils/transaction');
 const { fail } = require('../utils/AppError');
 const { toInt, optionalText, parseDormitory } = require('../utils/validators');
@@ -206,6 +207,10 @@ async function logs() {
     return adminLogModel.listRecent();
 }
 
+async function verificationDocument(rawId) {
+    return verificationService.getDocumentFile(rawId);
+}
+
 const DORM_STATUSES = ['pending', 'published', 'changes_pending', 'rejected', 'hidden', 'suspended'];
 const USER_ROLES = ['student', 'owner', 'admin'];
 const USER_STATUSES = ['active', 'suspended'];
@@ -228,5 +233,5 @@ async function listUsers({ role, status }) {
 module.exports = {
     queue, approveDormitory, rejectDormitory, suspendDormitory, restoreDormitory,
     approveVerification, rejectVerification, suspendUser, restoreUser,
-    listReviews, publishReview, hideReview, logs, listDormitories, listUsers,
+    listReviews, publishReview, hideReview, logs, listDormitories, listUsers, verificationDocument,
 };

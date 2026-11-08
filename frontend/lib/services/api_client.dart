@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -17,6 +18,14 @@ class ApiException implements Exception {
 
   @override
   String toString() => message;
+}
+
+/// ไฟล์ที่จะอัปโหลด (จาก file picker หรือ image picker)
+class UploadFile {
+  UploadFile({required this.bytes, required this.filename});
+
+  final Uint8List bytes;
+  final String filename;
 }
 
 class ApiClient {
@@ -58,16 +67,21 @@ class ApiClient {
       _send(() => _client.delete(_uri(path), headers: _headers(json: false)));
 
   /// อัปโหลดไฟล์แบบ multipart (ใช้กับรูปหอพัก)
-  Future<dynamic> uploadFile(
+  Future<dynamic> uploadFiles(
     String path, {
     required String fieldName,
-    required List<int> bytes,
-    required String filename,
+    required List<UploadFile> files,
   }) async {
     final request = http.MultipartRequest('POST', _uri(path))
       ..headers.addAll(_headers(json: false))
-      ..files.add(
-        http.MultipartFile.fromBytes(fieldName, bytes, filename: filename),
+      ..files.addAll(
+        files.map(
+          (f) => http.MultipartFile.fromBytes(
+            fieldName,
+            f.bytes,
+            filename: f.filename,
+          ),
+        ),
       );
     try {
       final streamed = await request.send().timeout(_timeout);
@@ -78,6 +92,21 @@ class ApiClient {
     } catch (_) {
       throw _networkError();
     }
+  }
+
+  /// ดึงไฟล์ดิบ (เช่น เอกสารยืนยันตัวตนของแอดมิน) พร้อมต้องแนบ token
+  Future<Uint8List> getBytes(String path) async {
+    final http.Response res;
+    try {
+      res = await _client
+          .get(_uri(path), headers: _headers(json: false))
+          .timeout(_timeout);
+    } catch (_) {
+      throw _networkError();
+    }
+    if (res.statusCode >= 200 && res.statusCode < 300) return res.bodyBytes;
+    _decode(res); // จะโยน ApiException พร้อมข้อความจาก server
+    throw ApiException(res.statusCode, 'ดาวน์โหลดไม่สำเร็จ');
   }
 
   Future<dynamic> _send(Future<http.Response> Function() call) async {

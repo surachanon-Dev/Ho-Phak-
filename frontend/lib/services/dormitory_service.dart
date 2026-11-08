@@ -44,6 +44,15 @@ class DormitoryService {
     return data['status'] as String;
   }
 
+  /// POST /api/owner/dormitories/:id/images (multipart, ช่อง "images" สูงสุด 5 ไฟล์)
+  /// jpg, png, webp ไม่เกิน 5 MB ต่อไฟล์ รวมไม่เกิน 10 รูปต่อหอ
+  Future<void> uploadImages(int dormId, List<UploadFile> files) => _api
+      .uploadFiles('$_base/$dormId/images', fieldName: 'images', files: files);
+
+  /// DELETE /api/owner/dormitories/:id/images/:imageId
+  Future<void> deleteImage(int dormId, int imageId) =>
+      _api.delete('$_base/$dormId/images/$imageId');
+
   /// GET /api/owner/dormitories/:id/reviews → { reviews: [...] } เฉพาะที่เผยแพร่แล้ว
   Future<List<OwnerReview>> reviews(int id) async {
     final data = await _api.get('$_base/$id/reviews') as Map<String, dynamic>;

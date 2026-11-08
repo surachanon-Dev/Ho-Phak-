@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'api_client.dart';
 
 /// รายการที่รอตรวจจาก GET /api/admin/queue
@@ -82,6 +84,10 @@ class AdminService {
   /// POST /api/admin/users/:id/restore
   Future<void> restoreUser(int id) =>
       _api.post('/api/admin/users/$id/restore', const {});
+
+  /// GET /api/admin/verifications/:id/document → ไฟล์เอกสาร (ไม่เปิดสาธารณะ ต้องใช้ token แอดมิน)
+  Future<Uint8List> verificationDocument(int id) =>
+      _api.getBytes('/api/admin/verifications/$id/document');
 
   /// GET /api/admin/dormitories?status= → { dormitories: [...] }
   Future<List<Map<String, dynamic>>> allDormitories({String? status}) async {

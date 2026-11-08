@@ -20,6 +20,11 @@ async function resubmit(id, documentUrl, conn = db) {
         [documentUrl, id]);
 }
 
+async function findById(id) {
+    const [rows] = await db.query('SELECT * FROM verifications WHERE id = ?', [id]);
+    return rows[0];
+}
+
 async function findForUpdate(id, conn = db) {
     const [rows] = await conn.query('SELECT * FROM verifications WHERE id = ? FOR UPDATE', [id]);
     return rows[0];
@@ -39,4 +44,4 @@ async function listPending() {
     return rows;
 }
 
-module.exports = { findByOwner, insert, resubmit, findForUpdate, setReviewed, listPending };
+module.exports = { findByOwner, findById, insert, resubmit, findForUpdate, setReviewed, listPending };

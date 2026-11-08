@@ -60,6 +60,12 @@ async function hideReview(req, res) {
     res.json({ message: 'ซ่อนรีวิวแล้ว' });
 }
 
+// ส่งไฟล์เอกสารยืนยันตัวตนให้ admin ดู ไฟล์อยู่ในโฟลเดอร์ส่วนตัวจึงต้องผ่านตรงนี้เท่านั้น
+async function verificationDocument(req, res) {
+    const file = await adminService.verificationDocument(req.params.id);
+    res.sendFile(file);
+}
+
 async function logs(req, res) {
     res.json({ logs: await adminService.logs() });
 }
@@ -77,5 +83,5 @@ async function listUsers(req, res) {
 module.exports = {
     queue, approveDormitory, rejectDormitory, suspendDormitory, restoreDormitory,
     approveVerification, rejectVerification, suspendUser, restoreUser,
-    listReviews, publishReview, hideReview, logs, listDormitories, listUsers,
+    listReviews, publishReview, hideReview, logs, listDormitories, listUsers, verificationDocument,
 };

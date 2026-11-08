@@ -4,6 +4,7 @@ const cors = require('cors');
 // โหลด .env ก่อนทุกอย่าง ถ้าไม่มี JWT_KEY จะหยุดทำงานตรงนี้
 require('./config/env');
 
+const { PUBLIC_UPLOAD_DIR } = require('./config/upload');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 const authRoutes = require('./routes/authRoutes');
 const dormitoryRoutes = require('./routes/dormitoryRoutes');
@@ -17,6 +18,10 @@ const adminRoutes = require('./routes/adminRoutes');
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// รูปหอพักเปิดเป็น static ได้ เช่น /uploads/<ชื่อไฟล์>
+// เอกสารยืนยันตัวตนไม่อยู่ในโฟลเดอร์นี้
+app.use('/uploads', express.static(PUBLIC_UPLOAD_DIR));
 
 app.use('/api', authRoutes);
 app.use('/api/dormitories', dormitoryRoutes);

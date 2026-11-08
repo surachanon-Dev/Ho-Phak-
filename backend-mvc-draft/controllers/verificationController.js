@@ -6,7 +6,7 @@ async function getMine(req, res) {
 }
 
 async function submit(req, res) {
-    await verificationService.submit(req.user.id, req.body?.document_url);
+    await verificationService.submit(req.user.id, req.file);
     res.status(201).json({ message: 'ส่งเอกสารให้ admin ตรวจแล้ว' });
 }
 
