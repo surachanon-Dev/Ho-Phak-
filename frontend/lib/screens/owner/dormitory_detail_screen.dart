@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../models/dormitory.dart';
-import '../models/review.dart';
-import '../services/app_services.dart';
-import '../ui/app_theme.dart';
-import '../ui/error_handling.dart';
-import '../ui/status_style.dart';
+import '../../models/dormitory.dart';
+import '../../models/review.dart';
+import '../../services/app_services.dart';
+import '../../ui/app_theme.dart';
+import '../../ui/error_handling.dart';
+import '../../ui/status_style.dart';
+import 'dashboard_screen.dart' show formatBaht;
 import 'dormitory_form_screen.dart';
 
 /// รายละเอียดหอพักฝั่งเจ้าของ: สถานะ, สวิตช์แสดงให้นักศึกษาเห็น,
@@ -68,8 +69,8 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
           SnackBar(
             content: Text(
               _dorm?.status == DormStatus.published
-                  ? 'เปิดให้นักศึกษาเห็นแล้ว'
-                  : 'ซ่อนหอพักจากนักศึกษาแล้ว',
+                  ? 'Dorm is now visible to students'
+                  : 'Dorm is now hidden from students',
             ),
           ),
         );
@@ -100,12 +101,14 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('ติดต่อแอดมิน'),
-        content: const Text('ช่องทางติดต่อแอดมินยังไม่ได้กำหนด (รอการยืนยัน)'),
+        title: const Text('Contact admin'),
+        content: const Text(
+          'The admin contact number has not been set yet (to be confirmed).',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('ตกลง'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -114,25 +117,25 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
 
   /// ข้อความอธิบายสถานะ
   String _statusMessage(String status) => switch (status) {
-    DormStatus.published => 'นักศึกษาเห็นและติดต่อหอพักนี้ได้',
+    DormStatus.published => 'Students can see and contact this dorm.',
     DormStatus.pending =>
-      'รอแอดมินตรวจสอบ นักศึกษาจะเห็นหลังได้รับการอนุมัติ มักใช้เวลา 1–2 วัน',
+      'Waiting for admin review. Students will see it after approval (usually 1–2 days).',
     DormStatus.changesPending =>
-      'การแก้ไขรอแอดมินตรวจสอบ นักศึกษายังเห็นข้อมูลเวอร์ชันเดิม',
-    DormStatus.rejected => 'แอดมินไม่อนุมัติ แก้ไขแล้วส่งให้ตรวจสอบอีกครั้งได้',
-    DormStatus.hidden => 'นักศึกษาค้นหาหอพักนี้ไม่เจอ ผู้ที่เคยบันทึกหรือแชทไว้จะเห็นว่า "ไม่พร้อมให้บริการ"',
+      'Your changes are waiting for admin review. Students still see the previous version.',
+    DormStatus.rejected => 'Admin did not approve this dorm. Edit it and submit again.',
+    DormStatus.hidden => 'Students cannot find this dorm in search. Those who saved it or chatted with you will see it as "Unavailable".',
     DormStatus.suspended =>
-      'แอดมินระงับหอพักนี้ เปลี่ยนการแสดงผลไม่ได้ ติดต่อแอดมินเพื่อแก้ไข',
+      'Admin suspended this dorm. You cannot change its visibility. Contact admin to resolve this.',
     _ => '',
   };
 
   String _toggleNote(Dormitory d) => switch (d.status) {
-    DormStatus.published => 'ปิดเพื่อซ่อนหอพักจากการค้นหา',
-    DormStatus.hidden => 'เปิดเพื่อให้หอพักนี้กลับมาแสดงอีกครั้ง',
-    DormStatus.suspended => 'ล็อกระหว่างถูกระงับ',
+    DormStatus.published => 'Turn off to hide this dorm from search',
+    DormStatus.hidden => 'Turn on to show this dorm in search again',
+    DormStatus.suspended => 'Locked while suspended',
     DormStatus.pending ||
-    DormStatus.rejected => 'จะเปิดให้ใช้ได้หลังแอดมินอนุมัติ',
-    _ => 'ยังไม่สามารถเปลี่ยนได้ในสถานะนี้',
+    DormStatus.rejected => 'Available after admin approval',
+    _ => 'Cannot be changed in this status',
   };
 
   double? get _avgRating => _reviews.isEmpty
@@ -149,7 +152,7 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(dorm?.name ?? 'รายละเอียดหอพัก'),
+          title: Text(dorm?.name ?? 'Dorm detail'),
           leading: BackButton(
             onPressed: () => Navigator.of(context).pop(_changed),
           ),
@@ -157,7 +160,7 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
         body: _loading && dorm == null
             ? const Center(child: CircularProgressIndicator())
             : dorm == null
-            ? const Center(child: Text('ไม่พบหอพักนี้'))
+            ? const Center(child: Text('Dorm not found'))
             : AbsorbPointer(
                 absorbing: _busy,
                 child: ListView(
@@ -202,7 +205,7 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  'เหตุผลจากแอดมิน: ${dorm.statusReason}',
+                                  'Admin note: ${dorm.statusReason}',
                                 ),
                               ),
                             ],
@@ -211,12 +214,12 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                                 dorm.status == DormStatus.changesPending)
                               FilledButton(
                                 onPressed: _edit,
-                                child: const Text('แก้ไขและส่งใหม่'),
+                                child: const Text('Edit and resubmit'),
                               ),
                             if (dorm.status == DormStatus.suspended)
                               FilledButton(
                                 onPressed: _contactAdmin,
-                                child: const Text('ติดต่อแอดมิน'),
+                                child: const Text('Contact admin'),
                               ),
                           ],
                         ),
@@ -227,7 +230,7 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                     // ---- สวิตช์แสดงให้นักศึกษาเห็น ----
                     Card(
                       child: SwitchListTile(
-                        title: const Text('แสดงให้นักศึกษาเห็น'),
+                        title: const Text('Visible to students'),
                         subtitle: Text(_toggleNote(dorm)),
                         value: dorm.status == DormStatus.published,
                         onChanged: dorm.canToggleVisibility
@@ -238,55 +241,55 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                     const SizedBox(height: 12),
 
                     _Section(
-                      title: 'ห้องพัก',
+                      title: 'Rooms',
                       children: [
                         _InfoRow(
-                          label: 'ห้องทั้งหมด',
-                          value: '${dorm.totalRooms} ห้อง',
+                          label: 'Total rooms',
+                          value: '${dorm.totalRooms}',
                         ),
                         _InfoRow(
-                          label: 'ห้องว่างตอนนี้',
-                          value: '${dorm.availableRooms} ห้อง',
+                          label: 'Available now',
+                          value: '${dorm.availableRooms}',
                         ),
                       ],
                     ),
 
                     _Section(
-                      title: 'ข้อมูลหอพัก',
+                      title: 'Dorm info',
                       children: [
-                        _InfoRow(label: 'โซน', value: dorm.zone),
+                        _InfoRow(label: 'Zone', value: dorm.zone),
                         _InfoRow(
-                          label: 'ราคา/เดือน',
-                          value: '${dorm.pricePerMonth} บาท',
+                          label: 'Price / month',
+                          value: '${formatBaht(dorm.pricePerMonth)} THB',
                         ),
                         _InfoRow(
-                          label: 'ค่าน้ำ',
+                          label: 'Water',
                           value: _billingText(
                             dorm.waterRate,
                             dorm.waterBillingType,
                           ),
                         ),
                         _InfoRow(
-                          label: 'ค่าไฟ',
+                          label: 'Electricity',
                           value: _billingText(
                             dorm.electricityRate,
                             dorm.electricityBillingType,
                           ),
                         ),
                         if (dorm.address != null)
-                          _InfoRow(label: 'ที่อยู่', value: dorm.address!),
+                          _InfoRow(label: 'Address', value: dorm.address!),
                         if (dorm.contactPhone != null)
                           _InfoRow(
-                            label: 'เบอร์ติดต่อ',
+                            label: 'Contact phone',
                             value: dorm.contactPhone!,
                           ),
                         if (dorm.description != null)
                           _InfoRow(
-                            label: 'รายละเอียด',
+                            label: 'Description',
                             value: dorm.description!,
                           ),
                         _InfoRow(
-                          label: 'พิกัด',
+                          label: 'Location',
                           value: '${dorm.latitude}, ${dorm.longitude}',
                         ),
                       ],
@@ -294,11 +297,11 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
 
                     _Section(
                       title: _avgRating == null
-                          ? 'รีวิว'
-                          : 'รีวิว (${_avgRating!.toStringAsFixed(1)} ดาว · ${_reviews.length} รีวิว)',
+                          ? 'Reviews'
+                          : 'Reviews (${_avgRating!.toStringAsFixed(1)} ★ · ${_reviews.length})',
                       children: [
                         if (_reviews.isEmpty)
-                          const Text('ยังไม่มีรีวิวที่เผยแพร่')
+                          const Text('No published reviews yet')
                         else
                           ..._reviews.map(
                             (r) => Padding(
@@ -315,7 +318,7 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                           ),
                         const SizedBox(height: 4),
                         const Text(
-                          'อ่านอย่างเดียว เจ้าของตอบกลับรีวิวไม่ได้',
+                          'Read only. Owners cannot reply to reviews.',
                           style: TextStyle(fontSize: 12),
                         ),
                       ],
@@ -323,35 +326,14 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
 
                     const SizedBox(height: 16),
                     if (dorm.canEdit)
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => ScaffoldMessenger.of(context)
-                                  .showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'ยังไม่รองรับการลบหอพักใน API นี้',
-                                      ),
-                                    ),
-                                  ),
-                              icon: const Icon(Icons.delete_outline),
-                              label: const Text('Delete'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: FilledButton.icon(
-                              onPressed: _edit,
-                              icon: const Icon(Icons.edit_outlined),
-                              label: const Text('Edit dorm'),
-                            ),
-                          ),
-                        ],
+                      FilledButton.icon(
+                        onPressed: _edit,
+                        icon: const Icon(Icons.edit_outlined),
+                        label: const Text('Edit dorm'),
                       )
                     else
                       const Text(
-                        'หอพักถูกระงับ แก้ไขไม่ได้',
+                        'This dorm is suspended and cannot be edited.',
                         textAlign: TextAlign.center,
                       ),
                   ],
@@ -362,9 +344,9 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
   }
 
   String _billingText(double? rate, String? type) {
-    if (rate == null || type == null) return 'ไม่ได้ระบุ';
-    final unit = type == BillingType.perUnit ? 'บาท/หน่วย' : 'บาท';
-    return '$rate $unit (${BillingType.label(type)})';
+    if (rate == null || type == null) return 'Not specified';
+    final unit = type == BillingType.perUnit ? 'THB/unit' : 'THB';
+    return '$rate $unit (${BillingType.labelEn(type)})';
   }
 }
 
@@ -383,7 +365,7 @@ class _Cover extends StatelessWidget {
         child: cover == null
             ? const ColoredBox(
                 color: Colors.black12,
-                child: Center(child: Text('ยังไม่มีรูปหอพัก')),
+                child: Center(child: Text('No photos yet')),
               )
             : Image.network(
                 cover,

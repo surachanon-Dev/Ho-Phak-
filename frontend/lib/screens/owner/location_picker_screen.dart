@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../ui/app_theme.dart';
-import '../widgets/dorm_map.dart';
+import '../../ui/app_theme.dart';
+import '../../widgets/dorm_map.dart';
 
 /// ปักหมุดตำแหน่งหอพัก: ลากแผนที่ให้หมุดตรงตำแหน่ง แล้วกดยืนยัน
 /// คืนค่าเป็น LatLng ของจุดกึ่งกลางหมุด (pop(LatLng))
@@ -34,7 +34,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('ปักหมุดตำแหน่งหอพัก')),
+      appBar: AppBar(title: const Text('Pin dorm location')),
       body: Column(
         children: [
           Expanded(
@@ -87,7 +87,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                       border: Border.all(color: AppColors.border),
                     ),
                     child: const Text(
-                      'ลากแผนที่ให้หมุดตรงตำแหน่งหอพัก',
+                      'Drag the map to place the pin on your dorm',
                       style: TextStyle(fontSize: 12),
                     ),
                   ),
@@ -106,7 +106,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'พิกัด ${_center.latitude.toStringAsFixed(6)}, '
+                    'Coordinates ${_center.latitude.toStringAsFixed(6)}, '
                     '${_center.longitude.toStringAsFixed(6)}',
                     style: const TextStyle(
                       color: AppColors.textMuted,

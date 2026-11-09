@@ -5,9 +5,9 @@ class VerificationStatus {
   static const rejected = 'rejected';
 
   static String label(String status) => switch (status) {
-    VerificationStatus.pending => 'รอตรวจสอบ',
-    VerificationStatus.approved => 'ยืนยันแล้ว',
-    VerificationStatus.rejected => 'ไม่ผ่านการตรวจสอบ',
+    VerificationStatus.pending => 'Pending review',
+    VerificationStatus.approved => 'Verified',
+    VerificationStatus.rejected => 'Rejected',
     _ => status,
   };
 }

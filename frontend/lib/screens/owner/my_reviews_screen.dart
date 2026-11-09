@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../models/dormitory.dart';
-import '../models/review.dart';
-import '../services/app_services.dart';
-import '../ui/app_theme.dart';
-import '../ui/error_handling.dart';
+import '../../models/dormitory.dart';
+import '../../models/review.dart';
+import '../../services/app_services.dart';
+import '../../ui/app_theme.dart';
+import '../../ui/error_handling.dart';
 
 /// รีวิวของหอพักทั้งหมดของเจ้าของ (อ่านอย่างเดียว) พร้อมตัวกรองตามหอพัก
 class MyReviewsScreen extends StatefulWidget {
@@ -70,7 +70,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
   Widget build(BuildContext context) {
     final avg = _avg;
     return Scaffold(
-      appBar: AppBar(title: const Text('รีวิวของฉัน')),
+      appBar: AppBar(title: const Text('My reviews')),
       body: _loading && _all.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -88,8 +88,8 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            '${_visible.length} รีวิว'
-                            '${_filter == null ? ' จาก ${_dormNames.length} หอพัก' : ''}',
+                            '${_visible.length} ${_visible.length == 1 ? 'review' : 'reviews'}'
+                            '${_filter == null ? ' across ${_dormNames.length} ${_dormNames.length == 1 ? 'dorm' : 'dorms'}' : ''}',
                           ),
                         ),
                       ],
@@ -101,7 +101,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
                   spacing: 8,
                   children: [
                     ChoiceChip(
-                      label: const Text('ทั้งหมด'),
+                      label: const Text('All'),
                       selected: _filter == null,
                       onSelected: (_) => setState(() => _filter = null),
                     ),
@@ -117,7 +117,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
                 if (_visible.isEmpty)
                   const Padding(
                     padding: EdgeInsets.only(top: 32),
-                    child: Center(child: Text('ยังไม่มีรีวิวที่เผยแพร่')),
+                    child: Center(child: Text('No published reviews yet')),
                   )
                 else
                   ..._visible.map(
@@ -162,7 +162,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
                   ),
                 const SizedBox(height: 8),
                 const Text(
-                  'เจ้าของตอบกลับรีวิวไม่ได้',
+                  'Read only. Owners cannot reply to reviews.',
                   style: TextStyle(color: AppColors.textMuted, fontSize: 12),
                 ),
               ],
