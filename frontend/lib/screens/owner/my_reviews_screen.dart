@@ -197,9 +197,13 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
                     ),
                   ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Read only. Owners cannot reply to reviews.',
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: const Text(
+                    'Read only. Owners cannot reply to reviews.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  ),
                 ),
               ],
             ),
