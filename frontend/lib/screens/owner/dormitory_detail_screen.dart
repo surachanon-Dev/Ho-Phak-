@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/dormitory.dart';
 import '../../models/review.dart';
 import '../../services/app_services.dart';
+import '../../services/owner_extras.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
 import '../../ui/status_style.dart';
@@ -32,6 +33,8 @@ class DormitoryDetailScreen extends StatefulWidget {
 class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
   Dormitory? _dorm;
   List<OwnerReview> _reviews = [];
+  List<Amenity> _amenities = [];
+  DormUtilities? _utilities;
   bool _loading = true;
   bool _busy = false;
   bool _changed = false;
@@ -49,10 +52,18 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
         widget.services.dormitories.get(widget.dormitoryId),
         widget.services.dormitories.reviews(widget.dormitoryId),
       ]);
+      final dorm = results[0] as Dormitory;
+      final extras = widget.services.extras;
+      final catalog = await extras.amenities();
+      final ids = (await extras.dormAmenityIds(dorm.id, dorm.amenityIds))
+          .toSet();
+      final util = await extras.utilities(dorm.id);
       if (!mounted) return;
       setState(() {
-        _dorm = results[0] as Dormitory;
+        _dorm = dorm;
         _reviews = results[1] as List<OwnerReview>;
+        _amenities = catalog.where((a) => ids.contains(a.id)).toList();
+        _utilities = util;
       });
     } catch (e) {
       if (mounted) showApiError(context, widget.services, e);
@@ -97,6 +108,55 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
     if (changed == true) {
       _changed = true;
       await _load();
+    }
+  }
+
+  /// ลบหอ (Figma O-4): ยืนยันก่อน แล้วกลับไปหน้ารายการ
+  Future<void> _confirmDelete() async {
+    final dorm = _dorm;
+    if (dorm == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: Container(
+          width: 52,
+          height: 52,
+          decoration: const BoxDecoration(
+            color: Color(0xFFFDE2E2),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.delete_outline, color: AppColors.danger),
+        ),
+        title: const Text('Delete this dorm?', textAlign: TextAlign.center),
+        content: Text(
+          '${dorm.name}, its photos and reviews will be removed for '
+          'everyone. This can\u2019t be undone.',
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    setState(() => _busy = true);
+    try {
+      await widget.services.dormitories.delete(dorm.id);
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (mounted) showApiError(context, widget.services, e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -376,6 +436,7 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                                 value: _billingText(
                                   dorm.waterRate,
                                   dorm.waterBillingType,
+                                  _utilities?.water,
                                 ),
                               ),
                               _InfoRow(
@@ -383,10 +444,44 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                                 value: _billingText(
                                   dorm.electricityRate,
                                   dorm.electricityBillingType,
+                                  _utilities?.electricity,
                                 ),
                               ),
                             ],
                           ),
+                          if (_amenities.isNotEmpty)
+                            _Section(
+                              title: 'Amenities',
+                              children: [
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    for (final a in _amenities)
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primarySoft,
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          a.name,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           _reviewsCard(),
                           const SizedBox(height: 4),
                           if (dorm.canEdit)
@@ -400,6 +495,15 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                               'This dorm is suspended and cannot be edited.',
                               textAlign: TextAlign.center,
                             ),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
+                            onPressed: _confirmDelete,
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.danger,
+                            ),
+                            icon: const Icon(Icons.delete_outline),
+                            label: const Text('Delete dorm'),
+                          ),
                         ],
                       ),
                     ),
@@ -478,8 +582,12 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
     );
   }
 
-  String _billingText(double? rate, String? type) {
-    if (rate == null || type == null) return 'Not specified';
+  String _billingText(double? rate, String? type, UtilityMode? saved) {
+    if (rate == null || type == null) {
+      return utilityModeFor(rate: rate, saved: saved) == UtilityMode.included
+          ? 'Included in rent'
+          : 'Not specified';
+    }
     final unit = type == BillingType.perUnit ? 'THB / unit' : 'THB';
     final value = rate == rate.truncateToDouble()
         ? rate.toStringAsFixed(0)

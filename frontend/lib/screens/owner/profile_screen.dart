@@ -2,19 +2,56 @@ import 'package:flutter/material.dart';
 
 import '../../models/user.dart';
 import '../../services/app_services.dart';
+import '../../services/owner_extras.dart';
 import '../../ui/app_theme.dart';
 import '../login_screen.dart';
-import '../notifications_screen.dart';
+import 'change_password_screen.dart';
+import 'edit_profile_screen.dart';
 import 'my_reviews_screen.dart';
+import 'notification_settings_screen.dart';
 import 'verification_screen.dart';
 
 /// แท็บ Profile ของเจ้าของ
 /// ข้อมูลที่ API ให้มีแค่ username และสถานะยืนยัน (GET /api/me)
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key, required this.services, required this.user});
 
   final AppServices services;
   final CurrentUser user;
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  AppServices get services => widget.services;
+  CurrentUser get user => widget.user;
+  OwnerProfile? _profile;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final p = await services.extras.profile(fallbackName: user.username);
+      if (mounted) setState(() => _profile = p);
+    } catch (_) {
+      // โหลดโปรไฟล์ไม่ได้ ใช้ชื่อจาก /api/me แทน
+    }
+  }
+
+  Future<void> _editProfile(BuildContext context) async {
+    final p = _profile ?? const OwnerProfile();
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => EditProfileScreen(services: services, profile: p),
+      ),
+    );
+    if (saved == true) _loadProfile();
+  }
 
   Future<void> _logout(BuildContext context) async {
     final ok = await showDialog<bool>(
@@ -47,7 +84,11 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = user.username ?? 'Dorm owner #${user.id}';
+    final saved = _profile?.fullName ?? '';
+    final name = saved.isNotEmpty
+        ? saved
+        : (user.username ?? 'Dorm owner #${user.id}');
+    final phone = _profile?.phone ?? '';
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -65,20 +106,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Center(
-              child: Container(
-                width: 96,
-                height: 96,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: const Icon(
-                  Icons.person_outline,
-                  size: 44,
-                  color: AppColors.textMuted,
-                ),
-              ),
+              child: ProfileAvatar(photoBase64: _profile?.photoBase64),
             ),
             const SizedBox(height: 12),
             Center(
@@ -90,6 +118,15 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
+            if (phone.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Center(
+                child: Text(
+                  phone,
+                  style: const TextStyle(color: AppColors.textMuted),
+                ),
+              ),
+            ],
             const SizedBox(height: 6),
             Center(
               child: Container(
@@ -120,6 +157,21 @@ class ProfileScreen extends StatelessWidget {
               child: Column(
                 children: [
                   _Row(
+                    icon: Icons.edit_outlined,
+                    label: 'Edit profile',
+                    onTap: () => _editProfile(context),
+                  ),
+                  const Divider(height: 1),
+                  _Row(
+                    icon: Icons.lock_outline,
+                    label: 'Change password',
+                    onTap: () => _push(
+                      context,
+                      ChangePasswordScreen(services: services),
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  _Row(
                     icon: Icons.verified_user_outlined,
                     label: 'My verification',
                     onTap: () => _push(
@@ -140,7 +192,7 @@ class ProfileScreen extends StatelessWidget {
                     label: 'Notification settings',
                     onTap: () => _push(
                       context,
-                      NotificationsScreen(services: services),
+                      NotificationSettingsScreen(services: services),
                     ),
                   ),
                   const Divider(height: 1),

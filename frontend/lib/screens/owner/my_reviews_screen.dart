@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/dormitory.dart';
 import '../../models/review.dart';
 import '../../services/app_services.dart';
+import '../../services/owner_extras.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
 import '../../ui/format.dart';
@@ -26,6 +27,7 @@ class _ReviewEntry {
 class _MyReviewsScreenState extends State<MyReviewsScreen> {
   List<_ReviewEntry> _all = [];
   List<String> _dormNames = [];
+  Map<int, ReviewReport> _reports = {};
   String? _filter;
   bool _loading = true;
 
@@ -45,8 +47,10 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
         final reviews = await widget.services.dormitories.reviews(d.id);
         entries.addAll(reviews.map((r) => _ReviewEntry(d.name, r)));
       }
+      final reports = await widget.services.extras.reports();
       if (!mounted) return;
       setState(() {
+        _reports = reports;
         _all = entries;
         _dormNames = dorms.map((d) => d.name).toList();
       });
@@ -65,6 +69,26 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
     final list = _visible;
     if (list.isEmpty) return null;
     return list.fold<int>(0, (s, e) => s + e.review.rating) / list.length;
+  }
+
+  /// Report รีวิว (Figma O-12e): ต้องใส่เหตุผล ไม่เกิน 300 ตัวอักษร
+  Future<void> _report(_ReviewEntry e) async {
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (_) => _ReportDialog(entry: e),
+    );
+    if (reason == null) return;
+    try {
+      await widget.services.extras.reportReview(e.review.id, reason);
+      final reports = await widget.services.extras.reports();
+      if (!mounted) return;
+      setState(() => _reports = reports);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Report sent. Admin will check it.')),
+      );
+    } catch (err) {
+      if (mounted) showApiError(context, widget.services, err);
+    }
   }
 
   @override
@@ -191,6 +215,49 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
                                   ),
                                 ),
                               ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: _reports.containsKey(e.review.id)
+                                  ? Container(
+                                      margin: const EdgeInsets.only(top: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.warningBg,
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Reported · waiting for admin',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.warningText,
+                                        ),
+                                      ),
+                                    )
+                                  : TextButton(
+                                      onPressed: () => _report(e),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: AppColors.danger,
+                                        padding: const EdgeInsets.only(
+                                          top: 4,
+                                        ),
+                                        minimumSize: const Size(0, 28),
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      child: const Text(
+                                        'Report',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                            ),
                           ],
                         ),
                       ),
@@ -200,7 +267,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: const Text(
-                    'Read only. Owners cannot reply to reviews.',
+                    'Owners cannot reply to reviews. You can report one that breaks the rules.',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textMuted, fontSize: 12),
                   ),
@@ -270,6 +337,107 @@ class _FilterChip extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+
+/// กล่อง Report this review? (Figma O-12e)
+class _ReportDialog extends StatefulWidget {
+  const _ReportDialog({required this.entry});
+
+  final _ReviewEntry entry;
+
+  @override
+  State<_ReportDialog> createState() => _ReportDialogState();
+}
+
+class _ReportDialogState extends State<_ReportDialog> {
+  final _reason = TextEditingController();
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final r = widget.entry.review;
+    final valid = _reason.text.trim().isNotEmpty;
+    return AlertDialog(
+      title: const Text('Report this review?'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Admin will check it. The review stays visible until admin decides.',
+              style: TextStyle(color: AppColors.textMuted),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2F2F7),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        widget.entry.dormName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      _Stars(rating: r.rating, size: 13),
+                    ],
+                  ),
+                  if (r.body != null && r.body!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(r.body!),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'Reason (required)',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            TextField(
+              controller: _reason,
+              maxLines: 3,
+              maxLength: 300,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(
+                hintText: 'Why is this review wrong or against the rules?',
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        OutlinedButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: valid
+              ? () => Navigator.of(context).pop(_reason.text.trim())
+              : null,
+          child: const Text('Send report'),
+        ),
+      ],
     );
   }
 }

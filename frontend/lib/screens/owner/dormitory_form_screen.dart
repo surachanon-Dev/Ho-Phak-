@@ -1,9 +1,13 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
+
 import 'package:image_picker/image_picker.dart';
 
 import '../../models/dormitory.dart';
 import '../../services/api_client.dart';
 import '../../services/app_services.dart';
+import '../../services/owner_extras.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../ui/app_theme.dart';
@@ -41,6 +45,14 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
   late String _zone;
   String? _waterType;
   String? _electricityType;
+  UtilityMode _waterMode = UtilityMode.notSpecified;
+  UtilityMode _electricityMode = UtilityMode.notSpecified;
+  List<Amenity> _catalog = const [];
+  Set<int> _amenityIds = {};
+  DormDocument? _document;
+
+  /// รูปที่เลือกไว้ตอน Add (ยังไม่มี id หอ จึงอัปโหลดหลังบันทึก)
+  final List<UploadFile> _pending = [];
   bool _saving = false;
   bool _busyImages = false;
   List<DormImage> _images = [];
@@ -68,6 +80,38 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
     _images = List.of(d?.images ?? const []);
     _waterType = d?.waterBillingType;
     _electricityType = d?.electricityBillingType;
+    _waterMode = utilityModeFor(rate: d?.waterRate);
+    _electricityMode = utilityModeFor(rate: d?.electricityRate);
+    _loadExtras();
+  }
+
+  /// โหลดข้อมูลที่ backend ยังไม่มี (amenities, โหมดค่าน้ำไฟ, เอกสาร) จาก OwnerExtras
+  Future<void> _loadExtras() async {
+    final extras = widget.services.extras;
+    try {
+      final catalog = await extras.amenities();
+      final d = widget.existing;
+      final ids = d == null
+          ? <int>[]
+          : await extras.dormAmenityIds(d.id, d.amenityIds);
+      final util = d == null ? null : await extras.utilities(d.id);
+      final doc = d == null ? null : await extras.dormDocument(d.id);
+      if (!mounted) return;
+      setState(() {
+        _catalog = catalog;
+        _amenityIds = ids.toSet();
+        _document = doc;
+        if (d != null) {
+          _waterMode = utilityModeFor(rate: d.waterRate, saved: util?.water);
+          _electricityMode = utilityModeFor(
+            rate: d.electricityRate,
+            saved: util?.electricity,
+          );
+        }
+      });
+    } catch (_) {
+      // ฟีเจอร์เสริมโหลดไม่ได้ ไม่ขวางการกรอกฟอร์มหลัก
+    }
   }
 
   static String _fmt(double? v) => v == null ? '' : v.toString();
@@ -103,8 +147,13 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
   }
 
   DormitoryInput _buildInput() {
-    final waterRate = _parseRate(_waterRate.text);
-    final electricityRate = _parseRate(_electricityRate.text);
+    // ส่งอัตราเฉพาะโหมด "Set price" (Included / Not specified = ไม่ส่ง)
+    final waterRate = _waterMode == UtilityMode.setPrice
+        ? _parseRate(_waterRate.text)
+        : null;
+    final electricityRate = _electricityMode == UtilityMode.setPrice
+        ? _parseRate(_electricityRate.text)
+        : null;
     return DormitoryInput(
       name: _name.text.trim(),
       zone: _zone,
@@ -121,21 +170,46 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
       address: _optional(_address.text),
       description: _optional(_description.text),
       contactPhone: _optional(_contactPhone.text),
-      // ยังไม่มี UI เลือกสิ่งอำนวยความสะดวก (รอทีมยืนยัน endpoint)
-      // จึงส่งค่าเดิมกลับไปเพื่อไม่ให้ PUT ลบรายการเดิม
-      amenityIds: widget.existing?.amenityIds ?? const [],
+      // local: ส่งค่าเดิมของ server กลับไป (id ของ local ไม่ตรงตาราง) / api: ส่งที่เลือก
+      amenityIds: widget.services.extras.amenityIdsForServer(
+        _amenityIds.toList(),
+        widget.existing?.amenityIds ?? const [],
+      ),
     );
   }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    if (!_isEdit && _pending.isEmpty) {
+      _snack('Add at least 1 photo');
+      return;
+    }
     setState(() => _saving = true);
     try {
       final input = _buildInput();
+      final int dormId;
       if (_isEdit) {
-        await widget.services.dormitories.update(widget.existing!.id, input);
+        dormId = widget.existing!.id;
+        await widget.services.dormitories.update(dormId, input);
       } else {
-        await widget.services.dormitories.create(input);
+        dormId = await widget.services.dormitories.create(input);
+      }
+      // ส่วนที่ backend ยังไม่มี → OwnerExtras
+      final extras = widget.services.extras;
+      await extras.saveDormAmenityIds(dormId, _amenityIds.toList());
+      await extras.saveUtilities(
+        dormId,
+        DormUtilities(water: _waterMode, electricity: _electricityMode),
+      );
+      await extras.saveDormDocument(dormId, _document);
+      if (_pending.isNotEmpty) {
+        try {
+          await widget.services.dormitories.uploadImages(dormId, _pending);
+        } catch (e) {
+          if (mounted) {
+            _snack('Dorm saved, but photos were not uploaded: $e');
+          }
+        }
       }
       if (!mounted) return;
       await showDialog<void>(
@@ -194,6 +268,12 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
     final n = double.tryParse(t);
     if (n == null) return 'Enter a number';
     return n < 0 ? 'Cannot be negative' : null;
+  }
+
+  String? _rateRequired(String? v) {
+    final t = (v ?? '').trim();
+    if (t.isEmpty) return 'Enter the rate';
+    return _rateValidator(v);
   }
 
   String? _billingValidator(String? v, String rateText) {
@@ -324,6 +404,90 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
     );
   }
 
+  /// ส่วนรูปตอน Add: เลือกไว้ก่อน แล้วอัปโหลดหลังบันทึกหอ
+  Widget _pendingSection() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (var i = 0; i < _pending.length; i++)
+          SizedBox(
+            width: 96,
+            height: 96,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.memory(_pending[i].bytes, fit: BoxFit.cover),
+                ),
+                if (i == 0)
+                  Positioned(
+                    left: 6,
+                    bottom: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        'Cover',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                Positioned(
+                  top: 2,
+                  right: 2,
+                  child: InkWell(
+                    onTap: () => setState(() => _pending.removeAt(i)),
+                    child: const CircleAvatar(
+                      radius: 12,
+                      backgroundColor: Colors.black54,
+                      child: Icon(Icons.close, size: 14, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (_pending.length < 10)
+          OutlinedButton.icon(
+            onPressed: _pickPending,
+            icon: const Icon(Icons.add_photo_alternate_outlined),
+            label: const Text('Add photo'),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _pickPending() async {
+    final remaining = 10 - _pending.length;
+    final picked = await ImagePicker().pickMultiImage(
+      limit: remaining > 5 ? 5 : remaining,
+      imageQuality: 90,
+    );
+    if (picked.isEmpty) return;
+    final added = <UploadFile>[];
+    for (final p in picked) {
+      final Uint8List bytes = await p.readAsBytes();
+      if (bytes.length > 5 * 1024 * 1024) {
+        _snack('${p.name} is larger than 5 MB');
+        return;
+      }
+      added.add(UploadFile(bytes: bytes, filename: p.name));
+    }
+    if (mounted) setState(() => _pending.addAll(added));
+  }
+
   /// เลือกรูป (สูงสุด 5 รูปต่อครั้ง ไม่เกิน 10 รูปต่อหอ) แล้วอัปโหลด
   Future<void> _pickAndUploadImages() async {
     final remaining = 10 - _images.length;
@@ -420,6 +584,70 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
     ),
   );
 
+  Future<void> _pickDocument() async {
+    final f = await FilePicker.pickFile(
+      type: FileType.custom,
+      allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+    if (f == null) return;
+    final size = await f.length() ?? 0;
+    if (size > 10 * 1024 * 1024) {
+      _snack('File is larger than 10 MB');
+      return;
+    }
+    if (mounted) {
+      setState(() => _document = DormDocument(name: f.name, sizeBytes: size));
+    }
+  }
+
+  /// ตัวเลือก Set price / Included / Not specified + ช่องอัตราเมื่อเลือก Set price
+  Widget _utilityBlock({
+    required UtilityMode mode,
+    required ValueChanged<UtilityMode> onMode,
+    required TextEditingController rate,
+    required String? type,
+    required ValueChanged<String?> onType,
+    required String rateLabel,
+  }) {
+    const labels = {
+      UtilityMode.setPrice: 'Set price',
+      UtilityMode.included: 'Included',
+      UtilityMode.notSpecified: 'Not specified',
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final m in UtilityMode.values)
+              ChoiceChip(
+                label: Text(labels[m]!),
+                selected: mode == m,
+                showCheckmark: false,
+                selectedColor: AppColors.primary,
+                labelStyle: TextStyle(
+                  color: mode == m ? Colors.white : const Color(0xFF111827),
+                  fontWeight: FontWeight.w600,
+                ),
+                onSelected: (_) => onMode(m),
+              ),
+          ],
+        ),
+        if (mode == UtilityMode.setPrice) ...[
+          const SizedBox(height: 12),
+          _utilityFields(
+            rate: rate,
+            type: type,
+            onType: onType,
+            rateLabel: rateLabel,
+          ),
+        ],
+      ],
+    );
+  }
+
   /// ช่องอัตราค่าน้ำ/ไฟ + วิธีคิด (API เก็บเฉพาะอัตรากับวิธีคิด)
   Widget _utilityFields({
     required TextEditingController rate,
@@ -439,7 +667,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              validator: _rateValidator,
+              validator: _rateRequired,
             ),
           ),
         ),
@@ -611,16 +839,15 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                             ),
                           ]),
                           _card('Photos', [
-                            if (_isEdit)
-                              _imagesSection()
-                            else
-                              const Text(
-                                'You can add photos right after the dorm is saved.',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.textMuted,
-                                ),
+                            if (_isEdit) _imagesSection() else _pendingSection(),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'At least 1 photo. The first photo is the cover.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textMuted,
                               ),
+                            ),
                           ]),
                           _card('Price & rooms', [
                             _labeled(
@@ -667,7 +894,9 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                           ]),
                           _card('Water & electricity', [
                             _label('Water'),
-                            _utilityFields(
+                            _utilityBlock(
+                              mode: _waterMode,
+                              onMode: (m) => setState(() => _waterMode = m),
                               rate: _waterRate,
                               type: _waterType,
                               onType: (v) => setState(() => _waterType = v),
@@ -675,7 +904,10 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                             ),
                             _gap(),
                             _label('Electricity'),
-                            _utilityFields(
+                            _utilityBlock(
+                              mode: _electricityMode,
+                              onMode: (m) =>
+                                  setState(() => _electricityMode = m),
                               rate: _electricityRate,
                               type: _electricityType,
                               onType: (v) =>
@@ -684,11 +916,39 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                             ),
                             const SizedBox(height: 8),
                             const Text(
-                              'Leave the rate empty if it is not specified.',
+                              'Rates apply only when "Set price" is selected. '
+                              '"Included" = already in the rent.',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.textMuted,
                               ),
+                            ),
+                          ]),
+                          _card('Amenities', [
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                for (final a in _catalog)
+                                  FilterChip(
+                                    label: Text(a.name),
+                                    selected: _amenityIds.contains(a.id),
+                                    showCheckmark: true,
+                                    selectedColor: AppColors.primarySoft,
+                                    checkmarkColor: AppColors.primary,
+                                    labelStyle: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: _amenityIds.contains(a.id)
+                                          ? AppColors.primary
+                                          : const Color(0xFF111827),
+                                    ),
+                                    onSelected: (on) => setState(() {
+                                      on
+                                          ? _amenityIds.add(a.id)
+                                          : _amenityIds.remove(a.id);
+                                    }),
+                                  ),
+                              ],
                             ),
                           ]),
                           _card('Contact', [
@@ -700,6 +960,61 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                                 decoration: const InputDecoration(
                                   hintText: '08X-XXX-XXXX',
                                 ),
+                              ),
+                            ),
+                          ]),
+                          _card('Ownership document', [
+                            if (_document != null)
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.description_outlined,
+                                    color: AppColors.primary,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _document!.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${(_document!.sizeBytes / (1024 * 1024)).toStringAsFixed(1)} MB',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: AppColors.textMuted,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: _pickDocument,
+                                    child: const Text('Change'),
+                                  ),
+                                ],
+                              )
+                            else
+                              OutlinedButton.icon(
+                                onPressed: _pickDocument,
+                                icon: const Icon(Icons.upload_file_outlined),
+                                label: const Text('Upload document'),
+                              ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              '1 document proving you own this dorm (title '
+                              'deed, lease or business licence). Each dorm '
+                              'needs its own document.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textMuted,
                               ),
                             ),
                           ]),

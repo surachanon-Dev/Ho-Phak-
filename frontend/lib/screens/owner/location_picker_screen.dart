@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../ui/app_theme.dart';
@@ -25,6 +26,44 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   void dispose() {
     _map.dispose();
     super.dispose();
+  }
+
+  bool _locating = false;
+
+  void _snack(String text) => ScaffoldMessenger.maybeOf(
+    context,
+  )?.showSnackBar(SnackBar(content: Text(text)));
+
+  /// ขอตำแหน่งปัจจุบันของเครื่องแล้วเลื่อนแผนที่ไปที่นั่น
+  Future<void> _useMyLocation() async {
+    setState(() => _locating = true);
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        _snack('Turn on location services to use your location');
+        return;
+      }
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        _snack('Location permission was not granted');
+        return;
+      }
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 15),
+        ),
+      );
+      if (!mounted) return;
+      _map.move(LatLng(pos.latitude, pos.longitude), 17);
+    } catch (_) {
+      _snack('Could not get your location');
+    } finally {
+      if (mounted) setState(() => _locating = false);
+    }
   }
 
   void _confirm() {
@@ -91,6 +130,53 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                         fontSize: 12,
                         color: AppColors.textMuted,
                         backgroundColor: Color(0xCCFFFFFF),
+                      ),
+                    ),
+                  ),
+                ),
+                // ปุ่มตำแหน่งปัจจุบัน
+                Positioned(
+                  right: 16,
+                  bottom: 72,
+                  child: Material(
+                    color: AppColors.surface,
+                    shape: const StadiumBorder(),
+                    elevation: 1,
+                    child: InkWell(
+                      customBorder: const StadiumBorder(),
+                      onTap: _locating ? null : _useMyLocation,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _locating
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.my_location,
+                                    size: 18,
+                                    color: AppColors.primary,
+                                  ),
+                            const SizedBox(width: 6),
+                            const Text(
+                              'Use my location',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
