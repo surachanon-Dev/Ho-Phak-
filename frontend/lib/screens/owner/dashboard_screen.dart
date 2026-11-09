@@ -394,11 +394,17 @@ class _StatCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textMuted,
+              // ป้ายต้องอยู่บรรทัดเดียวเสมอ (Figma) → ย่อลงถ้าที่ไม่พอ
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textMuted,
+                  ),
                 ),
               ),
             ],

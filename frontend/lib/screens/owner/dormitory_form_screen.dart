@@ -205,6 +205,34 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
 
   Widget _gap() => const SizedBox(height: 12);
 
+  /// ป้ายชื่อช่องอยู่เหนือช่องกรอก (ตาม Figma) ดอกจัน * เป็นสีแดง
+  Widget _label(String text, {bool required = false}) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Text.rich(
+      TextSpan(
+        text: text,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF111827),
+        ),
+        children: [
+          if (required)
+            const TextSpan(
+              text: ' *',
+              style: TextStyle(color: AppColors.danger),
+            ),
+        ],
+      ),
+    ),
+  );
+
+  Widget _labeled(String text, Widget field, {bool required = false}) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [_label(text, required: required), field],
+      );
+
   /// ส่วนรูปหอพัก: ดูรูปเดิม ลบทีละรูป และเพิ่มได้สูงสุด 10 รูปต่อหอ
   Widget _imagesSection() {
     final theme = Theme.of(context);
@@ -238,6 +266,29 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                         ),
                       ),
                     ),
+                    if (img == _images.first)
+                      Positioned(
+                        left: 6,
+                        bottom: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'Cover',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
                     Positioned(
                       top: 2,
                       right: 2,
@@ -380,32 +431,41 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: TextFormField(
-            controller: rate,
-            decoration: InputDecoration(labelText: rateLabel),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            validator: _rateValidator,
+          child: _labeled(
+            rateLabel,
+            TextFormField(
+              controller: rate,
+              decoration: const InputDecoration(suffixText: 'THB'),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              validator: _rateValidator,
+            ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: DropdownButtonFormField<String>(
-            initialValue: type,
-            isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Billed'),
-            items: BillingType.all
-                .map(
-                  (t) => DropdownMenuItem(
-                    value: t,
-                    child: Text(
-                      BillingType.labelEn(t),
-                      overflow: TextOverflow.ellipsis,
+          child: _labeled(
+            'Billed',
+            DropdownButtonFormField<String>(
+              initialValue: type,
+              isExpanded: true,
+              hint: const Text('Choose'),
+              decoration: const InputDecoration(),
+              items: BillingType.all
+                  .map(
+                    (t) => DropdownMenuItem(
+                      value: t,
+                      child: Text(
+                        BillingType.labelEn(t),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                )
-                .toList(),
-            validator: (v) => _billingValidator(v, rate.text),
-            onChanged: onType,
+                  )
+                  .toList(),
+              validator: (v) => _billingValidator(v, rate.text),
+              onChanged: onType,
+            ),
           ),
         ),
       ],
@@ -442,22 +502,19 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                           // Basic info → Location (+ Address) → Photos →
                           // Price & rooms → Water & electricity → Contact
                           _card('Basic info', [
-                            TextFormField(
-                              controller: _name,
-                              decoration: const InputDecoration(
-                                labelText: 'Dorm name *',
+                            _labeled(
+                              'Dorm name',
+                              TextFormField(
+                                controller: _name,
+                                decoration: const InputDecoration(
+                                  hintText: 'e.g. หอพักบ้านสวน',
+                                ),
+                                validator: _required,
                               ),
-                              validator: _required,
+                              required: true,
                             ),
                             _gap(),
-                            const Text(
-                              'Zone *',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: AppColors.textMuted,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
+                            _label('Zone', required: true),
                             Wrap(
                               spacing: 8,
                               runSpacing: 8,
@@ -480,12 +537,15 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                               ],
                             ),
                             _gap(),
-                            TextFormField(
-                              controller: _description,
-                              decoration: const InputDecoration(
-                                labelText: 'Description',
+                            _labeled(
+                              'Description',
+                              TextFormField(
+                                controller: _description,
+                                decoration: const InputDecoration(
+                                  hintText: 'Tell students about your dorm',
+                                ),
+                                maxLines: 4,
                               ),
-                              maxLines: 4,
                             ),
                           ]),
                           _card('Location', [
@@ -539,12 +599,15 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                               ),
                             ),
                             _gap(),
-                            TextFormField(
-                              controller: _address,
-                              decoration: const InputDecoration(
-                                labelText: 'Address',
+                            _labeled(
+                              'Address',
+                              TextFormField(
+                                controller: _address,
+                                decoration: const InputDecoration(
+                                  hintText: 'House no., street, sub-district',
+                                ),
+                                maxLines: 2,
                               ),
-                              maxLines: 2,
                             ),
                           ]),
                           _card('Photos', [
@@ -560,66 +623,64 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                               ),
                           ]),
                           _card('Price & rooms', [
-                            TextFormField(
-                              controller: _price,
-                              decoration: const InputDecoration(
-                                labelText: 'Monthly price (THB) *',
+                            _labeled(
+                              'Monthly price',
+                              TextFormField(
+                                controller: _price,
+                                decoration: const InputDecoration(
+                                  suffixText: 'THB',
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: _priceValidator,
                               ),
-                              keyboardType: TextInputType.number,
-                              validator: _priceValidator,
+                              required: true,
                             ),
                             _gap(),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
-                                  child: TextFormField(
-                                    controller: _totalRooms,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Total rooms *',
+                                  child: _labeled(
+                                    'Total rooms',
+                                    TextFormField(
+                                      controller: _totalRooms,
+                                      keyboardType: TextInputType.number,
+                                      validator: _totalValidator,
                                     ),
-                                    keyboardType: TextInputType.number,
-                                    validator: _totalValidator,
+                                    required: true,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
-                                  child: TextFormField(
-                                    controller: _availableRooms,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Available now *',
+                                  child: _labeled(
+                                    'Available now',
+                                    TextFormField(
+                                      controller: _availableRooms,
+                                      keyboardType: TextInputType.number,
+                                      validator: _availableValidator,
                                     ),
-                                    keyboardType: TextInputType.number,
-                                    validator: _availableValidator,
+                                    required: true,
                                   ),
                                 ),
                               ],
                             ),
                           ]),
                           _card('Water & electricity', [
-                            const Text(
-                              'Water (optional)',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 8),
+                            _label('Water'),
                             _utilityFields(
                               rate: _waterRate,
                               type: _waterType,
                               onType: (v) => setState(() => _waterType = v),
-                              rateLabel: 'Water rate (THB)',
+                              rateLabel: 'Water rate',
                             ),
                             _gap(),
-                            const Text(
-                              'Electricity (optional)',
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 8),
+                            _label('Electricity'),
                             _utilityFields(
                               rate: _electricityRate,
                               type: _electricityType,
                               onType: (v) =>
                                   setState(() => _electricityType = v),
-                              rateLabel: 'Electricity rate (THB)',
+                              rateLabel: 'Electricity rate',
                             ),
                             const SizedBox(height: 8),
                             const Text(
@@ -631,11 +692,14 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                             ),
                           ]),
                           _card('Contact', [
-                            TextFormField(
-                              controller: _contactPhone,
-                              keyboardType: TextInputType.phone,
-                              decoration: const InputDecoration(
-                                labelText: 'Contact phone',
+                            _labeled(
+                              'Contact phone',
+                              TextFormField(
+                                controller: _contactPhone,
+                                keyboardType: TextInputType.phone,
+                                decoration: const InputDecoration(
+                                  hintText: '08X-XXX-XXXX',
+                                ),
                               ),
                             ),
                           ]),

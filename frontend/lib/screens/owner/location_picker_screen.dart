@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../ui/app_theme.dart';
+import '../../ui/format.dart';
 import '../../widgets/dorm_map.dart';
 
 /// ปักหมุดตำแหน่งหอพัก: ลากแผนที่ให้หมุดตรงตำแหน่ง แล้วกดยืนยัน
@@ -34,7 +35,13 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Pin dorm location')),
+      appBar: AppBar(
+        title: const Text('Set dorm location'),
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, size: 28),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -47,7 +54,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     initialCenter: _center,
                     initialZoom: 16,
                     onPositionChanged: (camera, _) {
-                      _center = camera.center;
+                      // อัปเดตข้อความระยะจาก MFU ตามจุดกึ่งกลางที่ลากไป
+                      setState(() => _center = camera.center);
                     },
                   ),
                   children: [
@@ -63,7 +71,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     ),
                   ],
                 ),
-                // หมุดคงที่กลางจอ ผู้ใช้ลากแผนที่ใต้หมุด
+                // หมุดคงที่กลางจอ ผู้ใช้ลากแผนที่ใต้หมุด + คำอธิบายใต้หมุด
                 const IgnorePointer(
                   child: Padding(
                     padding: EdgeInsets.only(bottom: 36),
@@ -74,21 +82,55 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     ),
                   ),
                 ),
+                const IgnorePointer(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 56),
+                    child: Text(
+                      'Drag the map to move the pin',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textMuted,
+                        backgroundColor: Color(0xCCFFFFFF),
+                      ),
+                    ),
+                  ),
+                ),
+                // ชิปมหาวิทยาลัย: แตะเพื่อเลื่อนแผนที่ไปที่ MFU
                 Positioned(
-                  top: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: const Text(
-                      'Drag the map to place the pin on your dorm',
-                      style: TextStyle(fontSize: 12),
+                  left: 16,
+                  bottom: 72,
+                  child: Material(
+                    color: AppColors.surface,
+                    shape: const StadiumBorder(),
+                    elevation: 1,
+                    child: InkWell(
+                      customBorder: const StadiumBorder(),
+                      onTap: () => _map.move(mfuCenter, 16),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.school_outlined,
+                              size: 18,
+                              color: AppColors.primary,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Mae Fah Luang University',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -98,23 +140,31 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           Container(
             width: double.infinity,
             color: AppColors.surface,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
             child: SafeArea(
               top: false,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'Coordinates ${_center.latitude.toStringAsFixed(6)}, '
-                    '${_center.longitude.toStringAsFixed(6)}',
-                    style: const TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 12,
-                    ),
-                    textAlign: TextAlign.center,
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 18,
+                        color: AppColors.textMuted,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Pin set · ${kmFromMfu(_center.latitude, _center.longitude)} km from MFU',
+                        style: const TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   FilledButton(
                     onPressed: _confirm,
                     child: const Text('Confirm location'),

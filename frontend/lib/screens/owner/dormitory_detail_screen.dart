@@ -6,7 +6,10 @@ import '../../services/app_services.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
 import '../../ui/status_style.dart';
+import '../../ui/format.dart';
+import '../../widgets/dorm_map.dart';
 import 'dashboard_screen.dart' show formatBaht;
+import 'my_reviews_screen.dart';
 import 'dormitory_form_screen.dart';
 
 /// รายละเอียดหอพักฝั่งเจ้าของ: สถานะ, สวิตช์แสดงให้นักศึกษาเห็น,
@@ -142,6 +145,15 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
       ? null
       : _reviews.fold<int>(0, (s, r) => s + r.rating) / _reviews.length;
 
+  /// ไอคอนในกล่องสถานะ (วงกลมสีตามสถานะ ตาม Figma)
+  IconData _statusIcon(String status) => switch (status) {
+    DormStatus.published => Icons.check,
+    DormStatus.pending || DormStatus.changesPending => Icons.schedule,
+    DormStatus.rejected => Icons.close,
+    DormStatus.suspended => Icons.block,
+    _ => Icons.visibility_off_outlined,
+  };
+
   @override
   Widget build(BuildContext context) {
     final dorm = _dorm;
@@ -151,204 +163,246 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
         if (!didPop) Navigator.of(context).pop(_changed);
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(dorm?.name ?? 'Dorm detail'),
-          leading: BackButton(
-            onPressed: () => Navigator.of(context).pop(_changed),
-          ),
-        ),
         body: _loading && dorm == null
             ? const Center(child: CircularProgressIndicator())
             : dorm == null
-            ? const Center(child: Text('Dorm not found'))
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Dorm not found'),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(_changed),
+                      child: const Text('Back'),
+                    ),
+                  ],
+                ),
+              )
             : AbsorbPointer(
                 absorbing: _busy,
                 child: ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.zero,
                   children: [
-                    _Cover(dorm: dorm),
-                    const SizedBox(height: 16),
-
-                    // ---- สถานะ ----
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    DormStatus.label(dorm.status),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium,
-                                  ),
-                                ),
-                                StatusChip(displayStatus: dorm.status),
-                              ],
+                    _CoverHeader(
+                      dorm: dorm,
+                      onBack: () => Navigator.of(context).pop(_changed),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            dorm.name,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF111827),
                             ),
-                            const SizedBox(height: 8),
-                            Text(_statusMessage(dorm.status)),
-                            if (dorm.statusReason != null &&
-                                dorm.statusReason!.isNotEmpty &&
-                                (dorm.status == DormStatus.rejected ||
-                                    dorm.status ==
-                                        DormStatus.changesPending)) ...[
-                              const SizedBox(height: 10),
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.warningBg,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  'Admin note: ${dorm.statusReason}',
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: 12),
-                            if (dorm.status == DormStatus.rejected ||
-                                dorm.status == DormStatus.changesPending)
-                              FilledButton(
-                                onPressed: _edit,
-                                child: const Text('Edit and resubmit'),
-                              ),
-                            if (dorm.status == DormStatus.suspended)
-                              FilledButton(
-                                onPressed: _contactAdmin,
-                                child: const Text('Contact admin'),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // ---- สวิตช์แสดงให้นักศึกษาเห็น ----
-                    Card(
-                      child: SwitchListTile(
-                        title: const Text('Visible to students'),
-                        subtitle: Text(_toggleNote(dorm)),
-                        value: dorm.status == DormStatus.published,
-                        onChanged: dorm.canToggleVisibility
-                            ? (_) => _toggleVisibility()
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // ลำดับกล่องตาม Figma (D-176): Location → Rooms → Utilities
-                    _Section(
-                      title: 'Dorm info',
-                      children: [
-                        _InfoRow(label: 'Zone', value: dorm.zone),
-                        _InfoRow(
-                          label: 'Price / month',
-                          value: '${formatBaht(dorm.pricePerMonth)} THB',
-                        ),
-                        if (dorm.description != null)
-                          _InfoRow(
-                            label: 'Description',
-                            value: dorm.description!,
                           ),
-                      ],
-                    ),
-
-                    _Section(
-                      title: 'Location',
-                      children: [
-                        _InfoRow(
-                          label: 'Pin',
-                          value: '${dorm.latitude}, ${dorm.longitude}',
-                        ),
-                        if (dorm.address != null)
-                          _InfoRow(label: 'Address', value: dorm.address!),
-                        if (dorm.contactPhone != null)
-                          _InfoRow(
-                            label: 'Contact phone',
-                            value: dorm.contactPhone!,
+                          const SizedBox(height: 4),
+                          Text(
+                            '${dorm.zone} · ${formatBaht(dorm.pricePerMonth)} THB/month',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
                           ),
-                      ],
-                    ),
+                          const SizedBox(height: 16),
 
-                    _Section(
-                      title: 'Rooms',
-                      children: [
-                        _InfoRow(
-                          label: 'Total rooms',
-                          value: '${dorm.totalRooms}',
-                        ),
-                        _InfoRow(
-                          label: 'Available now',
-                          value: '${dorm.availableRooms}',
-                        ),
-                      ],
-                    ),
-
-                    _Section(
-                      title: 'Utilities',
-                      children: [
-                        _InfoRow(
-                          label: 'Water',
-                          value: _billingText(
-                            dorm.waterRate,
-                            dorm.waterBillingType,
-                          ),
-                        ),
-                        _InfoRow(
-                          label: 'Electricity',
-                          value: _billingText(
-                            dorm.electricityRate,
-                            dorm.electricityBillingType,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    _Section(
-                      title: _avgRating == null
-                          ? 'Reviews'
-                          : 'Reviews (${_avgRating!.toStringAsFixed(1)} ★ · ${_reviews.length})',
-                      children: [
-                        if (_reviews.isEmpty)
-                          const Text('No published reviews yet')
-                        else
-                          ..._reviews.map(
-                            (r) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 6),
+                          // ---- สถานะ ----
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('${'★' * r.rating}  ${r.createdAt}'),
-                                  if (r.body != null && r.body!.isNotEmpty)
-                                    Text(r.body!),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 36,
+                                        height: 36,
+                                        decoration: BoxDecoration(
+                                          color: statusStyle(dorm.status).bg,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          _statusIcon(dorm.status),
+                                          size: 20,
+                                          color:
+                                              dorm.status ==
+                                                  DormStatus.suspended
+                                              ? Colors.white
+                                              : statusStyle(dorm.status).fg,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          DormStatus.label(dorm.status),
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                      StatusChip(displayStatus: dorm.status),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    _statusMessage(dorm.status),
+                                    style: const TextStyle(
+                                      color: AppColors.textMuted,
+                                    ),
+                                  ),
+                                  if (dorm.statusReason != null &&
+                                      dorm.statusReason!.isNotEmpty &&
+                                      (dorm.status == DormStatus.rejected ||
+                                          dorm.status ==
+                                              DormStatus.changesPending)) ...[
+                                    const SizedBox(height: 10),
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.warningBg,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        'Admin note: ${dorm.statusReason}',
+                                      ),
+                                    ),
+                                  ],
+                                  if (dorm.status == DormStatus.rejected ||
+                                      dorm.status ==
+                                          DormStatus.changesPending) ...[
+                                    const SizedBox(height: 12),
+                                    FilledButton(
+                                      onPressed: _edit,
+                                      child: const Text('Edit and resubmit'),
+                                    ),
+                                  ],
+                                  if (dorm.status == DormStatus.suspended) ...[
+                                    const SizedBox(height: 12),
+                                    FilledButton(
+                                      onPressed: _contactAdmin,
+                                      child: const Text('Contact admin'),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
                           ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Read only. Owners cannot reply to reviews.',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(height: 12),
 
-                    const SizedBox(height: 16),
-                    if (dorm.canEdit)
-                      FilledButton.icon(
-                        onPressed: _edit,
-                        icon: const Icon(Icons.edit_outlined),
-                        label: const Text('Edit dorm'),
-                      )
-                    else
-                      const Text(
-                        'This dorm is suspended and cannot be edited.',
-                        textAlign: TextAlign.center,
+                          // ---- สวิตช์แสดงให้นักศึกษาเห็น ----
+                          Card(
+                            child: SwitchListTile(
+                              title: const Text(
+                                'Visible to students',
+                                style: TextStyle(fontWeight: FontWeight.w700),
+                              ),
+                              subtitle: Text(_toggleNote(dorm)),
+                              value: dorm.status == DormStatus.published,
+                              onChanged: dorm.canToggleVisibility
+                                  ? (_) => _toggleVisibility()
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // ลำดับกล่องตาม Figma (D-176):
+                          // Location → Rooms → Utilities → Reviews
+                          _Section(
+                            title: 'Location',
+                            children: [
+                              DormLocationMap(dorm: dorm, height: 120),
+                              const SizedBox(height: 10),
+                              Text(
+                                [
+                                  if (dorm.address != null &&
+                                      dorm.address!.isNotEmpty)
+                                    dorm.address!,
+                                  '${kmFromMfu(dorm.latitude, dorm.longitude)} km from MFU',
+                                ].join(' · '),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
+                              if (dorm.contactPhone != null &&
+                                  dorm.contactPhone!.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.phone_outlined,
+                                      size: 18,
+                                      color: AppColors.textMuted,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(dorm.contactPhone!),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (dorm.description != null &&
+                              dorm.description!.isNotEmpty)
+                            _Section(
+                              title: 'Description',
+                              children: [Text(dorm.description!)],
+                            ),
+                          _Section(
+                            title: 'Rooms',
+                            children: [
+                              _InfoRow(
+                                label: 'Total rooms',
+                                value: '${dorm.totalRooms}',
+                              ),
+                              _InfoRow(
+                                label: 'Available now',
+                                value: '${dorm.availableRooms}',
+                              ),
+                            ],
+                          ),
+                          _Section(
+                            title: 'Utilities',
+                            children: [
+                              _InfoRow(
+                                label: 'Water',
+                                value: _billingText(
+                                  dorm.waterRate,
+                                  dorm.waterBillingType,
+                                ),
+                              ),
+                              _InfoRow(
+                                label: 'Electricity',
+                                value: _billingText(
+                                  dorm.electricityRate,
+                                  dorm.electricityBillingType,
+                                ),
+                              ),
+                            ],
+                          ),
+                          _reviewsCard(),
+                          const SizedBox(height: 4),
+                          if (dorm.canEdit)
+                            FilledButton.icon(
+                              onPressed: _edit,
+                              icon: const Icon(Icons.edit_outlined),
+                              label: const Text('Edit dorm'),
+                            )
+                          else
+                            const Text(
+                              'This dorm is suspended and cannot be edited.',
+                              textAlign: TextAlign.center,
+                            ),
+                        ],
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -356,38 +410,168 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
     );
   }
 
+  /// กล่องรีวิว: ดาวเฉลี่ย + "See all" + รีวิวล่าสุด 1 รายการ (อ่านอย่างเดียว)
+  Widget _reviewsCard() {
+    final latest = _reviews.isEmpty ? null : _reviews.first;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Reviews',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  if (_avgRating != null) ...[
+                    const Icon(Icons.star, size: 18, color: Color(0xFFF5A623)),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${_avgRating!.toStringAsFixed(1)} (${_reviews.length})',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(width: 10),
+                    InkWell(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              MyReviewsScreen(services: widget.services),
+                        ),
+                      ),
+                      child: const Text(
+                        'See all ›',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (latest == null)
+                const Text('No published reviews yet')
+              else if (latest.body != null && latest.body!.isNotEmpty)
+                Text(
+                  '“${latest.body}” · ${relativeDay(latest.createdAt)}',
+                  style: const TextStyle(color: Color(0xFF374151)),
+                ),
+              const SizedBox(height: 6),
+              const Text(
+                'Read-only — owners can’t reply to reviews.',
+                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   String _billingText(double? rate, String? type) {
     if (rate == null || type == null) return 'Not specified';
-    final unit = type == BillingType.perUnit ? 'THB/unit' : 'THB';
-    return '$rate $unit (${BillingType.labelEn(type)})';
+    final unit = type == BillingType.perUnit ? 'THB / unit' : 'THB';
+    final value = rate == rate.truncateToDouble()
+        ? rate.toStringAsFixed(0)
+        : rate.toString();
+    return '$value $unit';
   }
 }
 
-class _Cover extends StatelessWidget {
-  const _Cover({required this.dorm});
+/// หัวหน้า: รูปปกเต็มความกว้าง + ปุ่มย้อนกลับกลม + ตัวนับรูป (ตาม Figma O-2)
+class _CoverHeader extends StatelessWidget {
+  const _CoverHeader({required this.dorm, required this.onBack});
 
   final Dormitory dorm;
+  final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
     final cover = dorm.images.isEmpty ? null : dorm.images.first.fullUrl;
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: cover == null
-            ? const ColoredBox(
-                color: Colors.black12,
-                child: Center(child: Text('No photos yet')),
-              )
-            : Image.network(
-                cover,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => const ColoredBox(
-                  color: Colors.black12,
-                  child: Icon(Icons.broken_image_outlined),
+    return SizedBox(
+      height: 240,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          cover == null
+              ? const ColoredBox(
+                  color: Color(0xFFDDE2EA),
+                  child: Center(
+                    child: Text(
+                      'No photos yet',
+                      style: TextStyle(color: AppColors.textMuted),
+                    ),
+                  ),
+                )
+              : Image.network(
+                  cover,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const ColoredBox(
+                    color: Color(0xFFDDE2EA),
+                    child: Icon(Icons.broken_image_outlined),
+                  ),
+                ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Material(
+                  color: Colors.white,
+                  shape: const CircleBorder(),
+                  elevation: 1,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: onBack,
+                    child: const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Icon(Icons.chevron_left, color: Color(0xFF111827)),
+                    ),
+                  ),
                 ),
               ),
+            ),
+          ),
+          if (dorm.images.isNotEmpty)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '1 / ${dorm.images.length}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -407,10 +591,16 @@ class _Section extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(title, style: Theme.of(context).textTheme.titleSmall),
-              const SizedBox(height: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 10),
               ...children,
             ],
           ),
@@ -420,6 +610,7 @@ class _Section extends StatelessWidget {
   }
 }
 
+/// แถวป้าย-ค่า: ป้ายสีเทาชิดซ้าย ค่าตัวหนาชิดขวา (ตาม Figma)
 class _InfoRow extends StatelessWidget {
   const _InfoRow({required this.label, required this.value});
 
@@ -433,11 +624,20 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120,
-            child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: AppColors.textMuted),
+            ),
           ),
-          Expanded(child: Text(value)),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
         ],
       ),
     );
