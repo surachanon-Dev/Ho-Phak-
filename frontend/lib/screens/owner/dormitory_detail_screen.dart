@@ -240,6 +240,40 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                     ),
                     const SizedBox(height: 12),
 
+                    // ลำดับกล่องตาม Figma (D-176): Location → Rooms → Utilities
+                    _Section(
+                      title: 'Dorm info',
+                      children: [
+                        _InfoRow(label: 'Zone', value: dorm.zone),
+                        _InfoRow(
+                          label: 'Price / month',
+                          value: '${formatBaht(dorm.pricePerMonth)} THB',
+                        ),
+                        if (dorm.description != null)
+                          _InfoRow(
+                            label: 'Description',
+                            value: dorm.description!,
+                          ),
+                      ],
+                    ),
+
+                    _Section(
+                      title: 'Location',
+                      children: [
+                        _InfoRow(
+                          label: 'Pin',
+                          value: '${dorm.latitude}, ${dorm.longitude}',
+                        ),
+                        if (dorm.address != null)
+                          _InfoRow(label: 'Address', value: dorm.address!),
+                        if (dorm.contactPhone != null)
+                          _InfoRow(
+                            label: 'Contact phone',
+                            value: dorm.contactPhone!,
+                          ),
+                      ],
+                    ),
+
                     _Section(
                       title: 'Rooms',
                       children: [
@@ -255,13 +289,8 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                     ),
 
                     _Section(
-                      title: 'Dorm info',
+                      title: 'Utilities',
                       children: [
-                        _InfoRow(label: 'Zone', value: dorm.zone),
-                        _InfoRow(
-                          label: 'Price / month',
-                          value: '${formatBaht(dorm.pricePerMonth)} THB',
-                        ),
                         _InfoRow(
                           label: 'Water',
                           value: _billingText(
@@ -275,22 +304,6 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                             dorm.electricityRate,
                             dorm.electricityBillingType,
                           ),
-                        ),
-                        if (dorm.address != null)
-                          _InfoRow(label: 'Address', value: dorm.address!),
-                        if (dorm.contactPhone != null)
-                          _InfoRow(
-                            label: 'Contact phone',
-                            value: dorm.contactPhone!,
-                          ),
-                        if (dorm.description != null)
-                          _InfoRow(
-                            label: 'Description',
-                            value: dorm.description!,
-                          ),
-                        _InfoRow(
-                          label: 'Location',
-                          value: '${dorm.latitude}, ${dorm.longitude}',
                         ),
                       ],
                     ),

@@ -438,18 +438,9 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _card('Photos', [
-                            if (_isEdit)
-                              _imagesSection()
-                            else
-                              const Text(
-                                'You can add photos right after the dorm is saved.',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.textMuted,
-                                ),
-                              ),
-                          ]),
+                          // ลำดับกล่องตาม Figma (D-175):
+                          // Basic info → Location (+ Address) → Photos →
+                          // Price & rooms → Water & electricity → Contact
                           _card('Basic info', [
                             TextFormField(
                               controller: _name,
@@ -547,6 +538,26 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                                 ],
                               ),
                             ),
+                            _gap(),
+                            TextFormField(
+                              controller: _address,
+                              decoration: const InputDecoration(
+                                labelText: 'Address',
+                              ),
+                              maxLines: 2,
+                            ),
+                          ]),
+                          _card('Photos', [
+                            if (_isEdit)
+                              _imagesSection()
+                            else
+                              const Text(
+                                'You can add photos right after the dorm is saved.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
                           ]),
                           _card('Price & rooms', [
                             TextFormField(
@@ -620,14 +631,6 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                             ),
                           ]),
                           _card('Contact', [
-                            TextFormField(
-                              controller: _address,
-                              decoration: const InputDecoration(
-                                labelText: 'Address',
-                              ),
-                              maxLines: 2,
-                            ),
-                            _gap(),
                             TextFormField(
                               controller: _contactPhone,
                               keyboardType: TextInputType.phone,
