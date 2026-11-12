@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/app_services.dart';
 import 'chat_list_screen.dart';
-import 'dashboard_screen.dart';
-import 'profile_screen.dart';
-import 'verification_screen.dart';
+import 'owner/dashboard_screen.dart';
+import 'owner/profile_screen.dart';
+import 'owner/verification_screen.dart';
 
 /// โครงหลักของเจ้าของหอพัก: แท็บ หอพัก / แชท / โปรไฟล์
 /// ถ้ายังไม่ได้ยืนยันตัวตน จะแสดงหน้ายืนยันแทนทั้งหมด
