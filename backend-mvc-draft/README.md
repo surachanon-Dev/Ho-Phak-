@@ -23,6 +23,9 @@ JWT_KEY="ค่าที่เดายาก"
 cd "D:\Ho-Phak Mobile Project\backend-mvc-draft"
 npm install
 node --env-file=.env App.js
+
+### Swagger (แยกตาม role)
+เปิดเซิร์ฟเวอร์แล้วเข้าหน้าเลือก role ที่ `http://localhost:3000/api-docs`
 ```
 
 เมื่อขึ้น `server running at http://localhost:3000` แปลว่าพร้อมใช้งาน
@@ -110,6 +113,26 @@ backend-mvc-draft/
 ## ทดสอบ
 - smoke test ครอบคลุม register, login, owner, student, admin และการตรวจสิทธิ์ ผ่าน 34/34 เคส
 - ตอนนี้ยังไม่มี unit test อัตโนมัติ ตรวจด้วยการยิง request ตามเอกสาร API
+
+### Swagger (แยกตาม role)
+เปิดเซิร์ฟเวอร์แล้วเข้าหน้าเลือก role ที่ `http://localhost:3000/api-docs`
+
+| หน้า | ใช้กับ |
+|---|---|
+| `/api-docs/student/` | นักศึกษา: รีวิว, รายการโปรด, เปิดแชท |
+| `/api-docs/owner/` | เจ้าของหอ: ยืนยันตัวตน, จัดการหอและรูป |
+| `/api-docs/admin/` | แอดมิน: คิวตรวจ, อนุมัติ, ระงับ, รีวิว, บันทึก |
+
+ทุกหน้ามี endpoint ทั่วไป (login, สมัคร, หอสาธารณะ, แชท, แจ้งเตือน) ด้วย
+วิธีใช้
+1. เรียก `POST /api/login` ด้วยเบอร์และรหัสผ่านของ role นั้น แล้วคัดลอก `token`
+2. กดปุ่ม **Authorize** ที่มุมขวาบนของ Swagger แล้ววาง token (ไม่ต้องพิมพ์ `Bearer`)
+3. ทดสอบ endpoint ตามต้องการ token จะถูกจำไว้จนกว่าจะปิดหน้า
+
+โค้ด spec อยู่ที่โฟลเดอร์ `docs/swagger/` เพิ่ม endpoint ใหม่ให้ใส่ใน `paths-<role>.js` ที่เกี่ยวข้อง
+ถ้าแก้ route จริงแล้ว ให้แก้ spec ด้วย มิฉะนั้นเอกสารจะไม่ตรงกับ API
+
+> หมายเหตุ: `POST /api/login` ใช้ **เบอร์โทร** ไม่ใช่ username (ตาม `services/authService.js`)
 
 ## ข้อจำกัดที่ยังมี
 - ยังไม่รองรับการอัปโหลดไฟล์รูปและเอกสาร รับเป็น URL/ข้อความไปก่อน
