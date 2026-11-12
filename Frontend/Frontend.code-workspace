@@ -1,0 +1,15 @@
+{
+  "folders": [{ "path": "." }],
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Ho-Phak Frontend (Chrome)",
+        "request": "launch",
+        "type": "dart",
+        "program": "lib/main.dart",
+        "args": ["-d", "chrome"]
+      }
+    ]
+  }
+}
