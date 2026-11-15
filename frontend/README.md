@@ -11,7 +11,7 @@
 ## การรัน
 
 ```bash
-cd "D:/Ho-Phak Mobile Project/frontend"
+cd frontend
 flutter pub get
 flutter run -d chrome --web-port 8080
 ```

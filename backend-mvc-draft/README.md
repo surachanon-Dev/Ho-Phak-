@@ -20,7 +20,7 @@ JWT_KEY="ค่าที่เดายาก"
 ## การติดตั้งและรัน
 
 ```bash
-cd "D:\Ho-Phak Mobile Project\backend-mvc-draft"
+cd backend-mvc-draft
 npm install
 node --env-file=.env App.js
 ```
