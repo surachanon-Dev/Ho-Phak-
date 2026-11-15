@@ -17,6 +17,13 @@ class BillingType {
     BillingType.perRoomMonth => 'ต่อห้องต่อเดือน',
     _ => type,
   };
+
+  static String labelEn(String type) => switch (type) {
+    BillingType.perUnit => 'Per unit',
+    BillingType.perPersonMonth => 'Per person / month',
+    BillingType.perRoomMonth => 'Per room / month',
+    _ => type,
+  };
 }
 
 /// สถานะหอพักจาก backend
@@ -30,12 +37,12 @@ class DormStatus {
   static const suspended = 'suspended';
 
   static String label(String status) => switch (status) {
-    DormStatus.pending => 'รอตรวจสอบ',
-    DormStatus.published => 'เผยแพร่แล้ว',
-    DormStatus.changesPending => 'รอตรวจสอบการแก้ไข',
-    DormStatus.rejected => 'ไม่ผ่านการตรวจสอบ',
-    DormStatus.hidden => 'ซ่อนอยู่',
-    DormStatus.suspended => 'ถูกระงับ',
+    DormStatus.pending => 'Pending review',
+    DormStatus.published => 'Published',
+    DormStatus.changesPending => 'Changes pending',
+    DormStatus.rejected => 'Rejected',
+    DormStatus.hidden => 'Hidden',
+    DormStatus.suspended => 'Suspended',
     _ => status,
   };
 }

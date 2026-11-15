@@ -14,10 +14,14 @@ const favoriteRoutes = require('./routes/favoriteRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const swaggerRouter = require('./docs/swagger/router');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// เอกสาร API แยกตาม role: /api-docs, /api-docs/student, /api-docs/owner, /api-docs/admin
+app.use('/api-docs', swaggerRouter);
 
 // รูปหอพักเปิดเป็น static ได้ เช่น /uploads/<ชื่อไฟล์>
 // เอกสารยืนยันตัวตนไม่อยู่ในโฟลเดอร์นี้

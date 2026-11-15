@@ -1,21 +1,29 @@
 import '../models/dormitory.dart';
 import '../models/review.dart';
 import 'api_client.dart';
+import 'owner_extras.dart';
 
 class DormitoryService {
-  DormitoryService(this._api);
+  DormitoryService(this._api, [this._extras]);
 
   final ApiClient _api;
+  final OwnerExtras? _extras;
 
   static const _base = '/api/owner/dormitories';
 
   /// GET /api/owner/dormitories → { dormitories: [...] } ทุกสถานะของเจ้าของ
+  /// ตัดหอที่ลบไว้ในเครื่องออก (โหมด local เท่านั้น — โหมด API คืนเซ็ตว่าง)
   Future<List<Dormitory>> list() async {
     final data = await _api.get(_base) as Map<String, dynamic>;
+    final deleted = await _extras?.deletedDormIds() ?? <int>{};
     return (data['dormitories'] as List)
         .map((e) => Dormitory.fromJson(e as Map<String, dynamic>))
+        .where((d) => !deleted.contains(d.id))
         .toList();
   }
+
+  /// ลบหอพัก (ผ่าน OwnerExtras: local = ซ่อนในเครื่อง, api = DELETE)
+  Future<void> delete(int id) => _extras!.deleteDorm(id);
 
   /// GET /api/owner/dormitories/:id → { dormitory: {...}, latest_revision }
   Future<Dormitory> get(int id) async {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
-import '../models/verification.dart';
-import '../services/api_client.dart';
-import '../services/app_services.dart';
-import '../ui/error_handling.dart';
-import 'login_screen.dart';
+import '../../models/verification.dart';
+import '../../services/api_client.dart';
+import '../../services/app_services.dart';
+import '../../ui/error_handling.dart';
+import '../login_screen.dart';
 
 /// หน้าการยืนยันตัวตนเจ้าของหอพัก
 /// gate = true เมื่อยังไม่ได้ยืนยัน: แสดงเป็นหน้าหลักของแอปจนกว่าจะยืนยัน
@@ -38,7 +38,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
     if (size > 10 * 1024 * 1024) {
       if (mounted) {
         ScaffoldMessenger.maybeOf(context)
-            ?.showSnackBar(const SnackBar(content: Text('ไฟล์ใหญ่เกิน 10 MB')));
+            ?.showSnackBar(const SnackBar(content: Text('File is larger than 10 MB')));
       }
       return;
     }
@@ -81,7 +81,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
       final file = _picked;
       if (file == null) {
         ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-          const SnackBar(content: Text('กรุณาเลือกไฟล์เอกสารก่อน')),
+          const SnackBar(content: Text('Please choose a document first')),
         );
         return;
       }
@@ -90,7 +90,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
       await _load();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ส่งเอกสารแล้ว รอแอดมินตรวจสอบ')),
+          const SnackBar(content: Text('Document sent. Waiting for admin review.')),
         );
       }
     } catch (e) {
@@ -106,10 +106,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
   Widget? _subtitle(Verification? v) {
     if (v == null) return null;
     if (v.status == VerificationStatus.rejected && v.reason != null) {
-      return Text('เหตุผล: ${v.reason}');
+      return Text('Reason: ${v.reason}');
     }
     if (v.status == VerificationStatus.approved) {
-      return const Text('ยืนยันแล้ว หากยังเข้าไม่ได้ ให้เข้าสู่ระบบใหม่');
+      return const Text('Verified. If you still cannot get in, sign in again.');
     }
     return null;
   }
@@ -119,7 +119,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
     final v = _current;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('การยืนยันตัวตน'),
+        title: const Text('Verification'),
         automaticallyImplyLeading: !widget.gate,
       ),
       body: _loading
@@ -131,7 +131,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   const Padding(
                     padding: EdgeInsets.only(bottom: 16),
                     child: Text(
-                      'ต้องยืนยันตัวตนเจ้าของหอพักก่อนจึงจะใช้งานได้',
+                      'You must verify your identity as a dorm owner before using the app.',
                     ),
                   ),
                 Card(
@@ -139,7 +139,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     leading: const Icon(Icons.verified_user_outlined),
                     title: Text(
                       v == null
-                          ? 'ยังไม่ได้ส่งเอกสาร'
+                          ? 'No document sent yet'
                           : VerificationStatus.label(v.status),
                     ),
                     subtitle: _subtitle(v),
@@ -148,7 +148,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 if (v?.documentUrl != null)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: const Text('ส่งเอกสารยืนยันแล้ว'),
+                    child: const Text('Verification document sent'),
                   ),
                 const SizedBox(height: 16),
                 if (_canSubmit)
@@ -162,7 +162,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           icon: const Icon(Icons.upload_file),
                           label: Text(
                             _picked == null
-                                ? 'เลือกไฟล์เอกสาร (pdf, jpg, png ไม่เกิน 10 MB)'
+                                ? 'Choose a document (pdf, jpg, png, up to 10 MB)'
                                 : _picked!.filename,
                           ),
                         ),
@@ -177,7 +177,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text('ส่งเอกสาร'),
+                              : const Text('Send document'),
                         ),
                       ],
                     ),
@@ -197,7 +197,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       );
                     },
                     icon: const Icon(Icons.logout),
-                    label: const Text('ออกจากระบบ'),
+                    label: const Text('Sign out'),
                   ),
                 ],
               ],

@@ -8,6 +8,9 @@ class AuthService {
   final ApiClient _api;
   final TokenStore _tokens;
 
+  /// id ผู้ใช้ล่าสุดจาก GET /api/me (ใช้เป็นกุญแจข้อมูลที่เก็บในเครื่อง)
+  int? userId;
+
   /// POST /api/login { phone, password } → { token, user }
   /// แล้วเรียก GET /api/me เพื่อตรวจ role และสถานะ
   /// คืน null ถ้าเบอร์หรือรหัสผ่านไม่ถูกต้อง (401)
@@ -37,7 +40,9 @@ class AuthService {
   /// GET /api/me → { user: { id, username, role, status, is_verified } }
   Future<CurrentUser> currentUser() async {
     final data = await _api.get('/api/me') as Map<String, dynamic>;
-    return CurrentUser.fromJson(data['user'] as Map<String, dynamic>);
+    final user = CurrentUser.fromJson(data['user'] as Map<String, dynamic>);
+    userId = user.id;
+    return user;
   }
 
   /// POST /api/auth/register { phone, password, confirmPassword }

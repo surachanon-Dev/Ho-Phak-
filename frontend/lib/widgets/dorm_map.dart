@@ -40,9 +40,10 @@ class _OsmMap extends StatelessWidget {
 
 /// แผนที่แสดงตำแหน่งหอเดียว (หน้ารายละเอียด)
 class DormLocationMap extends StatelessWidget {
-  const DormLocationMap({super.key, required this.dorm});
+  const DormLocationMap({super.key, required this.dorm, this.height = 200});
 
   final Dormitory dorm;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +51,7 @@ class DormLocationMap extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: SizedBox(
-        height: 200,
+        height: height,
         child: _OsmMap(
           center: point,
           zoom: 16,
