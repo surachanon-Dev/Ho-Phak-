@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/dormitory.dart';
 import '../../models/review.dart';
 import '../../services/app_services.dart';
-import '../../services/owner_extras.dart';
+import '../../controller/owner/owner_extras.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
 import '../../ui/status_style.dart';
@@ -53,17 +53,13 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
         widget.services.dormitories.reviews(widget.dormitoryId),
       ]);
       final dorm = results[0] as Dormitory;
-      final extras = widget.services.extras;
-      final catalog = await extras.amenities();
-      final ids = (await extras.dormAmenityIds(dorm.id, dorm.amenityIds))
-          .toSet();
-      final util = await extras.utilities(dorm.id);
+      final x = await widget.services.dormitories.loadDetailExtras(dorm);
       if (!mounted) return;
       setState(() {
         _dorm = dorm;
         _reviews = results[1] as List<OwnerReview>;
-        _amenities = catalog.where((a) => ids.contains(a.id)).toList();
-        _utilities = util;
+        _amenities = x.amenities;
+        _utilities = x.utilities;
       });
     } catch (e) {
       if (mounted) showApiError(context, widget.services, e);

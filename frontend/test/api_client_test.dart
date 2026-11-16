@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/models/dormitory.dart';
 import 'package:hopak_frontend/services/api_client.dart';
 import 'package:hopak_frontend/services/auth_service.dart';
-import 'package:hopak_frontend/services/dormitory_service.dart';
+import 'package:hopak_frontend/controller/owner/dormitory_controller.dart';
 import 'package:hopak_frontend/services/token_store.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -184,7 +184,7 @@ void main() {
       return _json({'message': 'เพิ่มหอพักสำเร็จ', 'id': 7}, 201);
     });
     final id =
-        await DormitoryService(
+        await DormitoryController(
           ApiClient(tokenProvider: () => tokens.token, client: mock),
         ).create(
           DormitoryInput(
@@ -215,7 +215,7 @@ void main() {
       captured = req;
       return _json({'id': 1}, 201);
     });
-    await DormitoryService(
+    await DormitoryController(
       ApiClient(tokenProvider: () => tokens.token, client: mock),
     ).create(
       DormitoryInput(
@@ -242,7 +242,7 @@ void main() {
       captured = req;
       return _json({'status': 'hidden'});
     });
-    final status = await DormitoryService(
+    final status = await DormitoryController(
       ApiClient(tokenProvider: () => tokens.token, client: mock),
     ).toggleVisibility(3);
     expect(status, 'hidden');
@@ -256,7 +256,7 @@ void main() {
     );
     final api = ApiClient(tokenProvider: () => null, client: mock);
     await expectLater(
-      DormitoryService(api).list(),
+      DormitoryController(api).list(),
       throwsA(isA<ApiException>().having((e) => e.statusCode, 'status', 0)),
     );
   });

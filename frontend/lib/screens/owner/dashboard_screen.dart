@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../controller/owner/dormitory_controller.dart';
 import '../../models/dormitory.dart';
 import '../../services/app_services.dart';
 import '../../ui/app_theme.dart';
@@ -61,28 +62,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (changed == true) _load();
   }
 
-  /// นับหอพักที่ต้องให้เจ้าของดู: รอตรวจ, ไม่ผ่าน, ถูกระงับ
-  Map<String, int> _attentionCounts() {
-    final counts = <String, int>{};
-    for (final d in _items) {
-      final s = d.status;
-      if (s == DormStatus.pending ||
-          s == DormStatus.rejected ||
-          s == DormStatus.suspended) {
-        counts[s] = (counts[s] ?? 0) + 1;
-      }
-    }
-    return counts;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final totalAvailable = _items.fold<int>(0, (s, d) => s + d.availableRooms);
-    final published = _items
-        .where((d) => d.status == DormStatus.published)
-        .length;
-    final attention = _attentionCounts();
-    final attentionTotal = attention.values.fold<int>(0, (s, n) => s + n);
+    final summary = DormitorySummary.of(_items);
+    final totalAvailable = summary.totalAvailable;
+    final published = summary.published;
+    final attention = summary.attention;
+    final attentionTotal = summary.attentionTotal;
 
     return Scaffold(
       body: SafeArea(

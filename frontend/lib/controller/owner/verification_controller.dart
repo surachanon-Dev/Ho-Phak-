@@ -1,10 +1,14 @@
-import '../models/verification.dart';
-import 'api_client.dart';
+import '../../models/verification.dart';
+import '../../services/api_client.dart';
 
-class VerificationService {
-  VerificationService(this._api);
+class VerificationController {
+  VerificationController(this._api);
 
   final ApiClient _api;
+
+  /// ไฟล์เอกสารที่รับ: pdf, jpg, png ไม่เกิน 10 MB
+  static const documentExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+  static const maxDocumentBytes = 10 * 1024 * 1024;
 
   /// GET /api/owner/verification → { verification: {...} | null }
   Future<Verification?> current() async {

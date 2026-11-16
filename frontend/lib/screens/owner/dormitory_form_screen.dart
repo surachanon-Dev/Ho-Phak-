@@ -7,7 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../models/dormitory.dart';
 import '../../services/api_client.dart';
 import '../../services/app_services.dart';
-import '../../services/owner_extras.dart';
+import '../../controller/owner/dormitory_rules.dart';
+import '../../controller/owner/owner_extras.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../ui/app_theme.dart';
@@ -87,27 +88,17 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
 
   /// โหลดข้อมูลที่ backend ยังไม่มี (amenities, โหมดค่าน้ำไฟ, เอกสาร) จาก OwnerExtras
   Future<void> _loadExtras() async {
-    final extras = widget.services.extras;
     try {
-      final catalog = await extras.amenities();
-      final d = widget.existing;
-      final ids = d == null
-          ? <int>[]
-          : await extras.dormAmenityIds(d.id, d.amenityIds);
-      final util = d == null ? null : await extras.utilities(d.id);
-      final doc = d == null ? null : await extras.dormDocument(d.id);
+      final x = await widget.services.dormitories.loadFormExtras(
+        widget.existing,
+      );
       if (!mounted) return;
       setState(() {
-        _catalog = catalog;
-        _amenityIds = ids.toSet();
-        _document = doc;
-        if (d != null) {
-          _waterMode = utilityModeFor(rate: d.waterRate, saved: util?.water);
-          _electricityMode = utilityModeFor(
-            rate: d.electricityRate,
-            saved: util?.electricity,
-          );
-        }
+        _catalog = x.catalog;
+        _amenityIds = x.amenityIds.toSet();
+        _document = x.document;
+        _waterMode = x.waterMode ?? _waterMode;
+        _electricityMode = x.electricityMode ?? _electricityMode;
       });
     } catch (_) {
       // ฟีเจอร์เสริมโหลดไม่ได้ ไม่ขวางการกรอกฟอร์มหลัก
@@ -136,47 +127,26 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
     super.dispose();
   }
 
-  String? _optional(String text) {
-    final t = text.trim();
-    return t.isEmpty ? null : t;
-  }
-
-  double? _parseRate(String text) {
-    final t = text.trim();
-    return t.isEmpty ? null : double.tryParse(t);
-  }
-
-  DormitoryInput _buildInput() {
-    // ส่งอัตราเฉพาะโหมด "Set price" (Included / Not specified = ไม่ส่ง)
-    final waterRate = _waterMode == UtilityMode.setPrice
-        ? _parseRate(_waterRate.text)
-        : null;
-    final electricityRate = _electricityMode == UtilityMode.setPrice
-        ? _parseRate(_electricityRate.text)
-        : null;
-    return DormitoryInput(
-      name: _name.text.trim(),
-      zone: _zone,
-      latitude: double.parse(_lat.text.trim()),
-      longitude: double.parse(_lng.text.trim()),
-      pricePerMonth: int.parse(_price.text.trim()),
-      totalRooms: int.parse(_totalRooms.text.trim()),
-      availableRooms: int.parse(_availableRooms.text.trim()),
-      // rate กับ billing type ต้องคู่กัน จึงส่งเฉพาะเมื่อกรอกอัตรา
-      waterRate: waterRate,
-      waterBillingType: waterRate == null ? null : _waterType,
-      electricityRate: electricityRate,
-      electricityBillingType: electricityRate == null ? null : _electricityType,
-      address: _optional(_address.text),
-      description: _optional(_description.text),
-      contactPhone: _optional(_contactPhone.text),
-      // local: ส่งค่าเดิมของ server กลับไป (id ของ local ไม่ตรงตาราง) / api: ส่งที่เลือก
-      amenityIds: widget.services.extras.amenityIdsForServer(
-        _amenityIds.toList(),
-        widget.existing?.amenityIds ?? const [],
-      ),
-    );
-  }
+  DormitoryInput _buildInput() => widget.services.dormitories.buildInput(
+    name: _name.text,
+    zone: _zone,
+    latitude: _lat.text,
+    longitude: _lng.text,
+    price: _price.text,
+    totalRooms: _totalRooms.text,
+    availableRooms: _availableRooms.text,
+    waterMode: _waterMode,
+    waterRateText: _waterRate.text,
+    waterType: _waterType,
+    electricityMode: _electricityMode,
+    electricityRateText: _electricityRate.text,
+    electricityType: _electricityType,
+    address: _address.text,
+    description: _description.text,
+    contactPhone: _contactPhone.text,
+    amenityIds: _amenityIds,
+    existingAmenityIds: widget.existing?.amenityIds ?? const [],
+  );
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
@@ -187,21 +157,17 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
     setState(() => _saving = true);
     try {
       final input = _buildInput();
-      final int dormId;
-      if (_isEdit) {
-        dormId = widget.existing!.id;
-        await widget.services.dormitories.update(dormId, input);
-      } else {
-        dormId = await widget.services.dormitories.create(input);
-      }
-      // ส่วนที่ backend ยังไม่มี → OwnerExtras
-      final extras = widget.services.extras;
-      await extras.saveDormAmenityIds(dormId, _amenityIds.toList());
-      await extras.saveUtilities(
-        dormId,
-        DormUtilities(water: _waterMode, electricity: _electricityMode),
+      // บันทึกหอ + ส่วนที่ backend ยังไม่มี (OwnerExtras) ใน controller
+      final dormId = await widget.services.dormitories.save(
+        id: widget.existing?.id,
+        input: input,
+        amenityIds: _amenityIds,
+        utilities: DormUtilities(
+          water: _waterMode,
+          electricity: _electricityMode,
+        ),
+        document: _document,
       );
-      await extras.saveDormDocument(dormId, _document);
       if (_pending.isNotEmpty) {
         try {
           await widget.services.dormitories.uploadImages(dormId, _pending);
@@ -235,52 +201,6 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
-  }
-
-  String? _required(String? v) =>
-      (v == null || v.trim().isEmpty) ? 'This field is required' : null;
-
-  String? _priceValidator(String? v) {
-    final n = int.tryParse((v ?? '').trim());
-    if (n == null) return 'Enter a whole number';
-    if (n < 1 || n > 1000000) return 'Price must be between 1 and 1,000,000 THB';
-    return null;
-  }
-
-  String? _totalValidator(String? v) {
-    final n = int.tryParse((v ?? '').trim());
-    if (n == null) return 'Enter a whole number';
-    return n < 0 ? 'Rooms cannot be negative' : null;
-  }
-
-  String? _availableValidator(String? v) {
-    final n = int.tryParse((v ?? '').trim());
-    if (n == null) return 'Enter a whole number';
-    final total = int.tryParse(_totalRooms.text.trim());
-    if (n < 0) return 'Available rooms cannot be negative';
-    if (total != null && n > total) return 'Available rooms cannot exceed total rooms';
-    return null;
-  }
-
-  String? _rateValidator(String? v) {
-    final t = (v ?? '').trim();
-    if (t.isEmpty) return null;
-    final n = double.tryParse(t);
-    if (n == null) return 'Enter a number';
-    return n < 0 ? 'Cannot be negative' : null;
-  }
-
-  String? _rateRequired(String? v) {
-    final t = (v ?? '').trim();
-    if (t.isEmpty) return 'Enter the rate';
-    return _rateValidator(v);
-  }
-
-  String? _billingValidator(String? v, String rateText) {
-    if (rateText.trim().isNotEmpty && v == null) {
-      return 'Choose how it is billed';
-    }
-    return null;
   }
 
   Widget _gap() => const SizedBox(height: 12);
@@ -459,7 +379,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
               ],
             ),
           ),
-        if (_pending.length < 10)
+        if (_pending.length < DormitoryRules.maxImages)
           OutlinedButton.icon(
             onPressed: _pickPending,
             icon: const Icon(Icons.add_photo_alternate_outlined),
@@ -470,16 +390,15 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
   }
 
   Future<void> _pickPending() async {
-    final remaining = 10 - _pending.length;
     final picked = await ImagePicker().pickMultiImage(
-      limit: remaining > 5 ? 5 : remaining,
+      limit: DormitoryRules.pickLimit(_pending.length),
       imageQuality: 90,
     );
     if (picked.isEmpty) return;
     final added = <UploadFile>[];
     for (final p in picked) {
       final Uint8List bytes = await p.readAsBytes();
-      if (bytes.length > 5 * 1024 * 1024) {
+      if (bytes.length > DormitoryRules.maxImageBytes) {
         _snack('${p.name} is larger than 5 MB');
         return;
       }
@@ -490,16 +409,15 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
 
   /// เลือกรูป (สูงสุด 5 รูปต่อครั้ง ไม่เกิน 10 รูปต่อหอ) แล้วอัปโหลด
   Future<void> _pickAndUploadImages() async {
-    final remaining = 10 - _images.length;
     final picked = await ImagePicker().pickMultiImage(
-      limit: remaining > 5 ? 5 : remaining,
+      limit: DormitoryRules.pickLimit(_images.length),
       imageQuality: 90,
     );
     if (picked.isEmpty) return;
     final files = <UploadFile>[];
     for (final p in picked) {
       final bytes = await p.readAsBytes();
-      if (bytes.length > 5 * 1024 * 1024) {
+      if (bytes.length > DormitoryRules.maxImageBytes) {
         _snack('${p.name} is larger than 5 MB');
         return;
       }
@@ -587,11 +505,11 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
   Future<void> _pickDocument() async {
     final f = await FilePicker.pickFile(
       type: FileType.custom,
-      allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+      allowedExtensions: DormitoryRules.documentExtensions,
     );
     if (f == null) return;
     final size = await f.length() ?? 0;
-    if (size > 10 * 1024 * 1024) {
+    if (size > DormitoryRules.maxDocumentBytes) {
       _snack('File is larger than 10 MB');
       return;
     }
@@ -667,7 +585,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
-              validator: _rateRequired,
+              validator: DormitoryRules.rateRequired,
             ),
           ),
         ),
@@ -691,7 +609,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                     ),
                   )
                   .toList(),
-              validator: (v) => _billingValidator(v, rate.text),
+              validator: (v) => DormitoryRules.billing(v, rate.text),
               onChanged: onType,
             ),
           ),
@@ -737,7 +655,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                                 decoration: const InputDecoration(
                                   hintText: 'e.g. หอพักบ้านสวน',
                                 ),
-                                validator: _required,
+                                validator: DormitoryRules.required,
                               ),
                               required: true,
                             ),
@@ -858,7 +776,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                                   suffixText: 'THB',
                                 ),
                                 keyboardType: TextInputType.number,
-                                validator: _priceValidator,
+                                validator: DormitoryRules.price,
                               ),
                               required: true,
                             ),
@@ -872,7 +790,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                                     TextFormField(
                                       controller: _totalRooms,
                                       keyboardType: TextInputType.number,
-                                      validator: _totalValidator,
+                                      validator: DormitoryRules.totalRooms,
                                     ),
                                     required: true,
                                   ),
@@ -884,7 +802,8 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                                     TextFormField(
                                       controller: _availableRooms,
                                       keyboardType: TextInputType.number,
-                                      validator: _availableValidator,
+                                      validator: (v) =>
+                                          DormitoryRules.availableRooms(v, _totalRooms.text),
                                     ),
                                     required: true,
                                   ),

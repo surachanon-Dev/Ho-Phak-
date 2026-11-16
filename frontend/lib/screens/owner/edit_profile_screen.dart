@@ -3,8 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../controller/owner/owner_account_rules.dart';
 import '../../services/app_services.dart';
-import '../../services/owner_extras.dart';
+import '../../controller/owner/owner_extras.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
 
@@ -85,7 +86,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     try {
-      await widget.services.extras.saveProfile(
+      await widget.services.account.saveProfile(
         firstName: _first.text.trim(),
         surname: _surname.text.trim(),
         phone: _phone.text.trim(),
@@ -171,13 +172,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   TextFormField(
                     controller: _phone,
                     keyboardType: TextInputType.phone,
-                    validator: (v) {
-                      final t = (v ?? '').trim();
-                      if (t.isEmpty) return 'Enter your phone number';
-                      return RegExp(r'^[0-9+\- ]{9,15}$').hasMatch(t)
-                          ? null
-                          : 'Enter a valid phone number';
-                    },
+                    validator: OwnerAccountRules.phone,
                   ),
                 ),
                 if (pending != null)
@@ -198,9 +193,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   TextFormField(
                     controller: _password,
                     obscureText: true,
-                    validator: (v) => _phoneChanged && (v ?? '').isEmpty
-                        ? 'Enter your password to change your phone number'
-                        : null,
+                    validator: (v) => OwnerAccountRules.passwordForPhoneChange(
+                      v,
+                      phoneChanged: _phoneChanged,
+                    ),
                   ),
                 ),
                 const Padding(

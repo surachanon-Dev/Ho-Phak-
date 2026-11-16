@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../controller/owner/owner_account_rules.dart';
 import '../../services/app_services.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
@@ -33,7 +34,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     try {
-      await widget.services.extras.changePassword(
+      await widget.services.account.changePassword(
         current: _current.text,
         next: _next.text,
       );
@@ -91,20 +92,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 _field(
                   'Current password',
                   _current,
-                  (v) => (v ?? '').isEmpty ? 'Enter your current password' : null,
+                  OwnerAccountRules.currentPassword,
                 ),
-                _field('New password', _next, (v) {
-                  final t = v ?? '';
-                  if (t.length < 8) return 'Use at least 8 characters';
-                  if (t == _current.text) {
-                    return 'New password must be different';
-                  }
-                  return null;
-                }),
+                _field(
+                  'New password',
+                  _next,
+                  (v) => OwnerAccountRules.newPassword(v, current: _current.text),
+                ),
                 _field(
                   'Confirm new password',
                   _confirm,
-                  (v) => v == _next.text ? null : 'Passwords do not match',
+                  (v) => OwnerAccountRules.confirmPassword(v, next: _next.text),
                 ),
                 FilledButton(
                   onPressed: _saving ? null : _save,
@@ -116,7 +114,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         )
                       : const Text('Update password'),
                 ),
-                if (widget.services.extras.isLocal)
+                if (widget.services.account.isLocal)
                   const Padding(
                     padding: EdgeInsets.only(top: 12),
                     child: Text(

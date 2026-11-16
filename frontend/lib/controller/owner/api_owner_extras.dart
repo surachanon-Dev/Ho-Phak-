@@ -1,4 +1,4 @@
-import 'api_client.dart';
+import '../../services/api_client.dart';
 import 'owner_extras.dart';
 
 /// ฝั่งเชื่อม backend จริง — endpoint ด้านล่าง "คาดไว้" ยังไม่มีใน backend

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/user.dart';
 import '../../services/app_services.dart';
-import '../../services/owner_extras.dart';
+import '../../controller/owner/owner_extras.dart';
 import '../../ui/app_theme.dart';
 import '../login_screen.dart';
 import 'change_password_screen.dart';
@@ -36,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadProfile() async {
     try {
-      final p = await services.extras.profile(fallbackName: user.username);
+      final p = await services.account.profile(fallbackName: user.username);
       if (mounted) setState(() => _profile = p);
     } catch (_) {
       // โหลดโปรไฟล์ไม่ได้ ใช้ชื่อจาก /api/me แทน

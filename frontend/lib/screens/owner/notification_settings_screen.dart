@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/app_services.dart';
-import '../../services/owner_extras.dart';
+import '../../controller/owner/owner_extras.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
 import '../notifications_screen.dart';
@@ -29,7 +29,7 @@ class _NotificationSettingsScreenState
 
   Future<void> _load() async {
     try {
-      final p = await widget.services.extras.notificationPrefs();
+      final p = await widget.services.account.notificationPrefs();
       if (mounted) setState(() => _prefs = p);
     } catch (e) {
       if (mounted) showApiError(context, widget.services, e);
@@ -40,7 +40,7 @@ class _NotificationSettingsScreenState
     final before = _prefs;
     setState(() => _prefs = next);
     try {
-      await widget.services.extras.saveNotificationPrefs(next);
+      await widget.services.account.saveNotificationPrefs(next);
     } catch (e) {
       if (!mounted) return;
       setState(() => _prefs = before);

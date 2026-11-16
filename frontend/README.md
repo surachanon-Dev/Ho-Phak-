@@ -43,6 +43,7 @@ frontend/
 │   ├── config/         ← base URL ของ API
 │   ├── models/         ← โครงข้อมูล เช่น Dormitory และรายการโซน
 │   ├── services/       ← เรียก API และจัดการ token
+│   ├── controller/owner/ ← controller ฝั่ง owner (Dormitory, Verification, OwnerAccount, กติกาฟอร์ม, owner_extras)
 │   ├── screens/        ← หน้าจอ
 │   └── widgets/        ← ส่วนประกอบที่ใช้ซ้ำ (ยังว่าง)
 ├── test/               ← ยังไม่มี test

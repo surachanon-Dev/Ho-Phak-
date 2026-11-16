@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../models/dormitory.dart';
-import '../../models/review.dart';
+import '../../controller/owner/dormitory_controller.dart';
 import '../../services/app_services.dart';
-import '../../services/owner_extras.dart';
+import '../../controller/owner/owner_extras.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
 import '../../ui/format.dart';
@@ -18,14 +17,8 @@ class MyReviewsScreen extends StatefulWidget {
   State<MyReviewsScreen> createState() => _MyReviewsScreenState();
 }
 
-class _ReviewEntry {
-  _ReviewEntry(this.dormName, this.review);
-  final String dormName;
-  final OwnerReview review;
-}
-
 class _MyReviewsScreenState extends State<MyReviewsScreen> {
-  List<_ReviewEntry> _all = [];
+  List<OwnerReviewEntry> _all = [];
   List<String> _dormNames = [];
   Map<int, ReviewReport> _reports = {};
   String? _filter;
@@ -41,18 +34,13 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     try {
-      final dorms = await widget.services.dormitories.list();
-      final entries = <_ReviewEntry>[];
-      for (final Dormitory d in dorms) {
-        final reviews = await widget.services.dormitories.reviews(d.id);
-        entries.addAll(reviews.map((r) => _ReviewEntry(d.name, r)));
-      }
-      final reports = await widget.services.extras.reports();
+      final bundle = await widget.services.dormitories.allReviews();
+      final reports = await widget.services.dormitories.reviewReports();
       if (!mounted) return;
       setState(() {
         _reports = reports;
-        _all = entries;
-        _dormNames = dorms.map((d) => d.name).toList();
+        _all = bundle.entries;
+        _dormNames = bundle.dormNames;
       });
     } catch (e) {
       if (mounted) showApiError(context, widget.services, e);
@@ -61,26 +49,21 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
     }
   }
 
-  List<_ReviewEntry> get _visible => _filter == null
-      ? _all
-      : _all.where((e) => e.dormName == _filter).toList();
+  List<OwnerReviewEntry> get _visible =>
+      OwnerReviewsBundle(_all, _dormNames).visible(_filter);
 
-  double? get _avg {
-    final list = _visible;
-    if (list.isEmpty) return null;
-    return list.fold<int>(0, (s, e) => s + e.review.rating) / list.length;
-  }
+  double? get _avg => OwnerReviewsBundle.average(_visible);
 
   /// Report รีวิว (Figma O-12e): ต้องใส่เหตุผล ไม่เกิน 300 ตัวอักษร
-  Future<void> _report(_ReviewEntry e) async {
+  Future<void> _report(OwnerReviewEntry e) async {
     final reason = await showDialog<String>(
       context: context,
       builder: (_) => _ReportDialog(entry: e),
     );
     if (reason == null) return;
     try {
-      await widget.services.extras.reportReview(e.review.id, reason);
-      final reports = await widget.services.extras.reports();
+      await widget.services.dormitories.reportReview(e.review.id, reason);
+      final reports = await widget.services.dormitories.reviewReports();
       if (!mounted) return;
       setState(() => _reports = reports);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -346,7 +329,7 @@ class _FilterChip extends StatelessWidget {
 class _ReportDialog extends StatefulWidget {
   const _ReportDialog({required this.entry});
 
-  final _ReviewEntry entry;
+  final OwnerReviewEntry entry;
 
   @override
   State<_ReportDialog> createState() => _ReportDialogState();

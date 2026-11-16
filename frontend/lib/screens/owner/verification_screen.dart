@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 
 import '../../models/verification.dart';
 import '../../services/api_client.dart';
+import '../../controller/owner/verification_controller.dart';
 import '../../services/app_services.dart';
 import '../../ui/error_handling.dart';
 import '../login_screen.dart';
@@ -31,11 +32,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
   Future<void> _pick() async {
     final f = await FilePicker.pickFile(
       type: FileType.custom,
-      allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+      allowedExtensions: VerificationController.documentExtensions,
     );
     if (f == null) return;
     final size = await f.length() ?? 0;
-    if (size > 10 * 1024 * 1024) {
+    if (size > VerificationController.maxDocumentBytes) {
       if (mounted) {
         ScaffoldMessenger.maybeOf(context)
             ?.showSnackBar(const SnackBar(content: Text('File is larger than 10 MB')));

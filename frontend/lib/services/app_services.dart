@@ -1,15 +1,16 @@
 import 'api_client.dart';
-import 'api_owner_extras.dart';
+import '../controller/owner/api_owner_extras.dart';
 import 'auth_service.dart';
 import 'chat_service.dart';
-import 'dormitory_service.dart';
+import '../controller/owner/dormitory_controller.dart';
 import 'favorite_service.dart';
-import 'local_owner_extras.dart';
+import '../controller/owner/local_owner_extras.dart';
+import '../controller/owner/owner_account_controller.dart';
 import 'notification_service.dart';
-import 'owner_extras.dart';
+import '../controller/owner/owner_extras.dart';
 import 'public_dormitory_service.dart';
 import 'token_store.dart';
-import 'verification_service.dart';
+import '../controller/owner/verification_controller.dart';
 
 /// true = ฟีเจอร์ owner ที่ backend ยังไม่มี (amenities, ลบหอ, report รีวิว,
 /// โปรไฟล์/รหัสผ่าน, ตั้งค่าแจ้งเตือน ฯลฯ) เก็บในเครื่อง
@@ -25,9 +26,10 @@ class AppServices {
     extras = kLocalOwnerExtras
         ? LocalOwnerExtras(userId: () => auth.userId)
         : ApiOwnerExtras(api);
-    dormitories = DormitoryService(api, extras);
+    dormitories = DormitoryController(api, extras);
+    account = OwnerAccountController(extras);
     chats = ChatService(api);
-    verification = VerificationService(api);
+    verification = VerificationController(api);
     notifications = NotificationService(api);
     publicDorms = PublicDormitoryService(api);
     favorites = FavoriteService(api);
@@ -39,9 +41,10 @@ class AppServices {
   late final ApiClient api;
   late final AuthService auth;
   late final OwnerExtras extras;
-  late final DormitoryService dormitories;
+  late final DormitoryController dormitories;
+  late final OwnerAccountController account;
   late final ChatService chats;
-  late final VerificationService verification;
+  late final VerificationController verification;
   late final NotificationService notifications;
   late final PublicDormitoryService publicDorms;
   late final FavoriteService favorites;
