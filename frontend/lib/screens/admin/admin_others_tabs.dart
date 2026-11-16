@@ -241,16 +241,16 @@ class _AdminAmenitiesTabState extends State<AdminAmenitiesTab> {
 // 2. หน้า ACTIVITY LOG (ประวัติการกระทำ)
 // ============================================================================
 
-class AdminLogsTab extends StatefulWidget {
-  const AdminLogsTab({super.key, required this.services});
+class AdminLogsMockTab extends StatefulWidget {
+  const AdminLogsMockTab({super.key, required this.services});
 
   final AppServices services;
 
   @override
-  State<AdminLogsTab> createState() => _AdminLogsTabState();
+  State<AdminLogsMockTab> createState() => _AdminLogsMockTabState();
 }
 
-class _AdminLogsTabState extends State<AdminLogsTab> {
+class _AdminLogsMockTabState extends State<AdminLogsMockTab> {
   late final AdminService _admin = AdminService(widget.services.api);
   
   List<dynamic> _items = [];
