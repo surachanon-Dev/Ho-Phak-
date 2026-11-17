@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import '../config/api_config.dart';
 
@@ -26,6 +27,25 @@ class UploadFile {
 
   final Uint8List bytes;
   final String filename;
+}
+
+/// ชนิดไฟล์จากนามสกุล (jpg/jpeg/png/webp/pdf) ไม่รู้จักให้ใช้ octet-stream
+MediaType contentTypeFor(String filename) {
+  final dot = filename.lastIndexOf('.');
+  final ext = dot < 0 ? '' : filename.substring(dot + 1).toLowerCase();
+  switch (ext) {
+    case 'jpg':
+    case 'jpeg':
+      return MediaType('image', 'jpeg');
+    case 'png':
+      return MediaType('image', 'png');
+    case 'webp':
+      return MediaType('image', 'webp');
+    case 'pdf':
+      return MediaType('application', 'pdf');
+    default:
+      return MediaType('application', 'octet-stream');
+  }
 }
 
 class ApiClient {
@@ -80,6 +100,8 @@ class ApiClient {
             fieldName,
             f.bytes,
             filename: f.filename,
+            // ต้องระบุชนิดไฟล์ ไม่งั้นส่งเป็น application/octet-stream แล้วเซิร์ฟเวอร์จะปฏิเสธรูป/pdf
+            contentType: contentTypeFor(f.filename),
           ),
         ),
       );

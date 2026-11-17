@@ -28,16 +28,25 @@ class AdminUserDetailController extends ChangeNotifier {
   bool get notFound => _notFound;
   Object? get error => _error;
 
+  /// ชื่อที่แสดง: username ถ้ามี ไม่งั้นใช้ ชื่อ + นามสกุล ไม่งั้นใช้ "User #id"
   String get displayName {
-    final name = (_user?['username'] as String?)?.trim() ?? '';
+    final name = realNameOf(_user);
     return name.isEmpty ? 'User #$userId' : name;
   }
 
   String get initials {
-    final name = (_user?['username'] as String?)?.trim() ?? '';
-    final words = name.split(' ').where((w) => w.isNotEmpty).toList();
+    final words = realNameOf(_user).split(' ').where((w) => w.isNotEmpty).toList();
     final result = words.take(2).map((w) => w[0].toUpperCase()).join();
     return result.isEmpty ? '?' : result;
+  }
+
+  /// ชื่อจริงจากแถวผู้ใช้: username ถ้ามี ไม่งั้นใช้ ชื่อ + นามสกุล ไม่มีคืนค่าว่าง
+  static String realNameOf(Map<String, dynamic>? row) {
+    final username = (row?['username'] as String?)?.trim() ?? '';
+    if (username.isNotEmpty) return username;
+    final first = (row?['first_name'] as String?)?.trim() ?? '';
+    final surname = (row?['surname'] as String?)?.trim() ?? '';
+    return [first, surname].where((p) => p.isNotEmpty).join(' ');
   }
 
   String get phone => (_user?['phone'] as String?) ?? '-';

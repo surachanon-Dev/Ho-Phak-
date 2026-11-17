@@ -156,6 +156,18 @@ void main() {
       expect(unnamed.initials, '?');
     });
 
+    test('ไม่มี username ใช้ ชื่อ + นามสกุลแทน', () async {
+      final c = AdminUserDetailController(
+        _admin(log: [], users: [
+          {..._user(id: 9, username: null, role: 'student'), 'first_name': 'สมชาย', 'surname': 'ใจดี'},
+        ]),
+        userId: 9,
+      );
+      await c.load();
+      expect(c.displayName, 'สมชาย ใจดี');
+      expect(c.initials, 'สใ');
+    });
+
     test('ก่อนโหลดใช้ค่าว่างปลอดภัย', () {
       final c = AdminUserDetailController(_admin(log: []), userId: 5);
 

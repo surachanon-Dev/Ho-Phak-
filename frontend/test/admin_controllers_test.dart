@@ -379,6 +379,8 @@ void main() {
             return _json({'reviews': [{'id': 7}]});
           case '/api/admin/dormitories':
             return _json({'dormitories': [{'id': 9}]});
+          case '/api/admin/users':
+            return _json({'users': [{'id': 21}, {'id': 22}]});
           default:
             return _json({});
         }
@@ -389,7 +391,9 @@ void main() {
       expect(c.dormsAwaitingCount, 3);
       expect(c.ownerRequestsCount, 1);
       expect(c.reportedReviewsCount, 1);
-      expect(c.suspendedCount, 1);
+      expect(c.suspendedDormsCount, 1);
+      expect(c.suspendedAccountsCount, 2);
+      expect(c.suspendedCount, 3);
       expect(c.totalWaiting, 4);
       expect(c.allCaughtUp, isFalse);
     });

@@ -448,6 +448,8 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
         return (const Color(0xFFDCFCE7), const Color(0xFF15803D));
       case 'pending':
         return (const Color(0xFFFEF3C7), const Color(0xFFB45309));
+      case 'changes_pending':
+        return (const Color(0xFFDBEAFE), const Color(0xFF1D4ED8));
       case 'suspended':
         return (const Color(0xFFC92A2A), Colors.white);
       case 'rejected':
@@ -463,6 +465,8 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
         return 'Published';
       case 'pending':
         return 'Pending review';
+      case 'changes_pending':
+        return 'Changes pending';
       case 'suspended':
         return 'Suspended';
       case 'rejected':

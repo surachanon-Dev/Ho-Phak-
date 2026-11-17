@@ -9,9 +9,12 @@ import '../../ui/error_handling.dart';
 /// - Awaiting review: หอใหม่และฉบับแก้ไขที่รอตรวจ อนุมัติ/ปฏิเสธ
 /// - All dorms: หอทั้งหมด กรองตามสถานะ ระงับ/ยกเลิกการระงับ
 class AdminDormsTab extends StatefulWidget {
-  const AdminDormsTab({super.key, required this.services});
+  const AdminDormsTab({super.key, required this.services, this.onChanged});
 
   final AppServices services;
+
+  /// เรียกหลังการเปลี่ยนแปลงสำเร็จ เพื่อให้ badge เมนูและแดชบอร์ดโหลดตัวเลขใหม่
+  final VoidCallback? onChanged;
 
   @override
   State<AdminDormsTab> createState() => _AdminDormsTabState();
@@ -53,7 +56,9 @@ class _AdminDormsTabState extends State<AdminDormsTab>
 
   void _report(bool ok) {
     if (!mounted) return;
-    if (!ok && _c.error != null) {
+    if (ok) {
+      widget.onChanged?.call();
+    } else if (_c.error != null) {
       showApiError(context, widget.services, _c.error!);
     }
   }

@@ -28,9 +28,21 @@ function makeStorage(dir) {
     });
 }
 
+// ชนิดไฟล์ตามนามสกุล ใช้เมื่อ client ส่ง content-type มาเป็น application/octet-stream
+const EXTENSION_TYPES = {
+    '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.pdf': 'application/pdf',
+};
+
+function effectiveType(file) {
+    if (file.mimetype === 'application/octet-stream') {
+        return EXTENSION_TYPES[path.extname(file.originalname).toLowerCase()] || file.mimetype;
+    }
+    return file.mimetype;
+}
+
 function fileFilter(allowedTypes, message) {
     return (req, file, cb) => {
-        if (allowedTypes.includes(file.mimetype)) {
+        if (allowedTypes.includes(effectiveType(file))) {
             cb(null, true);
         } else {
             cb(new AppError(400, message));

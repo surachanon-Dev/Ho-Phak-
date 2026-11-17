@@ -1,17 +1,24 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import '../../controllers/admin_owner_requests_controller.dart';
+import '../../controllers/admin_user_detail_controller.dart';
 import '../../services/admin_service.dart';
 import '../../services/app_services.dart';
 import '../../ui/error_handling.dart';
+import '../../ui/open_document.dart';
 
 /// หน้า 03 · OWNER REQUESTS — คำขอเป็นเจ้าของหอ (หน้า A-2, A-2a, A-2c, A-2d: รายการรอตรวจ อนุมัติ/ปฏิเสธ และดูประวัติ)
 /// วางทับที่: ช่องที่ 5 ในโฟลเดอร์ admin (lib/screens/admin/admin_queue_tab.dart)
 /// ใช้เฉพาะ import มาตรฐานและ AppServices ของโปรเจกต์ 100% เพื่อไม่ให้ขึ้นสีแดง
 class AdminQueueTab extends StatefulWidget {
-  const AdminQueueTab({super.key, required this.services});
+  const AdminQueueTab({super.key, required this.services, this.onChanged});
 
   final AppServices services;
+
+  /// เรียกหลังอนุมัติ/ปฏิเสธสำเร็จ เพื่อให้ badge เมนูและแดชบอร์ดโหลดตัวเลขใหม่
+  final VoidCallback? onChanged;
 
   @override
   State<AdminQueueTab> createState() => _AdminQueueTabState();
@@ -78,10 +85,58 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
     });
   }
 
+  /// เปิดดูเอกสารยืนยันตัวตน (ดึงไฟล์พร้อม token ของแอดมิน)
+  /// รูปภาพ png/jpg แสดงในกล่อง ส่วน pdf เปิดในแท็บใหม่ของเบราว์เซอร์
+  Future<void> _viewDocument(_OwnerRequestItem item) async {
+    final Uint8List bytes;
+    try {
+      bytes = await AdminService(widget.services.api)
+          .verificationDocument(int.parse(item.id));
+    } catch (e) {
+      if (mounted) showApiError(context, widget.services, e);
+      return;
+    }
+    if (!mounted) return;
+    final isImage = RegExp(r'\.(png|jpe?g)$', caseSensitive: false)
+        .hasMatch(item.documentName);
+    final isPdf = RegExp(r'\.pdf$', caseSensitive: false).hasMatch(item.documentName);
+    final sizeKb = (bytes.length / 1024).toStringAsFixed(0);
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(item.documentName),
+        content: SizedBox(
+          width: 520,
+          child: isImage
+              ? InteractiveViewer(child: Image.memory(bytes))
+              : Text('${item.documentName} ($sizeKb KB)'),
+        ),
+        actions: [
+          if (isPdf)
+            FilledButton(
+              onPressed: () {
+                if (!openPdfInNewTab(bytes)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('เปิด PDF ไม่ได้บนแพลตฟอร์มนี้')),
+                  );
+                }
+              },
+              child: const Text('Open PDF in new tab'),
+            ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _approveRequest(_OwnerRequestItem item) async {
     final ok = await _c.approve(int.parse(item.id));
     if (!mounted) return;
     if (ok) {
+      widget.onChanged?.call();
       setState(() {
         _subView = _OwnerRequestSubView.list;
         _selectedItem = null;
@@ -256,10 +311,14 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
     final ok = await _c.reject(int.parse(item.id), confirmedReason);
     if (!mounted) return;
     if (ok) {
+      widget.onChanged?.call();
       setState(() {
         _subView = _OwnerRequestSubView.list;
         _selectedItem = null;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Rejected ${item.name}. They can correct and resubmit.')),
+      );
     } else if (_c.error != null) {
       showApiError(context, widget.services, _c.error!);
     }
@@ -273,7 +332,8 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
       case _OwnerRequestSubView.detailRejected:
         return _buildDetailRejected(_selectedItem!);
       case _OwnerRequestSubView.list:
-        return _buildListView();
+        // ตารางกว้าง 1000 พิกเซล เลื่อนแนวนอนได้เมื่อหน้าจอแคบกว่า (ปุ่ม Review ไม่ถูกตัด)
+        return _MinWidthScroll(minWidth: 1000, child: _buildListView());
     }
   }
 
@@ -309,7 +369,7 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
               const SizedBox(width: 20),
               _TabButton(
                 label: 'Approved',
-                count: 12,
+                count: _approvedItems.length,
                 selected: _selectedTab == 1,
                 onTap: () => setState(() => _selectedTab = 1),
               ),
@@ -495,25 +555,9 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
                                     color: Color(0xFF334155),
                                   ),
                                 )
-                              : Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.insert_drive_file_outlined,
-                                      size: 15,
-                                      color: Color(0xFF0062D6),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Flexible(
-                                      child: Text(
-                                        filtered[i].documentName,
-                                        style: const TextStyle(
-                                          fontSize: 12.5,
-                                          fontWeight: FontWeight.w500,
-                                          color: Color(0xFF0062D6),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                              : _DocumentLink(
+                                  name: filtered[i].documentName,
+                                  onTap: () => _viewDocument(filtered[i]),
                                 ),
                         ),
 
@@ -579,16 +623,12 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
           Row(
             children: [
               Text(
-                'Showing 1–${filtered.length} of ${filtered.length}',
+                'Showing all ${filtered.length} ${filtered.length == 1 ? 'request' : 'requests'}',
                 style: const TextStyle(
                   fontSize: 12,
                   color: Color(0xFF64748B),
                 ),
               ),
-              const SizedBox(width: 12),
-              _PageArrowButton(icon: Icons.chevron_left, onTap: () {}),
-              const SizedBox(width: 6),
-              _PageArrowButton(icon: Icons.chevron_right, onTap: () {}),
             ],
           ),
         ],
@@ -634,9 +674,15 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
                 const Divider(height: 24, color: Color(0xFFF1F5F9)),
                 _DetailRow(label: 'Role', value: item.role),
                 const Divider(height: 24, color: Color(0xFFF1F5F9)),
-                _DetailRow(label: 'Member since', value: item.memberSince),
-                const Divider(height: 24, color: Color(0xFFF1F5F9)),
                 _DetailRow(label: 'Submitted', value: item.submitted),
+                const Divider(height: 24, color: Color(0xFFF1F5F9)),
+                _DetailRow(
+                  label: 'Document',
+                  customValue: _DocumentLink(
+                    name: item.documentName,
+                    onTap: () => _viewDocument(item),
+                  ),
+                ),
                 const Divider(height: 24, color: Color(0xFFF1F5F9)),
                 _DetailRow(
                   label: 'Status',
@@ -814,9 +860,15 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
                 const Divider(height: 24, color: Color(0xFFF1F5F9)),
                 _DetailRow(label: 'Role', value: item.role),
                 const Divider(height: 24, color: Color(0xFFF1F5F9)),
-                _DetailRow(label: 'Member since', value: item.memberSince),
-                const Divider(height: 24, color: Color(0xFFF1F5F9)),
                 _DetailRow(label: 'Submitted', value: item.submitted),
+                const Divider(height: 24, color: Color(0xFFF1F5F9)),
+                _DetailRow(
+                  label: 'Document',
+                  customValue: _DocumentLink(
+                    name: item.documentName,
+                    onTap: () => _viewDocument(item),
+                  ),
+                ),
                 const Divider(height: 24, color: Color(0xFFF1F5F9)),
                 _DetailRow(
                   label: 'Status',
@@ -881,9 +933,10 @@ class _OwnerRequestItem {
       name: name,
       phone: (row['owner_phone'] as String?) ?? '-',
       role: 'Dorm Owner',
-      memberSince: '-',
-      submitted: (row['submitted_at'] ?? '').toString(),
-      reviewedDate: row['reviewed_at']?.toString(),
+      submitted: AdminUserDetailController.formatDate(row['submitted_at']),
+      reviewedDate: row['reviewed_at'] == null
+          ? null
+          : AdminUserDetailController.formatDate(row['reviewed_at']),
       documentName: url.isEmpty ? '-' : url.split('/').last,
       status: status,
       rejectReason: row['rejection_reason'] as String?,
@@ -896,7 +949,6 @@ class _OwnerRequestItem {
     required this.name,
     required this.phone,
     required this.role,
-    required this.memberSince,
     required this.submitted,
     required this.documentName,
     required this.status,
@@ -910,7 +962,6 @@ class _OwnerRequestItem {
   final String name;
   final String phone;
   final String role;
-  final String memberSince;
   final String submitted;
   final String? reviewedDate;
   final String? rejectedTimestamp;
@@ -930,7 +981,6 @@ class _OwnerRequestItem {
       name: name,
       phone: phone,
       role: role,
-      memberSince: memberSince,
       submitted: submitted,
       documentName: documentName,
       status: status ?? this.status,
@@ -1204,35 +1254,62 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-class _PageArrowButton extends StatelessWidget {
-  const _PageArrowButton({
-    required this.icon,
-    required this.onTap,
-  });
 
-  final IconData icon;
+/// ลิงก์ชื่อไฟล์เอกสาร กดแล้วเปิดดูเอกสาร
+class _DocumentLink extends StatelessWidget {
+  const _DocumentLink({required this.name, required this.onTap});
+
+  final String name;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(6),
-      onTap: onTap,
-      child: Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-        ),
-        alignment: Alignment.center,
-        child: Icon(
-          icon,
-          size: 16,
-          color: const Color(0xFF64748B),
-        ),
+      borderRadius: BorderRadius.circular(4),
+      onTap: name == '-' ? null : onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.insert_drive_file_outlined, size: 15, color: Color(0xFF0062D6)),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              name,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF0062D6),
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+/// ให้เนื้อหาไม่บีบเกินความกว้างขั้นต่ำ ถ้าหน้าจอแคบกว่าจะเลื่อนแนวนอนได้
+class _MinWidthScroll extends StatelessWidget {
+  const _MinWidthScroll({required this.minWidth, required this.child});
+
+  final double minWidth;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth < minWidth ? minWidth : constraints.maxWidth;
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: width,
+            height: constraints.maxHeight,
+            child: child,
+          ),
+        );
+      },
     );
   }
 }

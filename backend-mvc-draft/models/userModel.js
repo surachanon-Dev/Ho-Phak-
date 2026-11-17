@@ -56,7 +56,7 @@ async function listForAdmin({ role, status } = {}) {
     }
     const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const [rows] = await db.query(
-        `SELECT id, username, phone, role, status, is_verified, created_at, suspension_reason, suspended_at FROM users
+        `SELECT id, username, first_name, surname, phone, role, status, is_verified, created_at, suspension_reason, suspended_at FROM users
          ${where} ORDER BY id DESC`, params);
     return rows;
 }

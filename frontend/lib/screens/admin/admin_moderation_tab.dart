@@ -894,14 +894,14 @@ class _AdminModerationTabState extends State<AdminModerationTab> {
 class _UserRowData {
   /// แปลงแถวจาก GET /api/admin/users (ไม่มีรหัสผ่าน)
   factory _UserRowData.fromRow(Map<String, dynamic> row) {
-    final username = (row['username'] as String?)?.trim() ?? '';
-    final words = username.split(' ').where((w) => w.isNotEmpty).toList();
+    final realName = AdminUserDetailController.realNameOf(row);
+    final words = realName.split(' ').where((w) => w.isNotEmpty).toList();
     final initials = words.take(2).map((w) => w[0].toUpperCase()).join();
     final created = AdminUserDetailController.formatDate(row['created_at']);
     return _UserRowData(
       id: '${row['id']}',
       initials: initials.isEmpty ? '?' : initials,
-      name: username.isEmpty ? 'User #${row['id']}' : username,
+      name: realName.isEmpty ? 'User #${row['id']}' : realName,
       phone: (row['phone'] as String?) ?? '-',
       role: AdminUsersController.displayRole(row['role'] as String?),
       status: AdminUsersController.displayStatus(row['status'] as String?),

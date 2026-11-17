@@ -140,12 +140,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         dormsAwaitingCount: _dormsAwaitingCount,
         reportedReviewsCount: _reportedReviewsCount,
         suspendedCount: _suspendedCount,
+        suspendedDorms: _dash.suspendedDormsCount,
+        suspendedAccounts: _dash.suspendedAccountsCount,
         totalWaiting: _totalWaiting,
         onSelectMenu: _selectMenu,
         activities: _recentActivityRows,
       ),
-      AdminQueueTab(services: s), // 1: Owner requests (verification)
-      AdminDormsTab(services: s), // 2: Dorms
+      AdminQueueTab(services: s, onChanged: () => _dash.load()), // 1: Owner requests (verification)
+      AdminDormsTab(services: s, onChanged: () => _dash.load()), // 2: Dorms
       AdminModerationTab(services: s, showAmenities: false), // 3: Users
       AdminReviewsTab(services: s), // 4: Reviews
       AdminLogsTab(services: s), // 5: Activity log
@@ -492,6 +494,8 @@ class _DashboardView extends StatelessWidget {
     required this.dormsAwaitingCount,
     required this.reportedReviewsCount,
     required this.suspendedCount,
+    required this.suspendedDorms,
+    required this.suspendedAccounts,
     required this.totalWaiting,
     required this.onSelectMenu,
     required this.activities,
@@ -501,6 +505,8 @@ class _DashboardView extends StatelessWidget {
   final int dormsAwaitingCount;
   final int reportedReviewsCount;
   final int suspendedCount;
+  final int suspendedDorms;
+  final int suspendedAccounts;
   final int totalWaiting;
   final ValueChanged<int> onSelectMenu;
   final List<_ActivityRowData> activities;
@@ -561,8 +567,10 @@ class _DashboardView extends StatelessWidget {
                   icon: Icons.block,
                   count: suspendedCount,
                   title: 'Suspended',
-                  subtitle:
-                      allCaughtUp ? 'Nothing waiting' : '1 dorm · 1 account',
+                  subtitle: allCaughtUp
+                      ? 'Nothing waiting'
+                      : '$suspendedDorms ${suspendedDorms == 1 ? 'dorm' : 'dorms'} · '
+                          '$suspendedAccounts ${suspendedAccounts == 1 ? 'account' : 'accounts'}',
                   onTap: () => onSelectMenu(3),
                 ),
               ),

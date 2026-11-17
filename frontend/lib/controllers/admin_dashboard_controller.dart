@@ -12,6 +12,7 @@ class AdminDashboardController extends ChangeNotifier {
   int _ownerRequests = 0;
   int _reportedReviews = 0;
   int _suspendedDorms = 0;
+  int _suspendedAccounts = 0;
   bool _loading = false;
   Object? _error;
 
@@ -25,7 +26,13 @@ class AdminDashboardController extends ChangeNotifier {
   int get reportedReviewsCount => _reportedReviews;
 
   /// หอที่ถูกระงับ
-  int get suspendedCount => _suspendedDorms;
+  int get suspendedDormsCount => _suspendedDorms;
+
+  /// บัญชีผู้ใช้ที่ถูกระงับ
+  int get suspendedAccountsCount => _suspendedAccounts;
+
+  /// จำนวนที่ถูกระงับทั้งหมด (หอ + บัญชี) สำหรับการ์ด Suspended
+  int get suspendedCount => _suspendedDorms + _suspendedAccounts;
 
   /// มีรายการค้างรอทำอยู่หรือไม่ (ใช้แสดงข้อความ "all caught up")
   bool get allCaughtUp =>
@@ -47,12 +54,14 @@ class AdminDashboardController extends ChangeNotifier {
         _service.queue(),
         _service.reviews('pending'),
         _service.allDormitories(status: 'suspended'),
+        _service.allUsers(status: 'suspended'),
       ]);
       final queue = results[0] as AdminQueue;
       _dormsAwaiting = queue.newDormitories.length + queue.revisions.length;
       _ownerRequests = queue.verifications.length;
       _reportedReviews = (results[1] as List).length;
       _suspendedDorms = (results[2] as List).length;
+      _suspendedAccounts = (results[3] as List).length;
       return true;
     } catch (e) {
       _error = e;
