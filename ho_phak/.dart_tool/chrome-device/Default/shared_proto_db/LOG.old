@@ -1,8 +1,20 @@
-2026/11/16-10:54:15.772 6528 Reusing MANIFEST C:\Users\Lenovo\AppData\Local\Temp\flutter_tools.ede25288\flutter_tools_chrome_device.32e508c9\Default\shared_proto_db/MANIFEST-000001
-2026/11/16-10:54:15.772 6528 Recovering log #16
-2026/11/16-10:54:15.772 6528 Reusing old log C:\Users\Lenovo\AppData\Local\Temp\flutter_tools.ede25288\flutter_tools_chrome_device.32e508c9\Default\shared_proto_db/000016.log 
-2026/11/16-10:54:15.772 6528 Delete type=0 #3
-2026/11/16-10:54:15.772 6528 Delete type=0 #4
-2026/11/16-10:54:15.772 6528 Delete type=0 #7
-2026/11/16-10:54:15.772 6528 Delete type=0 #10
-2026/11/16-10:54:15.772 6528 Delete type=0 #13
+2026/11/17-17:14:49.791 acd8 Reusing MANIFEST C:\Users\Lenovo\AppData\Local\Temp\flutter_tools.55caa08b\flutter_tools_chrome_device.6bb9cd86\Default\shared_proto_db/MANIFEST-000001
+2026/11/17-17:14:49.791 acd8 Recovering log #16
+2026/11/17-17:14:49.792 acd8 Reusing old log C:\Users\Lenovo\AppData\Local\Temp\flutter_tools.55caa08b\flutter_tools_chrome_device.6bb9cd86\Default\shared_proto_db/000016.log 
+2026/11/17-17:14:49.792 acd8 Delete type=0 #3
+2026/11/17-17:14:49.792 acd8 Delete type=0 #4
+2026/11/17-17:14:49.793 acd8 Delete type=0 #7
+2026/11/17-17:14:49.793 acd8 Delete type=0 #10
+2026/11/17-17:14:49.793 acd8 Delete type=0 #13
+2026/11/17-17:15:22.585 61c0 Level-0 table #20: started
+2026/11/17-17:15:22.598 61c0 Level-0 table #20: 136722 bytes OK
+2026/11/17-17:15:22.601 61c0 Delete type=0 #16
+2026/11/17-17:15:22.601 61c0 Compacting 4@0 + 1@1 files
+2026/11/17-17:15:22.604 61c0 Generated table #21@0: 1004 keys, 127217 bytes
+2026/11/17-17:15:22.604 61c0 Compacted 4@0 + 1@1 files => 127217 bytes
+2026/11/17-17:15:22.605 61c0 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/11/17-17:15:22.605 61c0 Delete type=2 #8
+2026/11/17-17:15:22.605 61c0 Delete type=2 #11
+2026/11/17-17:15:22.605 61c0 Delete type=2 #14
+2026/11/17-17:15:22.605 61c0 Delete type=2 #17
+2026/11/17-17:15:22.605 61c0 Delete type=2 #20

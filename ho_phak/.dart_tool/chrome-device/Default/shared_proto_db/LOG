@@ -1,8 +1,13 @@
-2026/11/16-11:09:23.180 8634 Reusing MANIFEST C:\Users\Lenovo\AppData\Local\Temp\flutter_tools.9cdab826\flutter_tools_chrome_device.74869bc\Default\shared_proto_db/MANIFEST-000001
-2026/11/16-11:09:23.180 8634 Recovering log #16
-2026/11/16-11:09:23.181 8634 Reusing old log C:\Users\Lenovo\AppData\Local\Temp\flutter_tools.9cdab826\flutter_tools_chrome_device.74869bc\Default\shared_proto_db/000016.log 
-2026/11/16-11:09:23.181 8634 Delete type=0 #3
-2026/11/16-11:09:23.182 8634 Delete type=0 #4
-2026/11/16-11:09:23.182 8634 Delete type=0 #7
-2026/11/16-11:09:23.182 8634 Delete type=0 #10
-2026/11/16-11:09:23.182 8634 Delete type=0 #13
+2026/11/17-17:20:19.628 b318 Reusing MANIFEST C:\Users\Lenovo\AppData\Local\Temp\flutter_tools.7776d14d\flutter_tools_chrome_device.add4b85c\Default\shared_proto_db/MANIFEST-000001
+2026/11/17-17:20:19.629 b318 Recovering log #19
+2026/11/17-17:20:19.629 b318 Reusing old log C:\Users\Lenovo\AppData\Local\Temp\flutter_tools.7776d14d\flutter_tools_chrome_device.add4b85c\Default\shared_proto_db/000019.log 
+2026/11/17-17:20:19.629 b318 Delete type=0 #3
+2026/11/17-17:20:19.629 b318 Delete type=0 #4
+2026/11/17-17:20:19.629 b318 Delete type=0 #7
+2026/11/17-17:20:19.629 b318 Delete type=2 #8
+2026/11/17-17:20:19.629 b318 Delete type=0 #10
+2026/11/17-17:20:19.629 b318 Delete type=2 #11
+2026/11/17-17:20:19.629 b318 Delete type=0 #13
+2026/11/17-17:20:19.629 b318 Delete type=2 #14
+2026/11/17-17:20:19.630 b318 Delete type=0 #16
+2026/11/17-17:20:19.630 b318 Delete type=2 #17

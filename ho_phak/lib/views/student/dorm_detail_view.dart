@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../controllers/favorites_controller.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/dorm_mini_map.dart';
 import '../common/chat_view.dart';
 import 'map_view.dart';
 import 'review_list_view.dart';
@@ -29,8 +30,8 @@ class _DormDetailViewState extends State<DormDetailView> {
         'phone': '081-234-5678',
         'rating': '4.5',
         'image': 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
-        'pinTop': 35.0,
-        'pinLeft': 85.0,
+        'lat': 20.0435,
+        'lng': 99.8920,
       },
       'Hopak Sukjai 2': {
         'displayName': 'Hopak Sukjai 2',
@@ -43,8 +44,8 @@ class _DormDetailViewState extends State<DormDetailView> {
         'phone': '089-876-5432',
         'rating': '4.7',
         'image': 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800',
-        'pinTop': 22.0,
-        'pinLeft': 65.0,
+        'lat': 20.0422,
+        'lng': 99.8935,
       },
       'Hopak Sukjai 3': {
         'displayName': 'Hopak Sukjai 3',
@@ -57,8 +58,8 @@ class _DormDetailViewState extends State<DormDetailView> {
         'phone': '086-555-1234',
         'rating': '4.6',
         'image': 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800',
-        'pinTop': 28.0,
-        'pinLeft': 140.0,
+        'lat': 20.0475,
+        'lng': 99.8905,
       },
       'Hopak Sukjai 4': {
         'displayName': 'Hopak Sukjai 4',
@@ -71,8 +72,8 @@ class _DormDetailViewState extends State<DormDetailView> {
         'phone': '082-333-9999',
         'rating': '4.8',
         'image': 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800',
-        'pinTop': 55.0,
-        'pinLeft': 160.0,
+        'lat': 20.0405,
+        'lng': 99.8895,
       },
     };
 
@@ -88,8 +89,8 @@ class _DormDetailViewState extends State<DormDetailView> {
           'phone': '081-234-5678',
           'rating': '4.5',
           'image': 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
-          'pinTop': 35.0,
-          'pinLeft': 85.0,
+          'lat': 20.0435,
+          'lng': 99.8920,
         };
   }
 
@@ -283,8 +284,8 @@ class _DormDetailViewState extends State<DormDetailView> {
     final phone = info['phone'] as String;
     final rating = info['rating'] as String;
     final imageUrl = info['image'] as String;
-    final pinTop = info['pinTop'] as double;
-    final pinLeft = info['pinLeft'] as double;
+    final lat = info['lat'] as double;
+    final lng = info['lng'] as double;
 
     final amenities = ['Air Conditioner', 'Free Wi-Fi', 'Parking', 'CCTV'];
 
@@ -410,7 +411,7 @@ class _DormDetailViewState extends State<DormDetailView> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Mini Map Preview Card
+                  // Mini Map Preview Card (OpenStreetMap จริง)
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -421,49 +422,16 @@ class _DormDetailViewState extends State<DormDetailView> {
                       children: [
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
-                          child: SizedBox(
-                            height: 100,
-                            width: double.infinity,
-                            child: Stack(
-                              children: [
-                                Container(color: const Color(0xFFE9ECEF)),
-                                CustomPaint(
-                                  size: const Size(double.infinity, 100),
-                                  painter: _MiniMapPainter(),
-                                ),
-                                // Dorm Pin
-                                Positioned(
-                                  top: pinTop,
-                                  left: pinLeft,
-                                  child: const Icon(
-                                    Icons.location_on,
-                                    color: Color(0xFFD9480F),
-                                    size: 28,
-                                  ),
-                                ),
-                                // MFU Marker
-                                Positioned(
-                                  top: 38,
-                                  right: 45,
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFF1E293B),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(Icons.school, color: Colors.white, size: 12),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      const Text(
-                                        'MFU',
-                                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                          child: DormMiniMap(
+                            lat: lat,
+                            lng: lng,
+                            dormName: displayName,
+                            height: 120,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => MapView(initialDormName: widget.dormName),
+                              ),
                             ),
                           ),
                         ),
@@ -647,32 +615,4 @@ class _DormDetailViewState extends State<DormDetailView> {
       ),
     );
   }
-}
-
-class _MiniMapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final greenPaint = Paint()..color = const Color(0xFFD8E8D3);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(const Rect.fromLTWH(16, 14, 65, 55), const Radius.circular(8)),
-      greenPaint,
-    );
-
-    final waterPaint = Paint()..color = const Color(0xFFCDE1F5);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(size.width * 0.7, 12, 55, 32), const Radius.circular(14)),
-      waterPaint,
-    );
-
-    final roadPaint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 8
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawLine(const Offset(0, 52), Offset(size.width, 52), roadPaint);
-    canvas.drawLine(Offset(size.width * 0.6, 0), Offset(size.width * 0.6, size.height), roadPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

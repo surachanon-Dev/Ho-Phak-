@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../../core/theme.dart';
 import 'dorm_detail_view.dart';
 
@@ -9,43 +11,43 @@ class MapView extends StatefulWidget {
   static final List mapDorms = [
     {
       'name': 'Hopak Sukjai 1',
-      'location': 'Front Gate · 0.3 km from MFU',
-      'price': '3,500 THB/month',
-      'image': 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600',
-      'top': 250.0,
-      'left': 110.0,
-      'miniTop': 35.0,
-      'miniLeft': 115.0,
+      'price': '3,500 / month',
+      'shortPrice': '3,500 THB/month',
+      'zone': 'Front Gate · 0.3 km from MFU',
+      'rating': '4.5',
+      'lat': 20.0442,
+      'lng': 99.8838,
+      'image': 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
     },
     {
       'name': 'Hopak Sukjai 2',
-      'location': 'Front Gate · 0.5 km from MFU',
-      'price': '4,200 THB/month',
-      'image': 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600',
-      'top': 155.0,
-      'left': 75.0,
-      'miniTop': 18.0,
-      'miniLeft': 75.0,
+      'price': '4,200 / month',
+      'shortPrice': '4,200 THB/month',
+      'zone': 'Front Gate · 0.5 km from MFU',
+      'rating': '4.7',
+      'lat': 20.0418,
+      'lng': 99.8845,
+      'image': 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800',
     },
     {
       'name': 'Hopak Sukjai 3',
-      'location': 'Side Gate · 0.8 km from MFU',
-      'price': '3,800 THB/month',
-      'image': 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600',
-      'top': 140.0,
-      'left': 230.0,
-      'miniTop': 22.0,
-      'miniLeft': 195.0,
+      'price': '3,800 / month',
+      'shortPrice': '3,800 THB/month',
+      'zone': 'Side Gate · 0.8 km from MFU',
+      'rating': '4.6',
+      'lat': 20.0492,
+      'lng': 99.8862,
+      'image': 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800',
     },
     {
       'name': 'Hopak Sukjai 4',
-      'location': 'Market Zone · 1.2 km from MFU',
-      'price': '4,500 THB/month',
-      'image': 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=600',
-      'top': 285.0,
-      'left': 245.0,
-      'miniTop': 62.0,
-      'miniLeft': 220.0,
+      'price': '4,500 / month',
+      'shortPrice': '4,500 THB/month',
+      'zone': 'Market Zone · 1.2 km from MFU',
+      'rating': '4.8',
+      'lat': 20.0392,
+      'lng': 99.8835,
+      'image': 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800',
     },
   ];
 
@@ -54,202 +56,190 @@ class MapView extends StatefulWidget {
 }
 
 class _MapViewState extends State<MapView> {
-  late int _selectedIndex;
-  bool _isNearMe = false;
+  final MapController _mapController = MapController();
+
+  // พิกัดศูนย์กลางมหาวิทยาลัยแม่ฟ้าหลวง (MFU Campus)
+  static const LatLng _mfuCampus = LatLng(20.0455, 99.8935);
+
+  // จุดกึ่งกลางมุมมองแผนที่ (ให้ MFU อยู่กลางจอและเห็นโซนหอพักรอบ ม. ครบทุกจุด)
+  static const LatLng _initialCameraCenter = LatLng(20.0445, 99.8898);
+
+  late Map<String, dynamic> _selectedDorm;
+  bool _isNearMfu = true;
 
   @override
   void initState() {
     super.initState();
-    final idx = widget.initialDormName != null
-        ? MapView.mapDorms.indexWhere((d) => d['name'] == widget.initialDormName)
-        : 0;
-    _selectedIndex = idx >= 0 ? idx : 0;
+    if (widget.initialDormName != null) {
+      final match = MapView.mapDorms.where((d) => d['name'] == widget.initialDormName);
+      _selectedDorm = match.isNotEmpty ? match.first : MapView.mapDorms.first;
+    } else {
+      _selectedDorm = MapView.mapDorms.first;
+    }
   }
 
-  void _handleLocationSwitch() {
-    if (_isNearMe) {
-      setState(() => _isNearMe = false);
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.near_me_outlined, color: AppColors.primary, size: 28),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Use your location?',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Allow Ho-Phak to use your location to show dorms near you. You can switch back to Mae Fah Luang University anytime.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.4),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: const BorderSide(color: AppColors.border),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: const Text('Not now', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        setState(() => _isNearMe = true);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: const Text('Allow', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+  void _selectDorm(Map<String, dynamic> dorm) {
+    setState(() {
+      _selectedDorm = dorm;
+    });
+    _mapController.move(
+      LatLng(dorm['lat'] as double, dorm['lng'] as double),
+      15.8,
     );
+  }
+
+  void _toggleLocationMode() {
+    setState(() {
+      _isNearMfu = !_isNearMfu;
+    });
+    if (_isNearMfu) {
+      _mapController.move(_initialCameraCenter, 14.8);
+    } else {
+      _mapController.move(
+        LatLng(_selectedDorm['lat'] as double, _selectedDorm['lng'] as double),
+        16.0,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final selectedDorm = MapView.mapDorms[_selectedIndex];
-    final name = selectedDorm['name'].toString();
-    final location = selectedDorm['location'].toString();
-    final price = selectedDorm['price'].toString();
-    final imageUrl = selectedDorm['image'].toString();
+    final initialLat = _selectedDorm['lat'] as double;
+    final initialLng = _selectedDorm['lng'] as double;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE9ECEF),
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Map', style: TextStyle(fontWeight: FontWeight.bold)),
+        automaticallyImplyLeading: Navigator.canPop(context),
+        title: const Text(
+          'Map',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
       ),
       body: Stack(
         children: [
-          SizedBox(
-            width: double.infinity,
-            height: double.infinity,
-            child: CustomPaint(painter: _FigmaMapPainter()),
-          ),
-
-          Positioned(
-            top: 190,
-            left: 145,
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: _isNearMe ? AppColors.primary : const Color(0xFF1E293B),
-                    shape: BoxShape.circle,
-                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
-                  ),
-                  child: Icon(
-                    _isNearMe ? Icons.my_location : Icons.school,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(4),
-                    boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 2)],
-                  ),
-                  child: Text(
-                    _isNearMe ? 'You' : 'MFU',
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: widget.initialDormName != null
+                  ? LatLng(initialLat, initialLng)
+                  : _initialCameraCenter,
+              initialZoom: widget.initialDormName != null ? 15.8 : 14.8,
             ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.hophak.app',
+              ),
+              MarkerLayer(
+                markers: [
+                  // แลนด์มาร์กตรงกลาง: มหาวิทยาลัยแม่ฟ้าหลวง (MFU)
+                  Marker(
+                    point: _mfuCampus,
+                    width: 150,
+                    height: 66,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E293B),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
+                          ),
+                          child: const Icon(Icons.school, color: Colors.white, size: 18),
+                        ),
+                        const SizedBox(height: 3),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E293B),
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                          ),
+                          child: const Text(
+                            'ม.แม่ฟ้าหลวง (MFU)',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // หมุดหอพักแต่ละโซนรอบมหาวิทยาลัย
+                  ...MapView.mapDorms.map((dorm) {
+                    final isSelected = dorm['name'] == _selectedDorm['name'];
+                    return Marker(
+                      point: LatLng(dorm['lat'] as double, dorm['lng'] as double),
+                      width: 44,
+                      height: 44,
+                      child: GestureDetector(
+                        onTap: () => _selectDorm(dorm),
+                        child: Icon(
+                          Icons.location_on,
+                          color: isSelected
+                              ? const Color(0xFFD9480F)
+                              : const Color(0xFF0066CC),
+                          size: isSelected ? 40 : 32,
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ],
           ),
 
-          ...List.generate(MapView.mapDorms.length, (index) {
-            final dorm = MapView.mapDorms[index];
-            final isSelected = index == _selectedIndex;
-
-            return Positioned(
-              top: dorm['top'] as double,
-              left: dorm['left'] as double,
-              child: GestureDetector(
-                onTap: () => setState(() => _selectedIndex = index),
-                child: AnimatedScale(
-                  scale: isSelected ? 1.2 : 1.0,
-                  duration: const Duration(milliseconds: 150),
-                  child: Icon(
-                    Icons.location_on,
-                    color: isSelected ? const Color(0xFFD9480F) : AppColors.primary,
-                    size: 36,
-                  ),
-                ),
-              ),
-            );
-          }),
-
+          // แถบด้านบน: Near Mae Fah Luang University
           Positioned(
-            top: 16,
-            left: 24,
-            right: 24,
+            top: 12,
+            left: 16,
+            right: 16,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 GestureDetector(
-                  onTap: _handleLocationSwitch,
+                  onTap: _toggleLocationMode,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2))],
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          _isNearMe ? Icons.my_location : Icons.school_outlined,
+                          _isNearMfu ? Icons.school_outlined : Icons.my_location,
                           size: 18,
-                          color: _isNearMe ? AppColors.primary : AppColors.textPrimary,
+                          color: AppColors.textPrimary,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            _isNearMe ? 'Near me (Current Location)' : 'Near Mae Fah Luang University',
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                            overflow: TextOverflow.ellipsis,
+                            _isNearMfu
+                                ? 'Near Mae Fah Luang University'
+                                : 'Near me (Current Location)',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                         ),
                         const Icon(Icons.swap_horiz, size: 18, color: AppColors.textSecondary),
@@ -258,54 +248,71 @@ class _MapViewState extends State<MapView> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.85),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    _isNearMe ? 'Tap to switch to MFU' : 'Tap to switch to Near me',
-                    style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                GestureDetector(
+                  onTap: _toggleLocationMode,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 4),
+                      ],
+                    ),
+                    child: Text(
+                      _isNearMfu ? 'Tap to switch to Near me' : 'Tap to switch to MFU',
+                      style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
 
+          // การ์ดข้อมูลหอพักด้านล่าง
           Positioned(
-            bottom: 20,
-            left: 16,
-            right: 16,
+            left: 0,
+            right: 0,
+            bottom: 0,
             child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+              decoration: const BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 12, offset: Offset(0, 4))],
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 10,
+                    offset: Offset(0, -2),
+                  ),
+                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  GestureDetector(
+                  InkWell(
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => DormDetailView(dormName: name)),
+                      MaterialPageRoute(
+                        builder: (_) => DormDetailView(
+                          dormName: _selectedDorm['name'].toString(),
+                        ),
+                      ),
                     ),
                     child: Row(
                       children: [
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                           child: Image.network(
-                            imageUrl,
-                            width: 56,
-                            height: 56,
+                            _selectedDorm['image'].toString(),
+                            width: 58,
+                            height: 58,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Container(
-                              width: 56,
-                              height: 56,
+                              width: 58,
+                              height: 58,
                               color: const Color(0xFFE2E8F0),
-                              child: const Center(child: Text('[Photo]', style: TextStyle(fontSize: 10, color: AppColors.textSecondary))),
+                              child: const Icon(Icons.apartment, color: AppColors.textSecondary),
                             ),
                           ),
                         ),
@@ -314,11 +321,31 @@ class _MapViewState extends State<MapView> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                              Text(
+                                _selectedDorm['name'].toString(),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
                               const SizedBox(height: 2),
-                              Text(location, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                              Text(
+                                _selectedDorm['zone'].toString(),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
                               const SizedBox(height: 2),
-                              Text(price, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13)),
+                              Text(
+                                _selectedDorm['shortPrice'].toString(),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0066CC),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -331,47 +358,69 @@ class _MapViewState extends State<MapView> {
                     children: [
                       Expanded(
                         child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: const BorderSide(color: AppColors.border),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                           onPressed: () => Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => DormDetailView(dormName: name)),
+                            MaterialPageRoute(
+                              builder: (_) => DormDetailView(
+                                dormName: _selectedDorm['name'].toString(),
+                              ),
+                            ),
                           ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            side: const BorderSide(color: AppColors.border),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          child: const Text(
+                            'Details',
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          child: const Text('Details', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0066CC),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                           onPressed: () {
+                            final name = _selectedDorm['name'];
+                            final lat = _selectedDorm['lat'];
+                            final lng = _selectedDorm['lng'];
                             ScaffoldMessenger.of(context).clearSnackBars();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Opening Google Maps directions to "$name"...'),
+                                content: Text('Opening route to $name ($lat, $lng)...'),
                                 duration: const Duration(seconds: 2),
                               ),
                             );
                           },
                           icon: const Icon(Icons.near_me_outlined, size: 16, color: Colors.white),
-                          label: const Text('Directions', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          label: const Text(
+                            'Directions',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _isNearMe
-                        ? 'Opens Google Maps · route from Your Location'
-                        : 'Opens Google Maps · route from Mae Fah Luang University',
-                    style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Opens Google Maps · route from Mae Fah Luang University',
+                    style: TextStyle(fontSize: 10, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -381,33 +430,4 @@ class _MapViewState extends State<MapView> {
       ),
     );
   }
-}
-
-class _FigmaMapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final greenPaint = Paint()..color = const Color(0xFFD8E8D3);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(const Rect.fromLTWH(30, 120, 110, 75), const Radius.circular(12)),
-      greenPaint,
-    );
-
-    final waterPaint = Paint()..color = const Color(0xFFCDE1F5);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(size.width * 0.55, size.height * 0.42, 130, 90), const Radius.circular(36)),
-      waterPaint,
-    );
-
-    final roadPaint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 14
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawLine(const Offset(0, 95), Offset(size.width, 95), roadPaint);
-    canvas.drawLine(const Offset(0, 240), Offset(size.width, 200), roadPaint);
-    canvas.drawLine(Offset(size.width * 0.52, 0), Offset(size.width * 0.52, size.height), roadPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
