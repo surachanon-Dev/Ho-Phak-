@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../controller/notifications/notifications_controller.dart';
 import '../models/notification.dart';
 import '../services/app_services.dart';
 import '../ui/app_theme.dart';
@@ -17,37 +18,36 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  List<AppNotification> _items = [];
-  bool _loading = true;
+  late final NotificationsController _c;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _c = NotificationsController(widget.services.notifications);
+    _c.addListener(_onChanged);
+    _c.load().then((_) {
+      if (mounted && _c.error != null) {
+        showApiError(context, widget.services, _c.error!);
+      }
+    });
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final items = await widget.services.notifications.list();
-      if (mounted) setState(() => _items = items);
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _c.removeListener(_onChanged);
+    _c.dispose();
+    super.dispose();
   }
 
   Future<void> _open(AppNotification n) async {
-    if (!n.isRead) {
-      try {
-        await widget.services.notifications.markRead(n.id);
-      } catch (e) {
-        if (mounted) showApiError(context, widget.services, e);
-      }
+    final ok = await _c.open(n);
+    if (!ok && mounted && _c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
-    if (!mounted) return;
-    await _load();
   }
 
   @override
@@ -55,10 +55,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('การแจ้งเตือน')),
       body: RefreshIndicator(
-        onRefresh: _load,
-        child: _loading && _items.isEmpty
+        onRefresh: _c.load,
+        child: _c.showFullLoader
             ? const Center(child: CircularProgressIndicator())
-            : _items.isEmpty
+            : _c.items.isEmpty
             ? ListView(
                 children: const [
                   SizedBox(height: 120),
@@ -67,10 +67,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               )
             : ListView.separated(
                 padding: const EdgeInsets.all(16),
-                itemCount: _items.length,
+                itemCount: _c.items.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (context, i) {
-                  final n = _items[i];
+                  final n = _c.items[i];
                   return Card(
                     child: ListTile(
                       onTap: () => _open(n),

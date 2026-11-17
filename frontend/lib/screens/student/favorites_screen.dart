@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../models/favorite.dart';
+import '../../controller/student/favorites_controller.dart';
 import '../../services/app_services.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
@@ -26,37 +26,36 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
-  List<Favorite> _items = [];
-  bool _loading = true;
+  late final FavoritesController _c;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _c = FavoritesController(widget.services.favorites);
+    _c.addListener(_onChanged);
+    _c.load();
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final items = await widget.services.favorites.list();
-      if (mounted) setState(() => _items = items);
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  void _onChanged() {
+    if (mounted) setState(() {});
   }
 
-  Future<void> _remove(Favorite f) async {
-    try {
-      await widget.services.favorites.remove(f.id);
-      if (!mounted) return;
-      setState(() => _items.removeWhere((x) => x.id == f.id));
+  @override
+  void dispose() {
+    _c.removeListener(_onChanged);
+    _c.dispose();
+    super.dispose();
+  }
+
+  Future<void> _remove(int dormitoryId) async {
+    final ok = await _c.remove(dormitoryId);
+    if (!mounted) return;
+    if (ok) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('นำออกจากรายการโปรดแล้ว')));
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
+    } else if (_c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
@@ -65,10 +64,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('รายการโปรด')),
       body: RefreshIndicator(
-        onRefresh: _load,
-        child: _loading && _items.isEmpty
+        onRefresh: _c.load,
+        child: _c.showFullLoader
             ? const Center(child: CircularProgressIndicator())
-            : _items.isEmpty
+            : _c.items.isEmpty
             ? ListView(
                 children: [
                   const SizedBox(height: 120),
@@ -97,10 +96,10 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               )
             : ListView.separated(
                 padding: const EdgeInsets.all(16),
-                itemCount: _items.length,
+                itemCount: _c.items.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (context, i) {
-                  final f = _items[i];
+                  final f = _c.items[i];
                   final available = f.isAvailable;
                   return Card(
                     child: ListTile(
@@ -137,7 +136,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           Icons.favorite,
                           color: AppColors.danger,
                         ),
-                        onPressed: () => _remove(f),
+                        onPressed: () => _remove(f.id),
                       ),
                     ),
                   );

@@ -15,15 +15,16 @@ import '../controller/owner/verification_controller.dart';
 /// true = ฟีเจอร์ owner ที่ backend ยังไม่มี (amenities, ลบหอ, report รีวิว,
 /// โปรไฟล์/รหัสผ่าน, ตั้งค่าแจ้งเตือน ฯลฯ) เก็บในเครื่อง
 /// ตั้งเป็น false เมื่อ backend มี endpoint ตามสัญญาแล้ว (ดู ApiOwnerExtras)
-const bool kLocalOwnerExtras = true;
+const bool kLocalOwnerExtras = false;
 
 /// รวม service ทั้งหมดไว้ที่เดียว สร้างครั้งเดียวตอนเริ่มแอป
 class AppServices {
-  AppServices() {
+  /// [localOwnerExtras] เว้นว่างไว้ = ใช้ค่า kLocalOwnerExtras (เทสต์ส่ง true เพื่อไม่เรียกเครือข่าย)
+  AppServices({bool? localOwnerExtras}) {
     tokens = TokenStore();
     api = ApiClient(tokenProvider: () => tokens.token);
     auth = AuthService(api, tokens);
-    extras = kLocalOwnerExtras
+    extras = (localOwnerExtras ?? kLocalOwnerExtras)
         ? LocalOwnerExtras(userId: () => auth.userId)
         : ApiOwnerExtras(api);
     dormitories = DormitoryController(api, extras);

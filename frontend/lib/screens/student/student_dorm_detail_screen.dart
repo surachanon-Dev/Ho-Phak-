@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../controller/student/dorm_detail_controller.dart';
 import '../../models/chat.dart';
 import '../../models/dormitory.dart';
-import '../../models/review.dart';
 import '../../services/app_services.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
@@ -29,83 +29,68 @@ class StudentDormDetailScreen extends StatefulWidget {
 }
 
 class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
-  Dormitory? _dorm;
-  List<OwnerReview> _reviews = [];
-  bool _favorite = false;
-  bool _loading = true;
-  bool _busy = false;
+  late final DormDetailController _c;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _c = DormDetailController(
+      dormitoryId: widget.dormitoryId,
+      myUserId: widget.myUserId,
+      dorms: widget.services.publicDorms,
+      favorites: widget.services.favorites,
+      chats: widget.services.chats,
+    );
+    _c.addListener(_onChanged);
+    _c.load().then((ok) {
+      if (!ok && mounted && _c.error != null) {
+        showApiError(context, widget.services, _c.error!);
+      }
+    });
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final results = await Future.wait([
-        widget.services.publicDorms.detail(widget.dormitoryId),
-        widget.services.publicDorms.reviews(widget.dormitoryId),
-        widget.services.favorites.list(),
-      ]);
-      if (!mounted) return;
-      final favs = results[2] as List;
-      setState(() {
-        _dorm = results[0] as Dormitory;
-        _reviews = results[1] as List<OwnerReview>;
-        _favorite = favs.any((f) => f.id == widget.dormitoryId);
-      });
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _c.removeListener(_onChanged);
+    _c.dispose();
+    super.dispose();
   }
 
   Future<void> _toggleFavorite() async {
-    setState(() => _busy = true);
-    try {
-      if (_favorite) {
-        await widget.services.favorites.remove(widget.dormitoryId);
-      } else {
-        await widget.services.favorites.add(widget.dormitoryId);
-      }
-      if (mounted) setState(() => _favorite = !_favorite);
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _busy = false);
+    final ok = await _c.toggleFavorite();
+    if (!ok && mounted && _c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
   /// เปิดแชทกับเจ้าของ (ถ้ามีแชทเดิมจะใช้แชทเดิม)
   Future<void> _chat(Dormitory dorm) async {
-    setState(() => _busy = true);
-    try {
-      final id = await widget.services.chats.open(dorm.id);
-      if (!mounted) return;
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => ChatRoomScreen(
-            services: widget.services,
-            conversation: Conversation(
-              id: id,
-              tenantId: widget.myUserId,
-              dormitoryName: dorm.name,
-              dormitoryStatus: dorm.status,
-              unreadCount: 0,
-            ),
-            myUserId: widget.myUserId,
-            asStudent: true,
-          ),
-        ),
-      );
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _busy = false);
+    final id = await _c.openChat();
+    if (!mounted) return;
+    if (id == null) {
+      if (_c.error != null) showApiError(context, widget.services, _c.error!);
+      return;
     }
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChatRoomScreen(
+          services: widget.services,
+          conversation: Conversation(
+            id: id,
+            tenantId: widget.myUserId,
+            dormitoryName: dorm.name,
+            dormitoryStatus: dorm.status,
+            unreadCount: 0,
+          ),
+          myUserId: widget.myUserId,
+          asStudent: true,
+        ),
+      ),
+    );
   }
 
   void _showPhone(Dormitory dorm) {
@@ -195,40 +180,35 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
     final text = body.text.trim();
     body.dispose();
     if (ok != true) return;
-    try {
-      await widget.services.publicDorms.addReview(
-        widget.dormitoryId,
-        rating,
-        text,
+    final sent = await _c.submitReview(rating: rating, body: text);
+    if (!mounted) return;
+    if (sent) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ส่งรีวิวแล้ว รอแอดมินตรวจสอบ')),
       );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ส่งรีวิวแล้ว รอแอดมินตรวจสอบ')),
-        );
-      }
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
+    } else if (_c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final dorm = _dorm;
+    final dorm = _c.dorm;
     return Scaffold(
       appBar: AppBar(
         title: Text(dorm?.name ?? 'รายละเอียดหอพัก'),
         actions: [
           IconButton(
-            tooltip: _favorite ? 'นำออกจากรายการโปรด' : 'บันทึกเป็นรายการโปรด',
+            tooltip: _c.isFavorite ? 'นำออกจากรายการโปรด' : 'บันทึกเป็นรายการโปรด',
             icon: Icon(
-              _favorite ? Icons.favorite : Icons.favorite_border,
-              color: _favorite ? AppColors.danger : null,
+              _c.isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: _c.isFavorite ? AppColors.danger : null,
             ),
-            onPressed: (dorm == null || _busy) ? null : _toggleFavorite,
+            onPressed: (dorm == null || _c.busy) ? null : _toggleFavorite,
           ),
         ],
       ),
-      body: _loading && dorm == null
+      body: _c.loading && dorm == null
           ? const Center(child: CircularProgressIndicator())
           : dorm == null
           ? const Center(child: Text('ไม่พบหอพักนี้'))
@@ -311,16 +291,16 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
                 ),
                 _Section(
                   title:
-                      'รีวิว (${dorm.ratingAvg?.toStringAsFixed(1) ?? '-'} ดาว · ${_reviews.length} รีวิว)',
+                      'รีวิว (${dorm.ratingAvg?.toStringAsFixed(1) ?? '-'} ดาว · ${_c.reviews.length} รีวิว)',
                   trailing: TextButton(
                     onPressed: _writeReview,
                     child: const Text('เขียนรีวิว'),
                   ),
                   children: [
-                    if (_reviews.isEmpty)
+                    if (_c.reviews.isEmpty)
                       const Text('ยังไม่มีรีวิว')
                     else
-                      for (final r in _reviews)
+                      for (final r in _c.reviews)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: Column(
@@ -359,7 +339,7 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: _busy ? null : () => _chat(dorm),
+                        onPressed: _c.busy ? null : () => _chat(dorm),
                         icon: const Icon(Icons.chat_bubble_outline),
                         label: const Text('แชท'),
                       ),

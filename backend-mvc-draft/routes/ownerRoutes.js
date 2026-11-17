@@ -6,6 +6,7 @@ const { imageUpload, documentUpload, handleUpload } = require('../config/upload'
 const dormitoryController = require('../controllers/dormitoryController');
 const verificationController = require('../controllers/verificationController');
 const imageController = require('../controllers/imageController');
+const ownerExtrasController = require('../controllers/ownerExtrasController');
 
 const router = express.Router();
 
@@ -26,5 +27,14 @@ router.delete('/dormitories/:id/images/:imageId', ownerOnly, imageController.rem
 router.get('/verification', [requireAuth, requireRole('owner')], verificationController.getMine);
 router.post('/verification', [requireAuth, requireRole('owner')],
     handleUpload(documentUpload.single('document')), verificationController.submit);
+
+// ค่าน้ำ/ค่าไฟ และการลบหอ (ต้องเป็น owner ที่ยืนยันตัวตนแล้ว)
+router.get('/dormitories/:id/utilities', ownerOnly, ownerExtrasController.getUtilities);
+router.put('/dormitories/:id/utilities', ownerOnly, ownerExtrasController.updateUtilities);
+router.delete('/dormitories/:id', ownerOnly, ownerExtrasController.deleteDormitory);
+
+// report รีวิวในหอของตัวเองให้แอดมินตัดสิน
+router.get('/review-reports', ownerOnly, ownerExtrasController.listReviewReports);
+router.post('/reviews/:id/report', ownerOnly, ownerExtrasController.reportReview);
 
 module.exports = router;

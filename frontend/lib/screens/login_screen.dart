@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../controller/auth/login_controller.dart';
 import '../services/app_services.dart';
 import '../ui/app_theme.dart';
 import '../ui/error_handling.dart';
@@ -20,11 +21,23 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phone = TextEditingController();
   final _password = TextEditingController();
-  bool _loading = false;
-  String? _error;
+  late final LoginController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = LoginController(widget.services.auth);
+    _c.addListener(_onChanged);
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
 
   @override
   void dispose() {
+    _c.removeListener(_onChanged);
+    _c.dispose();
     _phone.dispose();
     _password.dispose();
     super.dispose();
@@ -32,30 +45,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final user = await widget.services.auth.login(
-        _phone.text.trim(),
-        _password.text,
-      );
-      if (!mounted) return;
-      if (user == null) {
-        setState(
-          () => _error = 'เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง',
-        );
-        return;
-      }
+    final ok = await _c.submit(phone: _phone.text, password: _password.text);
+    if (!mounted) return;
+    if (ok) {
+      final user = _c.user!;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => homeFor(widget.services, user)),
         (route) => false,
       );
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    } else if (_c.failure != null) {
+      showApiError(context, widget.services, _c.failure!);
     }
   }
 
@@ -117,10 +116,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         (v == null || v.isEmpty) ? 'กรุณากรอกรหัสผ่าน' : null,
                     onFieldSubmitted: (_) => _submit(),
                   ),
-                  if (_error != null) ...[
+                  if (_c.error != null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      _error!,
+                      _c.error!,
                       style: const TextStyle(
                         color: AppColors.danger,
                         fontSize: 12,
@@ -129,8 +128,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                   const SizedBox(height: 24),
                   FilledButton(
-                    onPressed: _loading ? null : _submit,
-                    child: _loading
+                    onPressed: _c.loading ? null : _submit,
+                    child: _c.loading
                         ? const SizedBox(
                             height: 20,
                             width: 20,
@@ -141,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 12),
                   Center(
                     child: TextButton(
-                      onPressed: _loading
+                      onPressed: _c.loading
                           ? null
                           : () => Navigator.of(context).push(
                               MaterialPageRoute(

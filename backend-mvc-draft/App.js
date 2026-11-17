@@ -14,6 +14,8 @@ const favoriteRoutes = require('./routes/favoriteRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const amenityRoutes = require('./routes/amenityRoutes');
+const meRoutes = require('./routes/meRoutes');
 const swaggerRouter = require('./docs/swagger/router');
 
 const app = express();
@@ -35,6 +37,8 @@ app.use('/api/favorites', favoriteRoutes);
 app.use('/api/conversations', chatRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/amenities', amenityRoutes);
+app.use('/api/me', meRoutes);
 
 // ต้องอยู่หลัง route ทั้งหมด
 app.use(notFound);

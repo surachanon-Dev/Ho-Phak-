@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../controller/student/dorm_search_controller.dart';
 import '../../models/dormitory.dart';
 import '../../services/app_services.dart';
 import '../../ui/app_theme.dart';
@@ -9,6 +10,7 @@ import '../../widgets/dorm_map.dart';
 import 'student_dorm_detail_screen.dart';
 
 /// ค้นหาและกรองหอพัก: ชื่อ, โซน, ช่วงราคา, ห้องว่างเท่านั้น, และการเรียงลำดับ
+/// ตรรกะทั้งหมดอยู่ใน [DormSearchController]
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key, required this.services, this.myUserId = 0});
 
@@ -20,30 +22,28 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  late final DormSearchController _c;
   final _query = TextEditingController();
   final _minPrice = TextEditingController();
   final _maxPrice = TextEditingController();
-  String? _zone;
-  bool _roomsOnly = false;
-  String _sort = 'newest';
-  List<Dormitory> _items = [];
-  bool _loading = false;
   bool _showMap = false;
-
-  static const _sorts = {
-    'newest': 'ใหม่ล่าสุด',
-    'price_asc': 'ราคาต่ำไปสูง',
-    'price_desc': 'ราคาสูงไปต่ำ',
-  };
 
   @override
   void initState() {
     super.initState();
+    _c = DormSearchController(widget.services.publicDorms);
+    _c.addListener(_onChanged);
     _search();
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    _c.removeListener(_onChanged);
+    _c.dispose();
     _query.dispose();
     _minPrice.dispose();
     _maxPrice.dispose();
@@ -51,38 +51,35 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _search() async {
-    setState(() => _loading = true);
-    try {
-      final items = await widget.services.publicDorms.search(
-        zone: _zone,
-        query: _query.text,
-        minPrice: int.tryParse(_minPrice.text.trim()),
-        maxPrice: int.tryParse(_maxPrice.text.trim()),
-        roomsOnly: _roomsOnly,
-        sort: _sort,
-      );
-      if (mounted) setState(() => _items = items);
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    final ok = await _c.search();
+    if (!ok && _c.error != null && mounted) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
-  void _reset() {
-    setState(() {
-      _query.clear();
-      _minPrice.clear();
-      _maxPrice.clear();
-      _zone = null;
-      _roomsOnly = false;
-      _sort = 'newest';
-    });
-    _search();
+  Future<void> _reset() async {
+    _query.clear();
+    _minPrice.clear();
+    _maxPrice.clear();
+    final ok = await _c.reset();
+    if (!ok && _c.error != null && mounted) {
+      showApiError(context, widget.services, _c.error!);
+    }
   }
+
+  void _openDorm(int id) => Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => StudentDormDetailScreen(
+        services: widget.services,
+        dormitoryId: id,
+        myUserId: widget.myUserId,
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
+    final f = _c.filters;
     return Scaffold(
       appBar: AppBar(
         title: const Text('ค้นหาหอพัก'),
@@ -101,6 +98,7 @@ class _SearchScreenState extends State<SearchScreen> {
             child: TextField(
               controller: _query,
               textInputAction: TextInputAction.search,
+              onChanged: _c.setQuery,
               onSubmitted: (_) => _search(),
               decoration: InputDecoration(
                 hintText: 'ค้นหาชื่อหอพัก',
@@ -120,9 +118,9 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 ChoiceChip(
                   label: const Text('ทุกโซน'),
-                  selected: _zone == null,
+                  selected: f.zone == null,
                   onSelected: (_) {
-                    setState(() => _zone = null);
+                    _c.setZone(null);
                     _search();
                   },
                 ),
@@ -130,9 +128,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 for (final z in dormZones) ...[
                   ChoiceChip(
                     label: Text(z),
-                    selected: _zone == z,
+                    selected: f.zone == z,
                     onSelected: (_) {
-                      setState(() => _zone = z);
+                      _c.setZone(z);
                       _search();
                     },
                   ),
@@ -153,6 +151,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       labelText: 'ราคาต่ำสุด',
                       isDense: true,
                     ),
+                    onChanged: _c.setMinPrice,
                     onSubmitted: (_) => _search(),
                   ),
                 ),
@@ -165,53 +164,55 @@ class _SearchScreenState extends State<SearchScreen> {
                       labelText: 'ราคาสูงสุด',
                       isDense: true,
                     ),
+                    onChanged: _c.setMaxPrice,
                     onSubmitted: (_) => _search(),
                   ),
                 ),
                 const SizedBox(width: 8),
                 DropdownButton<String>(
-                  value: _sort,
+                  value: f.sort,
                   underline: const SizedBox.shrink(),
                   items: [
-                    for (final e in _sorts.entries)
+                    for (final e in DormSearchController.sortLabels.entries)
                       DropdownMenuItem(value: e.key, child: Text(e.value)),
                   ],
                   onChanged: (v) {
-                    setState(() => _sort = v ?? _sort);
+                    if (v == null) return;
+                    _c.setSort(v);
                     _search();
                   },
                 ),
               ],
             ),
           ),
+          if (_c.filterError != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _c.filterError!,
+                  style: const TextStyle(color: AppColors.danger, fontSize: 12),
+                ),
+              ),
+            ),
           SwitchListTile(
             dense: true,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             title: const Text('แสดงเฉพาะหอที่มีห้องว่าง'),
-            value: _roomsOnly,
+            value: f.roomsOnly,
             onChanged: (v) {
-              setState(() => _roomsOnly = v);
+              _c.setRoomsOnly(v);
               _search();
             },
           ),
           const Divider(height: 1),
           Expanded(
             child: _showMap
-                ? DormMarkersMap(
-                    dorms: _items,
-                    onSelect: (d) => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => StudentDormDetailScreen(
-                          services: widget.services,
-                          dormitoryId: d.id,
-                          myUserId: widget.myUserId,
-                        ),
-                      ),
-                    ),
-                  )
-                : _loading && _items.isEmpty
+                ? DormMarkersMap(dorms: _c.items, onSelect: (d) => _openDorm(d.id))
+                : _c.loading && _c.items.isEmpty
                 ? const Center(child: CircularProgressIndicator())
-                : _items.isEmpty
+                : _c.items.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -237,19 +238,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     mainAxisSpacing: 12,
                     childAspectRatio: 0.72,
                     children: [
-                      for (final d in _items)
-                        DormCard(
-                          dorm: d,
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => StudentDormDetailScreen(
-                                services: widget.services,
-                                dormitoryId: d.id,
-                                myUserId: widget.myUserId,
-                              ),
-                            ),
-                          ),
-                        ),
+                      for (final d in _c.items)
+                        DormCard(dorm: d, onTap: () => _openDorm(d.id)),
                     ],
                   ),
           ),

@@ -23,4 +23,9 @@ async function replaceForDormitory(dormitoryId, ids, conn = db) {
     }
 }
 
-module.exports = { forDormitory, countExisting, replaceForDormitory };
+async function listAll() {
+    const [rows] = await db.query("SELECT id, name FROM amenities ORDER BY id");
+    return rows;
+}
+
+module.exports = { forDormitory, countExisting, replaceForDormitory, listAll };

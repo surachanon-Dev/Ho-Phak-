@@ -119,7 +119,23 @@ async function listForAdmin(status) {
     return rows;
 }
 
+// ค่าน้ำ/ค่าไฟตามวิธีระบุ (set_price / included / not_specified) ของเจ้าของ
+async function updateUtilities(id, u, conn = db) {
+    await conn.query(
+        `UPDATE dormitories SET water_utility_mode = ?, water_rate = ?, water_billing_type = ?,
+            electricity_utility_mode = ?, electricity_rate = ?, electricity_billing_type = ?
+         WHERE id = ?`,
+        [u.waterMode, u.waterRate, u.waterBilling, u.electricityMode, u.electricityRate, u.electricityBilling, id]);
+}
+
+// ลบหอ รูป รีวิว และรายการโปรดลบตาม FK cascade
+async function deleteById(id, conn = db) {
+    const [result] = await conn.query('DELETE FROM dormitories WHERE id = ?', [id]);
+    return result.affectedRows;
+}
+
 module.exports = {
     DORM_COLUMNS, insertDormitory, updateFields, updateStatus, findForUpdate,
     listByOwner, findOwned, findPublic, searchPublic, listPendingNew, listForAdmin,
+    updateUtilities, deleteById,
 };

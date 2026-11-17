@@ -11,7 +11,7 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   testWidgets('notification settings: toggles persist', (tester) async {
-    final services = AppServices();
+    final services = AppServices(localOwnerExtras: true);
     await tester.pumpWidget(
       MaterialApp(home: NotificationSettingsScreen(services: services)),
     );
@@ -26,7 +26,7 @@ void main() {
   });
 
   testWidgets('change password: validates before saving', (tester) async {
-    final services = AppServices();
+    final services = AppServices(localOwnerExtras: true);
     await tester.pumpWidget(
       MaterialApp(home: ChangePasswordScreen(services: services)),
     );
@@ -46,7 +46,7 @@ void main() {
 
   testWidgets('edit profile: save disabled until something changes, '
       'phone change asks for password', (tester) async {
-    final services = AppServices();
+    final services = AppServices(localOwnerExtras: true);
     await tester.pumpWidget(
       MaterialApp(
         home: EditProfileScreen(

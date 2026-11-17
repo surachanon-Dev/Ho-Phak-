@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../controller/student/student_home_controller.dart';
 import '../../models/dormitory.dart';
 import '../../models/user.dart';
 import '../../services/app_services.dart';
@@ -24,29 +25,25 @@ class StudentHomeScreen extends StatefulWidget {
 }
 
 class _StudentHomeScreenState extends State<StudentHomeScreen> {
-  List<Dormitory> _items = [];
-  bool _loading = true;
-  String? _error;
+  late final StudentHomeController _c;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _c = StudentHomeController(widget.services.publicDorms);
+    _c.addListener(_onChanged);
+    _c.load();
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final items = await widget.services.publicDorms.search();
-      if (mounted) setState(() => _items = items);
-    } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _c.removeListener(_onChanged);
+    _c.dispose();
+    super.dispose();
   }
 
   void _openSearch() => Navigator.of(context).push(
@@ -74,7 +71,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
         title: Text('สวัสดี, ${widget.user.username ?? 'นักศึกษา'}'),
       ),
       body: RefreshIndicator(
-        onRefresh: _load,
+        onRefresh: _c.refresh,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -122,14 +119,14 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 ),
               ],
             ),
-            if (_loading && _items.isEmpty)
+            if (_c.showFullLoader)
               const Padding(
                 padding: EdgeInsets.only(top: 48),
                 child: Center(child: CircularProgressIndicator()),
               )
-            else if (_error != null)
-              _ErrorState(message: _error!, onRetry: _load)
-            else if (_items.isEmpty)
+            else if (_c.error != null)
+              _ErrorState(message: _c.error.toString(), onRetry: _c.load)
+            else if (_c.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(top: 32),
                 child: Center(child: Text('ยังไม่มีหอพักที่เผยแพร่')),
@@ -143,7 +140,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                 mainAxisSpacing: 12,
                 childAspectRatio: 0.72,
                 children: [
-                  for (final d in _items)
+                  for (final d in _c.items)
                     DormCard(dorm: d, onTap: () => _openDetail(d)),
                 ],
               ),

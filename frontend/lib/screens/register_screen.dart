@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../controller/auth/register_controller.dart';
 import '../services/app_services.dart';
 import '../ui/app_theme.dart';
 import '../ui/error_handling.dart';
@@ -22,11 +23,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phone = TextEditingController();
   final _password = TextEditingController();
   final _confirm = TextEditingController();
-  bool _loading = false;
-  String? _error;
+  late final RegisterController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = RegisterController(widget.services.auth);
+    _c.addListener(_onChanged);
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
 
   @override
   void dispose() {
+    _c.removeListener(_onChanged);
+    _c.dispose();
     for (final c in [_first, _surname, _phone, _password, _confirm]) {
       c.dispose();
     }
@@ -35,18 +48,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      await widget.services.auth.register(
-        _phone.text.trim(),
-        _password.text,
-        _confirm.text,
-        username: '${_first.text.trim()} ${_surname.text.trim()}',
-      );
-      if (!mounted) return;
+    final ok = await _c.submit(
+      RegisterInput(
+        firstName: _first.text,
+        surname: _surname.text,
+        phone: _phone.text,
+        password: _password.text,
+        confirmPassword: _confirm.text,
+      ),
+    );
+    if (!mounted) return;
+    if (ok) {
       await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -61,17 +73,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
       if (mounted) Navigator.of(context).pop();
-    } catch (e) {
-      // เบอร์ซ้ำจะได้ 409 พร้อมข้อความจาก server แสดงใต้ฟอร์ม
-      if (!mounted) return;
-      final msg = e.toString();
-      if (msg.contains('เบอร์') || msg.contains('ถูกใช้')) {
-        setState(() => _error = 'เบอร์โทรนี้ถูกใช้แล้ว');
-      } else {
-        showApiError(context, widget.services, e);
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    } else if (_c.failure != null) {
+      showApiError(context, widget.services, _c.failure!);
     }
   }
 
@@ -168,10 +171,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     validator: (v) =>
                         v != _password.text ? 'รหัสผ่านไม่ตรงกัน' : null,
                   ),
-                  if (_error != null) ...[
+                  if (_c.error != null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      _error!,
+                      _c.error!,
                       style: const TextStyle(
                         color: AppColors.danger,
                         fontSize: 12,
@@ -180,8 +183,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                   const SizedBox(height: 20),
                   FilledButton(
-                    onPressed: _loading ? null : _submit,
-                    child: _loading
+                    onPressed: _c.loading ? null : _submit,
+                    child: _c.loading
                         ? const SizedBox(
                             height: 20,
                             width: 20,
