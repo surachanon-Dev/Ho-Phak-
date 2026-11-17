@@ -1,0 +1,11 @@
+// การแจ้งเตือน (mount ที่ /api/notifications)
+const express = require('express');
+const { requireAuth } = require('../middleware/auth');
+const notificationController = require('../controllers/notificationController');
+
+const router = express.Router();
+
+router.get('/', requireAuth, notificationController.list);
+router.patch('/:id/read', requireAuth, notificationController.markRead);
+
+module.exports = router;
