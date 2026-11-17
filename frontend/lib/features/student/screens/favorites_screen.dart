@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/favorites_controller.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/error_handling.dart';
-import 'student_dorm_detail_screen.dart';
+import 'package:hopak_frontend/features/student/controllers/favorites_controller.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/core/utils/error_handling.dart';
+import 'package:hopak_frontend/features/student/screens/student_dorm_detail_screen.dart';
 
 /// รายการโปรด: หอที่ถูกซ่อนหรือระงับจะแสดงเป็น "ไม่พร้อมให้บริการ" และกดเข้าดูไม่ได้
 class FavoritesScreen extends StatefulWidget {

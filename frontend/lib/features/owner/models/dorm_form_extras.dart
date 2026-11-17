@@ -1,6 +1,6 @@
-import 'amenity.dart';
-import 'dorm_utilities.dart';
-import 'dorm_document.dart';
+import 'package:hopak_frontend/features/owner/models/amenity.dart';
+import 'package:hopak_frontend/features/owner/models/dorm_utilities.dart';
+import 'package:hopak_frontend/features/owner/models/dorm_document.dart';
 
 /// ข้อมูลเสริมของฟอร์มหอ (ส่วนที่ backend ยังไม่มี) — ดู DormitoryService.loadFormExtras
 class DormFormExtras {

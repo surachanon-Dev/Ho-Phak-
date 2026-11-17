@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../core/network/api_client.dart';
-import '../../../shared/models/verification.dart';
-import '../services/verification_service.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
+import 'package:hopak_frontend/shared/models/verification.dart';
+import 'package:hopak_frontend/features/owner/services/verification_service.dart';
 
 /// ผลการตรวจไฟล์เอกสารยืนยันตัวตนก่อนอัปโหลด
 class DocumentCheck {

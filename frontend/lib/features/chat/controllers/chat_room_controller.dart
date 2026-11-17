@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../shared/models/chat.dart';
-import '../services/chat_service.dart';
-import '../../../core/utils/format.dart';
+import 'package:hopak_frontend/shared/models/chat.dart';
+import 'package:hopak_frontend/features/chat/services/chat_service.dart';
+import 'package:hopak_frontend/core/utils/format.dart';
 
 /// ห้องแชท: โหลดข้อความ ส่งข้อความ และคำนวณข้อความแสดงเวลา/อ่านแล้ว
 class ChatRoomController extends ChangeNotifier {

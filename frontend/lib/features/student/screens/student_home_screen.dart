@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/student_home_controller.dart';
-import '../../../shared/models/dormitory.dart';
-import '../../../shared/models/user.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../shared/widgets/dorm_card.dart';
-import 'search_screen.dart';
-import 'student_dorm_detail_screen.dart';
+import 'package:hopak_frontend/features/student/controllers/student_home_controller.dart';
+import 'package:hopak_frontend/shared/models/dormitory.dart';
+import 'package:hopak_frontend/shared/models/user.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/shared/widgets/dorm_card.dart';
+import 'package:hopak_frontend/features/student/screens/search_screen.dart';
+import 'package:hopak_frontend/features/student/screens/student_dorm_detail_screen.dart';
 
 /// หน้าแรกนักศึกษา: ช่องค้นหา และรายการหอพักที่เผยแพร่แล้ว
 class StudentHomeScreen extends StatefulWidget {

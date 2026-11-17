@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/models/user.dart';
-import '../../../core/app_services.dart';
-import '../../chat/screens/chat_list_screen.dart';
-import 'dashboard_screen.dart';
-import 'profile_screen.dart';
-import 'verification_screen.dart';
+import 'package:hopak_frontend/shared/models/user.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/features/chat/screens/chat_list_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/dashboard_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/profile_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/verification_screen.dart';
 
 /// โครงหลักของเจ้าของหอพัก: แท็บ หอพัก / แชท / โปรไฟล์
 /// ถ้ายังไม่ได้ยืนยันตัวตน จะแสดงหน้ายืนยันแทนทั้งหมด

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/register_controller.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/error_handling.dart';
+import 'package:hopak_frontend/features/auth/controllers/register_controller.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/core/utils/error_handling.dart';
 
 /// หน้า Sign Up ตามดีไซน์: ชื่อ, นามสกุล, เบอร์โทร, รหัสผ่าน, ยืนยันรหัสผ่าน
 /// backend สร้างบัญชีเป็นนักศึกษาเสมอ ชื่อ-นามสกุลถูกส่งเป็น username

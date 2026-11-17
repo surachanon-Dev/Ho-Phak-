@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/login_controller.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/error_handling.dart';
-import '../../../app/home_router.dart';
-import 'register_screen.dart';
+import 'package:hopak_frontend/features/auth/controllers/login_controller.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/core/utils/error_handling.dart';
+import 'package:hopak_frontend/app/home_router.dart';
+import 'package:hopak_frontend/features/auth/screens/register_screen.dart';
 
 /// หน้า Sign In ตามดีไซน์: เข้าด้วยเบอร์โทรและรหัสผ่าน (ใช้ได้ทุก role)
 class LoginScreen extends StatefulWidget {

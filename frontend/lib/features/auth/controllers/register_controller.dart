@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../core/network/api_client.dart';
-import '../services/auth_service.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
+import 'package:hopak_frontend/features/auth/services/auth_service.dart';
 
 /// ข้อมูลฟอร์มสมัครสมาชิก
 class RegisterInput {

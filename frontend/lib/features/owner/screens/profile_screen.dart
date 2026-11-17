@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/models/user.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../auth/screens/login_screen.dart';
-import 'change_password_screen.dart';
-import 'edit_profile_screen.dart';
-import 'my_reviews_screen.dart';
-import 'notification_settings_screen.dart';
-import 'verification_screen.dart';
-import '../controllers/owner_profile_controller.dart';
+import 'package:hopak_frontend/shared/models/user.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/features/auth/screens/login_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/change_password_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/edit_profile_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/my_reviews_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/notification_settings_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/verification_screen.dart';
+import 'package:hopak_frontend/features/owner/controllers/owner_profile_controller.dart';
 
 /// แท็บ Profile ของเจ้าของ
 /// ข้อมูลที่ API ให้มีแค่ username และสถานะยืนยัน (GET /api/me)

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import 'login_screen.dart';
-import 'register_screen.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/features/auth/screens/login_screen.dart';
+import 'package:hopak_frontend/features/auth/screens/register_screen.dart';
 
 /// หน้าแรกก่อน login ตามดีไซน์ "Welcome to Ho_Phak"
 class WelcomeScreen extends StatelessWidget {

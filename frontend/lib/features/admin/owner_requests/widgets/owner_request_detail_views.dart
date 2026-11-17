@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../owner_request_item.dart';
-import 'owner_request_widgets.dart';
+import 'package:hopak_frontend/features/admin/owner_requests/owner_request_item.dart';
+import 'package:hopak_frontend/features/admin/owner_requests/widgets/owner_request_widgets.dart';
 
 /// A-2a · รายละเอียดคำขอที่รอตรวจ (มีปุ่ม Reject / Approve)
 class OwnerRequestPendingDetail extends StatelessWidget {

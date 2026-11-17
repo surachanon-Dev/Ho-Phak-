@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/dorm_detail_controller.dart';
-import '../../../shared/models/chat.dart';
-import '../../../shared/models/dormitory.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/error_handling.dart';
-import '../../../shared/widgets/dorm_map.dart';
-import '../../chat/screens/chat_room_screen.dart';
+import 'package:hopak_frontend/features/student/controllers/dorm_detail_controller.dart';
+import 'package:hopak_frontend/shared/models/chat.dart';
+import 'package:hopak_frontend/shared/models/dormitory.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/core/utils/error_handling.dart';
+import 'package:hopak_frontend/shared/widgets/dorm_map.dart';
+import 'package:hopak_frontend/features/chat/screens/chat_room_screen.dart';
 
 /// รายละเอียดหอพักฝั่งนักศึกษา: ข้อมูลหอ, ค่าน้ำ-ไฟ, รีวิว, บันทึกรายการโปรด,
 /// ติดต่อเจ้าของ (เปิดแชท) และดูเบอร์โทร

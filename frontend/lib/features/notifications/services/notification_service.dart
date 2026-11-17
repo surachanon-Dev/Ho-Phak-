@@ -1,5 +1,5 @@
-import '../../../shared/models/notification.dart';
-import '../../../core/network/api_client.dart';
+import 'package:hopak_frontend/shared/models/notification.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
 
 class NotificationService {
   NotificationService(this._api);

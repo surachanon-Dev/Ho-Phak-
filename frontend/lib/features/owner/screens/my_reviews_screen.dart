@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/error_handling.dart';
-import '../../../core/utils/format.dart';
-import '../models/owner_reviews_bundle.dart';
-import '../controllers/my_reviews_controller.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/core/utils/error_handling.dart';
+import 'package:hopak_frontend/core/utils/format.dart';
+import 'package:hopak_frontend/features/owner/models/owner_reviews_bundle.dart';
+import 'package:hopak_frontend/features/owner/controllers/my_reviews_controller.dart';
 
 /// รีวิวของหอพักทั้งหมดของเจ้าของ (อ่านอย่างเดียว) พร้อมตัวกรองตามหอพัก
 class MyReviewsScreen extends StatefulWidget {

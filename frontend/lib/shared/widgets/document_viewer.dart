@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import '../../core/platform/open_document.dart';
+import 'package:hopak_frontend/core/platform/open_document.dart';
 
 /// เปิดดูเอกสารของแอดมิน: รูป png/jpg แสดงในกล่อง, PDF เปิดในแท็บใหม่ของเบราว์เซอร์
 Future<void> showDocumentViewer(

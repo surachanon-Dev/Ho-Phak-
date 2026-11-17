@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/chat_list_controller.dart';
-import '../../../shared/models/chat.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/error_handling.dart';
-import '../../../core/utils/format.dart';
-import 'chat_room_screen.dart';
+import 'package:hopak_frontend/features/chat/controllers/chat_list_controller.dart';
+import 'package:hopak_frontend/shared/models/chat.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/core/utils/error_handling.dart';
+import 'package:hopak_frontend/core/utils/format.dart';
+import 'package:hopak_frontend/features/chat/screens/chat_room_screen.dart';
 
 /// รายการแชท (ใช้ทั้งฝั่ง owner และ student) — หน้าตาตาม Figma O-6:
 /// หัวข้อใหญ่ + คำใบ้ปัดลบ + ชิปกรองตามหอ + การ์ดต่อแชท

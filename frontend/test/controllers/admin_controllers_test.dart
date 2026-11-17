@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/admin/amenities/admin_amenities_controller.dart';
-import 'package:hopak_frontend/features/admin/dashboard/admin_dashboard_controller.dart';
-import 'package:hopak_frontend/features/admin/dorms/admin_dorms_controller.dart';
-import 'package:hopak_frontend/features/admin/owner_requests/admin_owner_requests_controller.dart';
-import 'package:hopak_frontend/features/admin/profile/admin_profile_controller.dart';
-import 'package:hopak_frontend/features/admin/users/admin_users_controller.dart';
+import 'package:hopak_frontend/features/admin/amenities/amenities_controller.dart';
+import 'package:hopak_frontend/features/admin/dashboard/dashboard_controller.dart';
+import 'package:hopak_frontend/features/admin/dorms/dorms_controller.dart';
+import 'package:hopak_frontend/features/admin/owner_requests/owner_requests_controller.dart';
+import 'package:hopak_frontend/features/admin/profile/profile_controller.dart';
+import 'package:hopak_frontend/features/admin/users/users_controller.dart';
 import 'package:hopak_frontend/features/admin/services/admin_service.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:hopak_frontend/features/auth/services/auth_service.dart';

@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../validation/owner_account_rules.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/error_handling.dart';
-import '../models/owner_profile.dart';
-import '../controllers/edit_profile_controller.dart';
+import 'package:hopak_frontend/features/owner/validation/owner_account_rules.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/core/utils/error_handling.dart';
+import 'package:hopak_frontend/features/owner/models/owner_profile.dart';
+import 'package:hopak_frontend/features/owner/controllers/edit_profile_controller.dart';
 
 /// แก้โปรไฟล์ (Figma O-8a): ชื่อ, นามสกุล, เบอร์, รหัสผ่าน (ใช้เมื่อเปลี่ยนเบอร์), รูป
 /// pop(true) เมื่อบันทึกแล้ว

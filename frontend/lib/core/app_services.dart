@@ -1,16 +1,16 @@
-import 'network/api_client.dart';
-import '../features/owner/services/api_owner_extras.dart';
-import '../features/auth/services/auth_service.dart';
-import '../features/chat/services/chat_service.dart';
-import '../features/owner/services/dormitory_service.dart';
-import '../features/student/services/favorite_service.dart';
-import '../features/owner/services/local_owner_extras.dart';
-import '../features/owner/services/owner_account_service.dart';
-import '../features/notifications/services/notification_service.dart';
-import '../features/owner/services/owner_extras.dart';
-import '../features/student/services/public_dormitory_service.dart';
-import 'network/token_store.dart';
-import '../features/owner/services/verification_service.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
+import 'package:hopak_frontend/features/owner/services/api_owner_extras.dart';
+import 'package:hopak_frontend/features/auth/services/auth_service.dart';
+import 'package:hopak_frontend/features/chat/services/chat_service.dart';
+import 'package:hopak_frontend/features/owner/services/dormitory_service.dart';
+import 'package:hopak_frontend/features/student/services/favorite_service.dart';
+import 'package:hopak_frontend/features/owner/services/local_owner_extras.dart';
+import 'package:hopak_frontend/features/owner/services/owner_account_service.dart';
+import 'package:hopak_frontend/features/notifications/services/notification_service.dart';
+import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
+import 'package:hopak_frontend/features/student/services/public_dormitory_service.dart';
+import 'package:hopak_frontend/core/network/token_store.dart';
+import 'package:hopak_frontend/features/owner/services/verification_service.dart';
 
 /// true = ฟีเจอร์ owner ที่ backend ยังไม่มี (amenities, ลบหอ, report รีวิว,
 /// โปรไฟล์/รหัสผ่าน, ตั้งค่าแจ้งเตือน ฯลฯ) เก็บในเครื่อง

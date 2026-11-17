@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../shared/models/chat.dart';
-import '../services/chat_service.dart';
+import 'package:hopak_frontend/shared/models/chat.dart';
+import 'package:hopak_frontend/features/chat/services/chat_service.dart';
 
 /// รายการแชท (ทั้งฝั่งเจ้าของและนักศึกษา): โหลด กรองตามหอ และลบออกจากรายการของเรา
 class ChatListController extends ChangeNotifier {

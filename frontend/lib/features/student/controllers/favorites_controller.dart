@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../shared/models/favorite.dart';
-import '../services/favorite_service.dart';
+import 'package:hopak_frontend/shared/models/favorite.dart';
+import 'package:hopak_frontend/features/student/services/favorite_service.dart';
 
 /// รายการโปรดของนักศึกษา: โหลด นำออก และเก็บสถานะ
 /// หอที่ซ่อนหรือระงับยังอยู่ในรายการ แต่ [Favorite.isAvailable] เป็น false

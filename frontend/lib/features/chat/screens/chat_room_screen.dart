@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/chat_room_controller.dart';
-import '../../../shared/models/chat.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/error_handling.dart';
-import '../../../core/utils/format.dart';
+import 'package:hopak_frontend/features/chat/controllers/chat_room_controller.dart';
+import 'package:hopak_frontend/shared/models/chat.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/core/utils/error_handling.dart';
+import 'package:hopak_frontend/core/utils/format.dart';
 
 /// ห้องแชท — หน้าตาตาม Figma O-7: หัวข้อสองบรรทัด (ชื่อ / "About ชื่อหอ"),
 /// ฟองข้อความขาว (อีกฝ่าย) / น้ำเงิน (เรา) พร้อมเวลา, ช่องพิมพ์ทรงแคปซูล + ปุ่มส่งกลม

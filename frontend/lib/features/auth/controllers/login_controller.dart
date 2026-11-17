@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../shared/models/user.dart';
-import '../services/auth_service.dart';
+import 'package:hopak_frontend/shared/models/user.dart';
+import 'package:hopak_frontend/features/auth/services/auth_service.dart';
 
 /// หน้า Sign In: ตรวจค่าในฟอร์ม เรียก login และเก็บสถานะ
 class LoginController extends ChangeNotifier {

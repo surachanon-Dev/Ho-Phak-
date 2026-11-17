@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../services/dormitory_service.dart';
-import '../models/review_report.dart';
-import '../models/owner_reviews_bundle.dart';
+import 'package:hopak_frontend/features/owner/services/dormitory_service.dart';
+import 'package:hopak_frontend/features/owner/models/review_report.dart';
+import 'package:hopak_frontend/features/owner/models/owner_reviews_bundle.dart';
 
 /// หน้ารีวิวของฉัน (อ่านอย่างเดียว + report): โหลดรีวิวทุกหอ กรองตามหอ และ report รีวิว
 class MyReviewsController extends ChangeNotifier {

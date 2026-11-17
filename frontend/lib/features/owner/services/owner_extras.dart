@@ -8,12 +8,12 @@
 /// สัญญา endpoint ทั้งหมดอยู่ใน vault: `Project/Spec - Owner extras API (รอเชื่อม backend).md`
 library;
 
-import '../models/amenity.dart';
-import '../models/dorm_document.dart';
-import '../models/dorm_utilities.dart';
-import '../models/notification_prefs.dart';
-import '../models/owner_profile.dart';
-import '../models/review_report.dart';
+import 'package:hopak_frontend/features/owner/models/amenity.dart';
+import 'package:hopak_frontend/features/owner/models/dorm_document.dart';
+import 'package:hopak_frontend/features/owner/models/dorm_utilities.dart';
+import 'package:hopak_frontend/features/owner/models/notification_prefs.dart';
+import 'package:hopak_frontend/features/owner/models/owner_profile.dart';
+import 'package:hopak_frontend/features/owner/models/review_report.dart';
 
 abstract class OwnerExtras {
   /// true = ข้อมูลเก็บในเครื่องเท่านั้น (หน้าจอใช้แสดงหมายเหตุ)

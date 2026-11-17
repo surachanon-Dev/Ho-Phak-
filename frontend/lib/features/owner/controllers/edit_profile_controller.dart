@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../validation/owner_account_rules.dart';
-import '../services/owner_account_service.dart';
-import '../models/owner_profile.dart';
+import 'package:hopak_frontend/features/owner/validation/owner_account_rules.dart';
+import 'package:hopak_frontend/features/owner/services/owner_account_service.dart';
+import 'package:hopak_frontend/features/owner/models/owner_profile.dart';
 
 /// หน้าแก้โปรไฟล์: เก็บค่าที่กำลังแก้ คำนวณว่ามีการเปลี่ยนแปลงหรือไม่ ตรวจฟอร์ม และบันทึก
 class EditProfileController extends ChangeNotifier {

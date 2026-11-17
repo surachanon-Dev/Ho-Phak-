@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../shared/models/dormitory.dart';
-import '../services/public_dormitory_service.dart';
+import 'package:hopak_frontend/shared/models/dormitory.dart';
+import 'package:hopak_frontend/features/student/services/public_dormitory_service.dart';
 
 /// หน้าแรกนักศึกษา: โหลดรายการหอพักที่เผยแพร่แล้ว (ไม่มีตัวกรอง)
 ///

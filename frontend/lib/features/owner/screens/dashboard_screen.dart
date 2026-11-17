@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/models/dormitory.dart';
-import '../controllers/owner_dashboard_controller.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/error_handling.dart';
-import '../../../core/utils/status_style.dart';
-import 'dormitory_detail_screen.dart';
-import 'dormitory_form_screen.dart';
+import 'package:hopak_frontend/shared/models/dormitory.dart';
+import 'package:hopak_frontend/features/owner/controllers/owner_dashboard_controller.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/core/utils/error_handling.dart';
+import 'package:hopak_frontend/core/utils/status_style.dart';
+import 'package:hopak_frontend/features/owner/screens/dormitory_detail_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/dormitory_form_screen.dart';
 
 /// หน้า My Dorms ของเจ้าของ: สรุปจำนวน, แบนเนอร์หอที่ต้องดู และรายการหอ
 class DashboardScreen extends StatefulWidget {

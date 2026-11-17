@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/dorm_search_controller.dart';
-import '../../../shared/models/dormitory.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/error_handling.dart';
-import '../../../shared/widgets/dorm_card.dart';
-import '../../../shared/widgets/dorm_map.dart';
-import 'student_dorm_detail_screen.dart';
+import 'package:hopak_frontend/features/student/controllers/dorm_search_controller.dart';
+import 'package:hopak_frontend/shared/models/dormitory.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/core/utils/error_handling.dart';
+import 'package:hopak_frontend/shared/widgets/dorm_card.dart';
+import 'package:hopak_frontend/shared/widgets/dorm_map.dart';
+import 'package:hopak_frontend/features/student/screens/student_dorm_detail_screen.dart';
 
 /// ค้นหาและกรองหอพัก: ชื่อ, โซน, ช่วงราคา, ห้องว่างเท่านั้น, และการเรียงลำดับ
 /// ตรรกะทั้งหมดอยู่ใน [DormSearchController]

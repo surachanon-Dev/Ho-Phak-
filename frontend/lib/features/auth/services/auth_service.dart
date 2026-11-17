@@ -1,6 +1,6 @@
-import '../../../shared/models/user.dart';
-import '../../../core/network/api_client.dart';
-import '../../../core/network/token_store.dart';
+import 'package:hopak_frontend/shared/models/user.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
+import 'package:hopak_frontend/core/network/token_store.dart';
 
 class AuthService {
   AuthService(this._api, this._tokens);

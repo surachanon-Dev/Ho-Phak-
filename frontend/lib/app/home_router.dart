@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../shared/models/user.dart';
-import '../core/app_services.dart';
-import '../features/admin/admin_home_screen.dart';
-import '../features/owner/screens/owner_shell.dart';
-import '../features/student/screens/student_shell.dart';
+import 'package:hopak_frontend/shared/models/user.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/features/admin/screens/home_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/owner_shell.dart';
+import 'package:hopak_frontend/features/student/screens/student_shell.dart';
 
 /// เลือกหน้าหลักตาม role: นักศึกษาไปโครงของนักศึกษา เจ้าของไปโครงของเจ้าของหอพัก
 Widget homeFor(AppServices services, CurrentUser user) {

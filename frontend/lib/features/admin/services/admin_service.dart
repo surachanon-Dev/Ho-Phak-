@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import '../../../core/network/api_client.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
 
 /// รายการที่รอตรวจจาก GET /api/admin/queue
 /// เก็บเป็น Map ดิบ เพราะ field ของแต่ละรายการยังไม่ได้ทำเป็นโมเดล

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/error_handling.dart';
-import '../../notifications/screens/notifications_screen.dart';
-import '../models/notification_prefs.dart';
-import '../controllers/notification_settings_controller.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/core/utils/error_handling.dart';
+import 'package:hopak_frontend/features/notifications/screens/notifications_screen.dart';
+import 'package:hopak_frontend/features/owner/models/notification_prefs.dart';
+import 'package:hopak_frontend/features/owner/controllers/notification_settings_controller.dart';
 
 /// ตั้งค่าแจ้งเตือน 3 สวิตช์ (Figma O-9) + ทางเข้าดูรายการแจ้งเตือนที่มีอยู่
 class NotificationSettingsScreen extends StatefulWidget {

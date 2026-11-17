@@ -1,13 +1,13 @@
-import '../../../core/network/api_client.dart';
-import '../../../shared/models/dormitory.dart';
-import '../../../shared/models/review.dart';
-import '../models/dorm_detail_extras.dart';
-import '../models/dorm_form_extras.dart';
-import '../models/owner_reviews_bundle.dart';
-import 'owner_extras.dart';
-import '../models/dorm_utilities.dart';
-import '../models/dorm_document.dart';
-import '../models/review_report.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
+import 'package:hopak_frontend/shared/models/dormitory.dart';
+import 'package:hopak_frontend/shared/models/review.dart';
+import 'package:hopak_frontend/features/owner/models/dorm_detail_extras.dart';
+import 'package:hopak_frontend/features/owner/models/dorm_form_extras.dart';
+import 'package:hopak_frontend/features/owner/models/owner_reviews_bundle.dart';
+import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
+import 'package:hopak_frontend/features/owner/models/dorm_utilities.dart';
+import 'package:hopak_frontend/features/owner/models/dorm_document.dart';
+import 'package:hopak_frontend/features/owner/models/review_report.dart';
 
 class DormitoryService {
   DormitoryService(this._api, [this._extras]);

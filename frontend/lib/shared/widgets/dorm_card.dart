@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../models/dormitory.dart';
-import '../../core/theme/app_theme.dart';
+import 'package:hopak_frontend/shared/models/dormitory.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
 
 /// การ์ดหอพักฝั่งนักศึกษา: ชื่อ โซน ราคา ห้องว่าง และคะแนนรีวิว
 /// backend ยังไม่ส่งรูปในรายการ จึงแสดงกรอบรูปว่างไว้ก่อน

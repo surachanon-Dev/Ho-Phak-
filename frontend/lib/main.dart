@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'shared/models/user.dart';
-import 'app/home_router.dart';
-import 'features/auth/screens/welcome_screen.dart';
-import 'core/theme/app_theme.dart';
-import 'core/app_services.dart';
+import 'package:hopak_frontend/shared/models/user.dart';
+import 'package:hopak_frontend/app/home_router.dart';
+import 'package:hopak_frontend/features/auth/screens/welcome_screen.dart';
+import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/core/app_services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

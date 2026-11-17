@@ -1,6 +1,6 @@
-import '../../../shared/models/dormitory.dart';
-import '../../../shared/models/review.dart';
-import '../../../core/network/api_client.dart';
+import 'package:hopak_frontend/shared/models/dormitory.dart';
+import 'package:hopak_frontend/shared/models/review.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
 
 /// endpoint สาธารณะของนักศึกษา (ไม่ต้อง login ก็เรียกได้)
 class PublicDormitoryService {
