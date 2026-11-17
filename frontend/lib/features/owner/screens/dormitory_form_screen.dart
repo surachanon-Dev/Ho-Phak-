@@ -9,12 +9,13 @@ import '../../../core/network/api_client.dart';
 import '../../../core/app_services.dart';
 import '../validation/dormitory_rules.dart';
 import '../controllers/owner_dorm_form_controller.dart';
-import '../services/owner_extras.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/error_handling.dart';
 import 'location_picker_screen.dart';
+import '../models/dorm_utilities.dart';
+import '../models/dorm_document.dart';
 
 /// ฟอร์มเพิ่ม/แก้ไขหอพัก
 /// ทุกการบันทึกจะเข้าสถานะรอแอดมินตรวจสอบก่อน นักศึกษาจึงจะเห็น

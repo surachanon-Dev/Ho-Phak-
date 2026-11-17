@@ -3,9 +3,11 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../shared/models/dormitory.dart';
 import '../../../core/network/api_client.dart';
-import 'dormitory_controller.dart';
+import '../services/dormitory_service.dart';
 import '../validation/dormitory_rules.dart';
-import '../services/owner_extras.dart';
+import '../models/amenity.dart';
+import '../models/dorm_utilities.dart';
+import '../models/dorm_document.dart';
 
 /// ผลการบันทึกฟอร์มหอ
 class DormSaveResult {
@@ -20,7 +22,7 @@ class DormSaveResult {
 /// ฟอร์มเพิ่ม/แก้ไขหอพัก: เก็บค่าที่กรอก ตรวจกติกา โหลดข้อมูลเสริม และบันทึก
 /// ทุกการบันทึกเข้าสถานะรอแอดมินตรวจ
 class OwnerDormFormController extends ChangeNotifier {
-  OwnerDormFormController({required this.existing, required DormitoryController dorms})
+  OwnerDormFormController({required this.existing, required DormitoryService dorms})
     : _dorms = dorms,
       _name = existing?.name ?? '',
       _address = existing?.address ?? '',
@@ -41,7 +43,7 @@ class OwnerDormFormController extends ChangeNotifier {
       _images = List.of(existing?.images ?? const []);
 
   final Dormitory? existing;
-  final DormitoryController _dorms;
+  final DormitoryService _dorms;
 
   String _name;
   String _address;

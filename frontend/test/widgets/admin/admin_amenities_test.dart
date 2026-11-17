@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/admin/moderation/admin_moderation_tab.dart';
+import 'package:hopak_frontend/features/admin/amenities/admin_amenities_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/admin_test_helpers.dart';
@@ -10,7 +10,7 @@ void main() {
   testWidgets('Amenities ไม่ overflow บนจอมือถือ', (tester) async {
     await expectPhoneLayout(
       tester,
-      AdminModerationTab(services: sampleDataServices(), showAmenities: true),
+      AdminAmenitiesTab(services: sampleDataServices()),
     );
   });
 }

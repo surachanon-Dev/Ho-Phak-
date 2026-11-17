@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/features/owner/services/api_owner_extras.dart';
-import 'package:hopak_frontend/features/owner/controllers/dormitory_controller.dart';
+import 'package:hopak_frontend/features/owner/services/dormitory_service.dart';
 import 'package:hopak_frontend/features/owner/controllers/owner_dorm_detail_controller.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
@@ -81,7 +81,7 @@ void main() {
     );
     return OwnerDormDetailController(
       dormitoryId: 1,
-      dorms: DormitoryController(api, ApiOwnerExtras(api)),
+      dorms: DormitoryService(api, ApiOwnerExtras(api)),
     );
   }
 
@@ -160,7 +160,7 @@ void main() {
     );
     final c = OwnerDormDetailController(
       dormitoryId: 1,
-      dorms: DormitoryController(api, ApiOwnerExtras(api)),
+      dorms: DormitoryService(api, ApiOwnerExtras(api)),
     );
     expect(await c.load(), isFalse);
     expect(c.error, isA<ApiException>());

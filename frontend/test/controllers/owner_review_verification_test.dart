@@ -3,12 +3,13 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/features/owner/services/api_owner_extras.dart';
-import 'package:hopak_frontend/features/owner/controllers/dormitory_controller.dart';
-import 'package:hopak_frontend/features/owner/controllers/owner_review_and_verification_controllers.dart';
-import 'package:hopak_frontend/features/owner/controllers/verification_controller.dart';
+import 'package:hopak_frontend/features/owner/services/dormitory_service.dart';
+import 'package:hopak_frontend/features/owner/services/verification_service.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:hopak_frontend/features/owner/controllers/my_reviews_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/verification_screen_controller.dart';
 
 http.Response _json(Object body, [int status = 200]) => http.Response(
   jsonEncode(body),
@@ -61,9 +62,9 @@ http.Response _ownerRoutes(http.Request req, {List<int>? reportedIds}) {
   return _json({'message': 'not mocked ${req.method} $p'}, 404);
 }
 
-DormitoryController _dormCtl(http.Client client) {
+DormitoryService _dormCtl(http.Client client) {
   final api = ApiClient(tokenProvider: () => 't', client: client);
-  return DormitoryController(api, ApiOwnerExtras(api));
+  return DormitoryService(api, ApiOwnerExtras(api));
 }
 
 void main() {
@@ -161,11 +162,11 @@ void main() {
 
     test('ปฏิเสธไฟล์เกิน 10 MB และยอมรับพอดี 10 MB', () {
       expect(
-        DocumentCheck.validate(filename: 'a.pdf', sizeBytes: VerificationController.maxDocumentBytes + 1),
+        DocumentCheck.validate(filename: 'a.pdf', sizeBytes: VerificationService.maxDocumentBytes + 1),
         isNotNull,
       );
       expect(
-        DocumentCheck.validate(filename: 'a.pdf', sizeBytes: VerificationController.maxDocumentBytes),
+        DocumentCheck.validate(filename: 'a.pdf', sizeBytes: VerificationService.maxDocumentBytes),
         isNull,
       );
     });
@@ -174,7 +175,7 @@ void main() {
   group('VerificationScreenController', () {
     VerificationScreenController build(http.Client client) {
       final api = ApiClient(tokenProvider: () => 't', client: client);
-      return VerificationScreenController(VerificationController(api));
+      return VerificationScreenController(VerificationService(api));
     }
 
     test('ยังไม่เคยส่ง canSubmit เป็น true', () async {

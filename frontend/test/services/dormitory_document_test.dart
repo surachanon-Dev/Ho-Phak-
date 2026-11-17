@@ -3,11 +3,11 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/features/owner/services/api_owner_extras.dart';
-import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
 import 'package:hopak_frontend/features/admin/services/admin_service.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:hopak_frontend/features/owner/models/dorm_document.dart';
 
 void main() {
   test('แอดมินดึงเอกสารความเป็นเจ้าของหอด้วย GET /api/admin/dormitories/:id/document', () async {

@@ -9,17 +9,17 @@ import 'verification_screen.dart';
 
 /// โครงหลักของเจ้าของหอพัก: แท็บ หอพัก / แชท / โปรไฟล์
 /// ถ้ายังไม่ได้ยืนยันตัวตน จะแสดงหน้ายืนยันแทนทั้งหมด
-class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, required this.services, required this.user});
+class OwnerShell extends StatefulWidget {
+  const OwnerShell({super.key, required this.services, required this.user});
 
   final AppServices services;
   final CurrentUser user;
 
   @override
-  State<HomeShell> createState() => _HomeShellState();
+  State<OwnerShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends State<OwnerShell> {
   int _index = 0;
   int _chatEpoch = 0;
 

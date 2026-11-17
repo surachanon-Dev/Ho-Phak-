@@ -4,8 +4,8 @@ import 'package:hopak_frontend/features/owner/screens/change_password_screen.dar
 import 'package:hopak_frontend/features/owner/screens/edit_profile_screen.dart';
 import 'package:hopak_frontend/features/owner/screens/notification_settings_screen.dart';
 import 'package:hopak_frontend/core/app_services.dart';
-import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hopak_frontend/features/owner/models/owner_profile.dart';
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));

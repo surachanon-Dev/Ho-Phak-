@@ -1,5 +1,11 @@
 import '../../../core/network/api_client.dart';
 import 'owner_extras.dart';
+import '../models/amenity.dart';
+import '../models/dorm_utilities.dart';
+import '../models/dorm_document.dart';
+import '../models/review_report.dart';
+import '../models/owner_profile.dart';
+import '../models/notification_prefs.dart';
 
 /// ฝั่งเชื่อม backend จริง — endpoint ด้านล่าง "คาดไว้" ยังไม่มีใน backend
 /// และยังไม่เคยทดสอบ (สัญญาเต็มอยู่ใน vault: Spec - Owner extras API)

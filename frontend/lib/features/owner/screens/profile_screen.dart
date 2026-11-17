@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../shared/models/user.dart';
 import '../../../core/app_services.dart';
-import '../controllers/owner_account_screens_controllers.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/screens/login_screen.dart';
 import 'change_password_screen.dart';
@@ -10,6 +9,7 @@ import 'edit_profile_screen.dart';
 import 'my_reviews_screen.dart';
 import 'notification_settings_screen.dart';
 import 'verification_screen.dart';
+import '../controllers/owner_profile_controller.dart';
 
 /// แท็บ Profile ของเจ้าของ
 /// ข้อมูลที่ API ให้มีแค่ username และสถานะยืนยัน (GET /api/me)

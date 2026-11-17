@@ -2,14 +2,17 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/features/owner/services/api_owner_extras.dart';
-import 'package:hopak_frontend/features/owner/controllers/owner_account_controller.dart';
-import 'package:hopak_frontend/features/owner/controllers/owner_account_screens_controllers.dart';
-import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
+import 'package:hopak_frontend/features/owner/services/owner_account_service.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:hopak_frontend/features/auth/services/auth_service.dart';
 import 'package:hopak_frontend/core/network/token_store.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:hopak_frontend/features/owner/models/owner_profile.dart';
+import 'package:hopak_frontend/features/owner/controllers/owner_profile_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/edit_profile_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/change_password_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/notification_settings_controller.dart';
 
 http.Response _json(Object body, [int status = 200]) => http.Response(
   jsonEncode(body),
@@ -17,8 +20,8 @@ http.Response _json(Object body, [int status = 200]) => http.Response(
   headers: {'content-type': 'application/json'},
 );
 
-/// สร้าง OwnerAccountController ที่ใช้ ApiOwnerExtras กับ MockClient
-OwnerAccountController _account(
+/// สร้าง OwnerAccountService ที่ใช้ ApiOwnerExtras กับ MockClient
+OwnerAccountService _account(
   http.Response Function(http.Request req) handler,
   List<http.Request> log,
 ) {
@@ -29,7 +32,7 @@ OwnerAccountController _account(
       return handler(req);
     }),
   );
-  return OwnerAccountController(ApiOwnerExtras(api));
+  return OwnerAccountService(ApiOwnerExtras(api));
 }
 
 const _profileJson = {

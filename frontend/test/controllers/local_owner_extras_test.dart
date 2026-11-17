@@ -1,8 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:hopak_frontend/features/owner/services/local_owner_extras.dart';
-import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hopak_frontend/features/owner/models/amenity.dart';
+import 'package:hopak_frontend/features/owner/models/dorm_utilities.dart';
 
 void main() {
   late int? uid;

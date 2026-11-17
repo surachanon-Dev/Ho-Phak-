@@ -1,8 +1,8 @@
 import '../../../shared/models/verification.dart';
 import '../../../core/network/api_client.dart';
 
-class VerificationController {
-  VerificationController(this._api);
+class VerificationService {
+  VerificationService(this._api);
 
   final ApiClient _api;
 

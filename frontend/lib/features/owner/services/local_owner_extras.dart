@@ -4,6 +4,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/network/api_client.dart';
 import 'owner_extras.dart';
+import '../models/amenity.dart';
+import '../models/dorm_utilities.dart';
+import '../models/dorm_document.dart';
+import '../models/review_report.dart';
+import '../models/owner_profile.dart';
+import '../models/notification_prefs.dart';
 
 /// เก็บข้อมูลฟีเจอร์ที่ backend ยังไม่มีไว้ในเครื่อง (shared_preferences)
 /// คีย์ผูกกับ user id เพื่อไม่ให้ปนกันระหว่างบัญชีที่ล็อกอินในเครื่องเดียวกัน

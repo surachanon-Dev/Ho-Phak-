@@ -1,92 +1,16 @@
+import '../../../core/network/api_client.dart';
 import '../../../shared/models/dormitory.dart';
 import '../../../shared/models/review.dart';
-import '../../../core/network/api_client.dart';
-import '../services/owner_extras.dart';
+import '../models/dorm_detail_extras.dart';
+import '../models/dorm_form_extras.dart';
+import '../models/owner_reviews_bundle.dart';
+import 'owner_extras.dart';
+import '../models/dorm_utilities.dart';
+import '../models/dorm_document.dart';
+import '../models/review_report.dart';
 
-/// ข้อมูลเสริมของฟอร์มหอ (ส่วนที่ backend ยังไม่มี) — ดู DormitoryController.loadFormExtras
-class DormFormExtras {
-  const DormFormExtras({
-    this.catalog = const [],
-    this.amenityIds = const [],
-    this.document,
-    this.waterMode,
-    this.electricityMode,
-  });
-
-  final List<Amenity> catalog;
-  final List<int> amenityIds;
-  final DormDocument? document;
-
-  /// null = ไม่มีค่าที่บันทึกไว้ (เพิ่มหอใหม่) ให้คงโหมดเดิมในฟอร์ม
-  final UtilityMode? waterMode;
-  final UtilityMode? electricityMode;
-}
-
-/// สรุปตัวเลขของหอทั้งหมดที่เจ้าของมี (ใช้บนหน้า My Dorms)
-class DormitorySummary {
-  DormitorySummary._(this.totalAvailable, this.published, this.attention);
-
-  factory DormitorySummary.of(List<Dormitory> items) {
-    // นับหอที่ต้องให้เจ้าของดู: รอตรวจ, ไม่ผ่าน, ถูกระงับ
-    final attention = <String, int>{};
-    for (final d in items) {
-      final s = d.status;
-      if (s == DormStatus.pending ||
-          s == DormStatus.rejected ||
-          s == DormStatus.suspended) {
-        attention[s] = (attention[s] ?? 0) + 1;
-      }
-    }
-    return DormitorySummary._(
-      items.fold<int>(0, (s, d) => s + d.availableRooms),
-      items.where((d) => d.status == DormStatus.published).length,
-      attention,
-    );
-  }
-
-  final int totalAvailable;
-  final int published;
-
-  /// สถานะ → จำนวนหอ (เฉพาะ pending / rejected / suspended)
-  final Map<String, int> attention;
-
-  int get attentionTotal => attention.values.fold<int>(0, (s, n) => s + n);
-}
-
-/// รีวิวหนึ่งรายการพร้อมชื่อหอ (หน้า My reviews)
-class OwnerReviewEntry {
-  OwnerReviewEntry(this.dormName, this.review);
-  final String dormName;
-  final OwnerReview review;
-}
-
-/// รีวิวของทุกหอ + ชื่อหอทั้งหมด (ไว้ทำตัวกรอง)
-class OwnerReviewsBundle {
-  OwnerReviewsBundle(this.entries, this.dormNames);
-  final List<OwnerReviewEntry> entries;
-  final List<String> dormNames;
-
-  /// กรองตามชื่อหอ (null = ทั้งหมด)
-  List<OwnerReviewEntry> visible(String? dormName) => dormName == null
-      ? entries
-      : entries.where((e) => e.dormName == dormName).toList();
-
-  /// คะแนนเฉลี่ยของรายการที่กรองแล้ว (null = ไม่มีรีวิว)
-  static double? average(List<OwnerReviewEntry> list) {
-    if (list.isEmpty) return null;
-    return list.fold<int>(0, (s, e) => s + e.review.rating) / list.length;
-  }
-}
-
-/// ข้อมูลเสริมของหน้า detail: amenities ที่หอนี้มี + ค่าน้ำไฟ
-class DormDetailExtras {
-  const DormDetailExtras({this.amenities = const [], this.utilities});
-  final List<Amenity> amenities;
-  final DormUtilities? utilities;
-}
-
-class DormitoryController {
-  DormitoryController(this._api, [this._extras]);
+class DormitoryService {
+  DormitoryService(this._api, [this._extras]);
 
   final ApiClient _api;
   final OwnerExtras? _extras;
@@ -226,7 +150,10 @@ class DormitoryController {
       contactPhone: _optional(contactPhone),
       // local: ส่งค่าเดิมของ server กลับไป (id ของ local ไม่ตรงตาราง) / api: ส่งที่เลือก
       amenityIds:
-          _extras?.amenityIdsForServer(amenityIds.toList(), existingAmenityIds) ??
+          _extras?.amenityIdsForServer(
+            amenityIds.toList(),
+            existingAmenityIds,
+          ) ??
           amenityIds.toList(),
     );
   }

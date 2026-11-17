@@ -1,12 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/owner/controllers/dormitory_controller.dart';
+import 'package:hopak_frontend/features/owner/services/dormitory_service.dart';
 import 'package:hopak_frontend/features/owner/validation/dormitory_rules.dart';
 import 'package:hopak_frontend/features/owner/services/local_owner_extras.dart';
 import 'package:hopak_frontend/features/owner/validation/owner_account_rules.dart';
-import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
 import 'package:hopak_frontend/shared/models/dormitory.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hopak_frontend/features/owner/models/dorm_utilities.dart';
+import 'package:hopak_frontend/features/owner/models/owner_reviews_bundle.dart';
 
 void main() {
   group('DormitoryRules', () {
@@ -67,7 +68,7 @@ void main() {
   test('buildInput sends rate only in Set price mode', () async {
     SharedPreferences.setMockInitialValues({});
     final api = ApiClient(tokenProvider: () => null);
-    final c = DormitoryController(api, LocalOwnerExtras(userId: () => 1));
+    final c = DormitoryService(api, LocalOwnerExtras(userId: () => 1));
     DormitoryInput build(UtilityMode water) => c.buildInput(
       name: ' Dorm ',
       zone: 'Z',

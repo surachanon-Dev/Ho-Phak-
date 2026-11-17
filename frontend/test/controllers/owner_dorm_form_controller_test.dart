@@ -3,15 +3,16 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/features/owner/services/api_owner_extras.dart';
-import 'package:hopak_frontend/features/owner/controllers/dormitory_controller.dart';
+import 'package:hopak_frontend/features/owner/services/dormitory_service.dart';
 import 'package:hopak_frontend/features/owner/validation/dormitory_rules.dart';
 import 'package:hopak_frontend/features/owner/controllers/owner_dorm_form_controller.dart';
-import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
 import 'package:hopak_frontend/shared/models/dormitory.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:hopak_frontend/features/owner/models/dorm_utilities.dart';
+import 'package:hopak_frontend/features/owner/models/dorm_document.dart';
 
 http.Response _json(Object body, [int status = 200]) => http.Response(
   jsonEncode(body),
@@ -94,7 +95,7 @@ void main() {
     );
     return OwnerDormFormController(
       existing: existing,
-      dorms: DormitoryController(api, ApiOwnerExtras(api)),
+      dorms: DormitoryService(api, ApiOwnerExtras(api)),
     );
   }
 

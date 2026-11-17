@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/features/owner/services/api_owner_extras.dart';
-import 'package:hopak_frontend/features/owner/controllers/dormitory_controller.dart';
+import 'package:hopak_frontend/features/owner/services/dormitory_service.dart';
 import 'package:hopak_frontend/features/owner/controllers/owner_dashboard_controller.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
@@ -30,7 +30,7 @@ Map<String, dynamic> _dorm(int id, String status) => {
 void main() {
   OwnerDashboardController build(http.Client client) {
     final api = ApiClient(tokenProvider: () => 't', client: client);
-    return OwnerDashboardController(DormitoryController(api, ApiOwnerExtras(api)));
+    return OwnerDashboardController(DormitoryService(api, ApiOwnerExtras(api)));
   }
 
   test('load เก็บรายการหอและสรุปตามสถานะ', () async {
