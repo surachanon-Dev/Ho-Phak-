@@ -51,13 +51,15 @@ class AuthService {
     String phone,
     String password,
     String confirmPassword, {
-    String? username,
+    String? firstName,
+    String? surname,
   }) async {
     await _api.post('/api/auth/register', {
       'phone': phone,
       'password': password,
       'confirmPassword': confirmPassword,
-      if (username != null && username.isNotEmpty) 'username': username,
+      if (firstName != null && firstName.isNotEmpty) 'first_name': firstName,
+      if (surname != null && surname.isNotEmpty) 'surname': surname,
     });
   }
 

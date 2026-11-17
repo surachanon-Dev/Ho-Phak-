@@ -11,6 +11,11 @@ router.get('/queue', adminController.queue);
 router.get('/logs', adminController.logs);
 router.get('/dormitories', adminController.listDormitories);
 router.get('/users', adminController.listUsers);
+router.get('/verifications', adminController.verifications);
+router.get('/amenities', adminController.listAmenities);
+router.post('/amenities', adminController.createAmenity);
+router.put('/amenities/:id', adminController.renameAmenity);
+router.delete('/amenities/:id', adminController.deleteAmenity);
 
 router.post('/dormitories/:id/approve', adminController.approveDormitory);
 router.post('/dormitories/:id/reject', adminController.rejectDormitory);

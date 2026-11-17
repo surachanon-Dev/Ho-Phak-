@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../services/app_services.dart';
 
+import '../../controllers/admin_settings_controller.dart';
+import '../../services/app_services.dart';
+import '../../ui/app_theme.dart';
+import '../../ui/error_handling.dart';
+import '../login_screen.dart';
+
+/// หน้า Settings ของแอดมิน: ข้อมูลบัญชี, เปลี่ยนรหัสผ่าน (ผ่าน /api/me/password), ออกจากระบบ
 class AdminSettingsTab extends StatefulWidget {
   const AdminSettingsTab({super.key, required this.services});
 
@@ -14,222 +20,158 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  late final AdminSettingsController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    final services = widget.services;
+    _c = AdminSettingsController(
+      api: services.api,
+      auth: services.auth,
+      updatePassword: ({required currentPassword, required newPassword}) =>
+          services.api.put('/api/me/password', {
+            'current_password': currentPassword,
+            'new_password': newPassword,
+          }),
+    );
+    _c.addListener(() {
+      if (mounted) setState(() {});
+    });
+    _c.loadAccount().then((ok) {
+      if (!ok) _report();
+    });
+  }
 
   @override
   void dispose() {
+    _c.dispose();
     _currentPasswordController.dispose();
     _newPasswordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
 
+  void _report() {
+    if (mounted && _c.error != null) {
+      showApiError(context, widget.services, _c.error!);
+    }
+  }
+
+  Future<void> _changePassword() async {
+    final ok = await _c.changePassword(
+      currentPassword: _currentPasswordController.text,
+      newPassword: _newPasswordController.text,
+      confirmPassword: _confirmPasswordController.text,
+    );
+    if (!mounted) return;
+    if (ok) {
+      _currentPasswordController.clear();
+      _newPasswordController.clear();
+      _confirmPasswordController.clear();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('เปลี่ยนรหัสผ่านแล้ว')),
+      );
+    } else {
+      _report();
+    }
+  }
+
+  Future<void> _signOut() async {
+    final ok = await _c.signOut();
+    if (!mounted) return;
+    if (ok) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => LoginScreen(services: widget.services)),
+        (route) => false,
+      );
+    } else {
+      _report();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final account = _c.account;
+    final busy = _c.activity != AdminSettingsActivity.idle;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA), // สีพื้นหลังเทาอ่อนตามรูป
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Settings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        title: const Text('Settings'),
         backgroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Center(
-              child: Text('Sun 8 Nov 2026', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-            ),
-          )
-        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // คอลัมน์ซ้าย
-            Expanded(
-              flex: 1,
+      body: ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: _c.activity == AdminSettingsActivity.loading && account == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          account?.username ?? '-',
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Phone: ${_c.supportPhone ?? '-'}',
+                          style: const TextStyle(color: AppColors.textMuted),
+                        ),
+                        Text(
+                          'Role: ${account?.role ?? '-'}',
+                          style: const TextStyle(color: AppColors.textMuted),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildAdminAccountCard(),
-                  const SizedBox(height: 24),
-                  _buildChangePasswordCard(),
+                  const Text(
+                    'Change password',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _currentPasswordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(labelText: 'Current password'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _newPasswordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(labelText: 'New password'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _confirmPasswordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(labelText: 'Confirm new password'),
+                  ),
+                  const SizedBox(height: 12),
+                  FilledButton(
+                    onPressed: busy ? null : _changePassword,
+                    child: const Text('Update password'),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(width: 24),
-            // คอลัมน์ขวา
-            Expanded(
-              flex: 1,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildSupportContactCard(),
-                  const SizedBox(height: 24),
-                  _buildSignOutCard(),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCard({required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: child,
-    );
-  }
-
-  Widget _buildAdminAccountCard() {
-    return _buildCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Admin account', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              const CircleAvatar(
-                backgroundColor: Color(0xFFE3F2FD),
-                foregroundColor: Color(0xFF1976D2),
-                radius: 24,
-                child: Text('AD', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Admin', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                  Text('08X-XXX-XXXX · created by seed (D-91)', 
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-                ],
-              ),
-            ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChangePasswordCard() {
-    return _buildCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Change password', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-          _buildPasswordField('Current password', _currentPasswordController),
-          const SizedBox(height: 16),
-          _buildPasswordField('New password', _newPasswordController),
-          const SizedBox(height: 16),
-          _buildPasswordField('Confirm new password', _confirmPasswordController),
-          const SizedBox(height: 24),
-          Align(
-            alignment: Alignment.centerRight,
-            child: FilledButton(
-              onPressed: () {
-                // TODO: Implement update password
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF1976D2),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              ),
-              child: const Text('Update password'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPasswordField(String label, TextEditingController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          obscureText: true,
-          decoration: InputDecoration(
-            hintText: '••••••••',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSupportContactCard() {
-    return _buildCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Support contact', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Text('Owners call this number from Help / Contact admin (D-145).', 
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-          const SizedBox(height: 16),
-          const Text('Phone', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: TextEditingController(text: '08X-XXX-XXXX'),
-            readOnly: true,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              filled: true,
-              fillColor: Colors.grey.shade50,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text('Uses the admin account phone — no separate setting and no email. Shown here read-only.', 
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSignOutCard() {
-    return _buildCard(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text('Sign out of the admin dashboard on this browser.', 
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 14)),
-          OutlinedButton(
-            onPressed: () {
-              // TODO: Implement sign out
-            },
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            ),
-            child: const Text('Sign out'),
+          OutlinedButton.icon(
+            onPressed: busy ? null : _signOut,
+            icon: const Icon(Icons.logout),
+            label: const Text('Sign out'),
           ),
         ],
       ),

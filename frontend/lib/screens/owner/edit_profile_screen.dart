@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../controller/owner/owner_account_rules.dart';
+import '../../controller/owner/owner_account_screens_controllers.dart';
 import '../../services/app_services.dart';
 import '../../controller/owner/owner_extras.dart';
 import '../../ui/app_theme.dart';
@@ -31,40 +32,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late final TextEditingController _surname;
   late final TextEditingController _phone;
   final _password = TextEditingController();
-  String? _photo;
-  bool _photoChanged = false;
-  bool _saving = false;
+  late final EditProfileController _c;
 
   @override
   void initState() {
     super.initState();
     final p = widget.profile;
-    _first = TextEditingController(text: p.firstName);
-    _surname = TextEditingController(text: p.surname);
-    _phone = TextEditingController(text: p.phone);
-    _photo = p.photoBase64;
-    for (final c in [_first, _surname, _phone, _password]) {
-      c.addListener(() => setState(() {}));
-    }
+    _c = EditProfileController(original: p, account: widget.services.account);
+    _c.addListener(() {
+      if (mounted) setState(() {});
+    });
+    _first = TextEditingController(text: p.firstName)
+      ..addListener(() => _c.setFirstName(_first.text));
+    _surname = TextEditingController(text: p.surname)
+      ..addListener(() => _c.setSurname(_surname.text));
+    _phone = TextEditingController(text: p.phone)
+      ..addListener(() => _c.setPhone(_phone.text));
+    _password.addListener(() => _c.setPassword(_password.text));
   }
 
   @override
   void dispose() {
+    _c.dispose();
     for (final c in [_first, _surname, _phone, _password]) {
       c.dispose();
     }
     super.dispose();
   }
-
-  bool get _phoneChanged =>
-      widget.profile.phone.isNotEmpty &&
-      _phone.text.trim() != widget.profile.phone;
-
-  bool get _dirty =>
-      _photoChanged ||
-      _first.text.trim() != widget.profile.firstName ||
-      _surname.text.trim() != widget.profile.surname ||
-      _phone.text.trim() != widget.profile.phone;
 
   Future<void> _pickPhoto() async {
     final f = await ImagePicker().pickImage(
@@ -76,29 +70,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (f == null) return;
     final bytes = await f.readAsBytes();
     if (!mounted) return;
-    setState(() {
-      _photo = base64Encode(bytes);
-      _photoChanged = true;
-    });
+    _c.setPhoto(base64Encode(bytes));
   }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _saving = true);
-    try {
-      await widget.services.account.saveProfile(
-        firstName: _first.text.trim(),
-        surname: _surname.text.trim(),
-        phone: _phone.text.trim(),
-        password: _password.text,
-        photoBase64: _photoChanged ? (_photo ?? '') : null,
-      );
-      if (!mounted) return;
+    final ok = await _c.save();
+    if (!mounted) return;
+    if (ok) {
       Navigator.of(context).pop(true);
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _saving = false);
+    } else if (_c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
@@ -138,7 +120,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Center(
                   child: Column(
                     children: [
-                      ProfileAvatar(photoBase64: _photo, size: 96),
+                      ProfileAvatar(photoBase64: _c.photo, size: 96),
                       TextButton(
                         onPressed: _pickPhoto,
                         child: const Text('Change photo'),
@@ -172,7 +154,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   TextFormField(
                     controller: _phone,
                     keyboardType: TextInputType.phone,
-                    validator: OwnerAccountRules.phone,
+                    validator: (_) => _c.validatePhone(),
                   ),
                 ),
                 if (pending != null)
@@ -195,7 +177,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     obscureText: true,
                     validator: (v) => OwnerAccountRules.passwordForPhoneChange(
                       v,
-                      phoneChanged: _phoneChanged,
+                      phoneChanged: _c.phoneChanged,
                     ),
                   ),
                 ),
@@ -208,8 +190,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 const SizedBox(height: 20),
                 FilledButton(
-                  onPressed: (_dirty && !_saving) ? _save : null,
-                  child: _saving
+                  onPressed: _c.canSave ? _save : null,
+                  child: _c.saving
                       ? const SizedBox(
                           height: 20,
                           width: 20,
@@ -217,7 +199,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         )
                       : const Text('Save changes'),
                 ),
-                if (!_dirty)
+                if (!_c.dirty)
                   const Padding(
                     padding: EdgeInsets.only(top: 10),
                     child: Text(

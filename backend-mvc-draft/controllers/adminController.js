@@ -80,7 +80,31 @@ async function listUsers(req, res) {
     res.json({ users });
 }
 
+async function verifications(req, res) {
+    res.json({ verifications: await adminService.verifications(req.query.status) });
+}
+
+async function listAmenities(req, res) {
+    res.json({ amenities: await adminService.listAmenities() });
+}
+
+async function createAmenity(req, res) {
+    const id = await adminService.createAmenity(req.user, req.body?.name);
+    res.status(201).json({ message: 'เพิ่มสิ่งอำนวยความสะดวกแล้ว', id });
+}
+
+async function renameAmenity(req, res) {
+    await adminService.renameAmenity(req.params.id, req.user, req.body?.name);
+    res.json({ message: 'แก้ไขสิ่งอำนวยความสะดวกแล้ว' });
+}
+
+async function deleteAmenity(req, res) {
+    await adminService.deleteAmenity(req.params.id, req.user);
+    res.json({ message: 'ลบสิ่งอำนวยความสะดวกแล้ว' });
+}
+
 module.exports = {
+  verifications, listAmenities, createAmenity, renameAmenity, deleteAmenity,
     queue, approveDormitory, rejectDormitory, suspendDormitory, restoreDormitory,
     approveVerification, rejectVerification, suspendUser, restoreUser,
     listReviews, publishReview, hideReview, logs, listDormitories, listUsers, verificationDocument,

@@ -8,6 +8,7 @@ import '../../models/dormitory.dart';
 import '../../services/api_client.dart';
 import '../../services/app_services.dart';
 import '../../controller/owner/dormitory_rules.dart';
+import '../../controller/owner/owner_dorm_form_controller.dart';
 import '../../controller/owner/owner_extras.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -31,6 +32,7 @@ class DormitoryFormScreen extends StatefulWidget {
 
 class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
   final _formKey = GlobalKey<FormState>();
+  late final OwnerDormFormController _c;
   late final TextEditingController _name;
   late final TextEditingController _address;
   late final TextEditingController _price;
@@ -43,72 +45,50 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
   late final TextEditingController _lat;
   late final TextEditingController _lng;
 
-  late String _zone;
-  String? _waterType;
-  String? _electricityType;
-  UtilityMode _waterMode = UtilityMode.notSpecified;
-  UtilityMode _electricityMode = UtilityMode.notSpecified;
-  List<Amenity> _catalog = const [];
-  Set<int> _amenityIds = {};
-  DormDocument? _document;
-
-  /// รูปที่เลือกไว้ตอน Add (ยังไม่มี id หอ จึงอัปโหลดหลังบันทึก)
-  final List<UploadFile> _pending = [];
-  bool _saving = false;
-  bool _busyImages = false;
-  List<DormImage> _images = [];
-
   bool get _isEdit => widget.existing != null;
 
   @override
   void initState() {
     super.initState();
-    final d = widget.existing;
-    _name = TextEditingController(text: d?.name ?? '');
-    _address = TextEditingController(text: d?.address ?? '');
-    _price = TextEditingController(text: d?.pricePerMonth.toString() ?? '');
-    _totalRooms = TextEditingController(text: d?.totalRooms.toString() ?? '');
-    _availableRooms = TextEditingController(
-      text: d?.availableRooms.toString() ?? '',
+    _c = OwnerDormFormController(
+      existing: widget.existing,
+      dorms: widget.services.dormitories,
     );
-    _waterRate = TextEditingController(text: _fmt(d?.waterRate));
-    _electricityRate = TextEditingController(text: _fmt(d?.electricityRate));
-    _description = TextEditingController(text: d?.description ?? '');
-    _contactPhone = TextEditingController(text: d?.contactPhone ?? '');
-    _lat = TextEditingController(text: d?.latitude.toString() ?? '');
-    _lng = TextEditingController(text: d?.longitude.toString() ?? '');
-    _zone = d?.zone ?? dormZones.first;
-    _images = List.of(d?.images ?? const []);
-    _waterType = d?.waterBillingType;
-    _electricityType = d?.electricityBillingType;
-    _waterMode = utilityModeFor(rate: d?.waterRate);
-    _electricityMode = utilityModeFor(rate: d?.electricityRate);
-    _loadExtras();
+    _c.addListener(() {
+      if (mounted) setState(() {});
+    });
+    final d = widget.existing;
+    _name = _sync(TextEditingController(text: d?.name ?? ''), _c.setName);
+    _address = _sync(TextEditingController(text: d?.address ?? ''), _c.setAddress);
+    _price = _sync(TextEditingController(text: d?.pricePerMonth.toString() ?? ''), _c.setPrice);
+    _totalRooms = _sync(TextEditingController(text: d?.totalRooms.toString() ?? ''), _c.setTotalRooms);
+    _availableRooms = _sync(
+      TextEditingController(text: d?.availableRooms.toString() ?? ''),
+      _c.setAvailableRooms,
+    );
+    _waterRate = _sync(TextEditingController(text: _fmt(d?.waterRate)), _c.setWaterRate);
+    _electricityRate = _sync(
+      TextEditingController(text: _fmt(d?.electricityRate)),
+      _c.setElectricityRate,
+    );
+    _description = _sync(TextEditingController(text: d?.description ?? ''), _c.setDescription);
+    _contactPhone = _sync(TextEditingController(text: d?.contactPhone ?? ''), _c.setContactPhone);
+    _lat = _sync(TextEditingController(text: d?.latitude.toString() ?? ''), (v) {});
+    _lng = _sync(TextEditingController(text: d?.longitude.toString() ?? ''), (v) {});
+    _c.loadExtras();
   }
 
-  /// โหลดข้อมูลที่ backend ยังไม่มี (amenities, โหมดค่าน้ำไฟ, เอกสาร) จาก OwnerExtras
-  Future<void> _loadExtras() async {
-    try {
-      final x = await widget.services.dormitories.loadFormExtras(
-        widget.existing,
-      );
-      if (!mounted) return;
-      setState(() {
-        _catalog = x.catalog;
-        _amenityIds = x.amenityIds.toSet();
-        _document = x.document;
-        _waterMode = x.waterMode ?? _waterMode;
-        _electricityMode = x.electricityMode ?? _electricityMode;
-      });
-    } catch (_) {
-      // ฟีเจอร์เสริมโหลดไม่ได้ ไม่ขวางการกรอกฟอร์มหลัก
-    }
+  /// ผูก TextEditingController กับค่าในตัว controller (ค่าที่กรอกถูกส่งไปที่ controller ทุกครั้งที่เปลี่ยน)
+  TextEditingController _sync(TextEditingController c, void Function(String) push) {
+    c.addListener(() => push(c.text));
+    return c;
   }
 
   static String _fmt(double? v) => v == null ? '' : v.toString();
 
   @override
   void dispose() {
+    _c.dispose();
     for (final c in [
       _name,
       _address,
@@ -127,80 +107,37 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
     super.dispose();
   }
 
-  DormitoryInput _buildInput() => widget.services.dormitories.buildInput(
-    name: _name.text,
-    zone: _zone,
-    latitude: _lat.text,
-    longitude: _lng.text,
-    price: _price.text,
-    totalRooms: _totalRooms.text,
-    availableRooms: _availableRooms.text,
-    waterMode: _waterMode,
-    waterRateText: _waterRate.text,
-    waterType: _waterType,
-    electricityMode: _electricityMode,
-    electricityRateText: _electricityRate.text,
-    electricityType: _electricityType,
-    address: _address.text,
-    description: _description.text,
-    contactPhone: _contactPhone.text,
-    amenityIds: _amenityIds,
-    existingAmenityIds: widget.existing?.amenityIds ?? const [],
-  );
-
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    if (!_isEdit && _pending.isEmpty) {
+    if (!_isEdit && _c.pending.isEmpty) {
       _snack('Add at least 1 photo');
       return;
     }
-    setState(() => _saving = true);
-    try {
-      final input = _buildInput();
-      // บันทึกหอ + ส่วนที่ backend ยังไม่มี (OwnerExtras) ใน controller
-      final dormId = await widget.services.dormitories.save(
-        id: widget.existing?.id,
-        input: input,
-        amenityIds: _amenityIds,
-        utilities: DormUtilities(
-          water: _waterMode,
-          electricity: _electricityMode,
-        ),
-        document: _document,
-      );
-      if (_pending.isNotEmpty) {
-        try {
-          await widget.services.dormitories.uploadImages(dormId, _pending);
-        } catch (e) {
-          if (mounted) {
-            _snack('Dorm saved, but photos were not uploaded: $e');
-          }
-        }
-      }
-      if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Sent for review'),
-          content: Text(
-            'Admin will review ${_name.text.trim()} (usually 1–2 days). '
-            'Students will see it after approval.',
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-      if (!mounted) return;
-      Navigator.of(context).pop(true);
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _saving = false);
+    final result = await _c.save();
+    if (!mounted) return;
+    if (result == null) {
+      if (_c.error != null) showApiError(context, widget.services, _c.error!);
+      return;
     }
+    if (result.photoError != null) _snack(result.photoError!);
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sent for review'),
+        content: Text(
+          'Admin will review ${_name.text.trim()} (usually 1–2 days). '
+          'Students will see it after approval.',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    Navigator.of(context).pop(true);
   }
 
   Widget _gap() => const SizedBox(height: 12);
@@ -240,7 +177,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${_images.length} of 10 photos',
+          '${_c.images.length} of 10 photos',
           style: theme.textTheme.titleSmall,
         ),
         const SizedBox(height: 8),
@@ -248,7 +185,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final img in _images)
+            for (final img in _c.images)
               SizedBox(
                 width: 96,
                 height: 96,
@@ -266,7 +203,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                         ),
                       ),
                     ),
-                    if (img == _images.first)
+                    if (img == _c.images.first)
                       Positioned(
                         left: 6,
                         bottom: 6,
@@ -293,7 +230,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                       top: 2,
                       right: 2,
                       child: InkWell(
-                        onTap: _busyImages ? null : () => _deleteImage(img),
+                        onTap: _c.busyImages ? null : () => _deleteImage(img),
                         child: const CircleAvatar(
                           radius: 12,
                           backgroundColor: Colors.black54,
@@ -308,15 +245,15 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                   ],
                 ),
               ),
-            if (_images.length < 10)
+            if (_c.images.length < 10)
               OutlinedButton.icon(
-                onPressed: _busyImages ? null : _pickAndUploadImages,
+                onPressed: _c.busyImages ? null : _pickAndUploadImages,
                 icon: const Icon(Icons.add_photo_alternate_outlined),
                 label: const Text('Add photo'),
               ),
           ],
         ),
-        if (_busyImages) ...[
+        if (_c.busyImages) ...[
           const SizedBox(height: 8),
           const LinearProgressIndicator(),
         ],
@@ -330,7 +267,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
       spacing: 8,
       runSpacing: 8,
       children: [
-        for (var i = 0; i < _pending.length; i++)
+        for (var i = 0; i < _c.pending.length; i++)
           SizedBox(
             width: 96,
             height: 96,
@@ -339,7 +276,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.memory(_pending[i].bytes, fit: BoxFit.cover),
+                  child: Image.memory(_c.pending[i].bytes, fit: BoxFit.cover),
                 ),
                 if (i == 0)
                   Positioned(
@@ -368,7 +305,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                   top: 2,
                   right: 2,
                   child: InkWell(
-                    onTap: () => setState(() => _pending.removeAt(i)),
+                    onTap: () => _c.removePending(i),
                     child: const CircleAvatar(
                       radius: 12,
                       backgroundColor: Colors.black54,
@@ -379,7 +316,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
               ],
             ),
           ),
-        if (_pending.length < DormitoryRules.maxImages)
+        if (_c.pending.length < DormitoryRules.maxImages)
           OutlinedButton.icon(
             onPressed: _pickPending,
             icon: const Icon(Icons.add_photo_alternate_outlined),
@@ -391,7 +328,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
 
   Future<void> _pickPending() async {
     final picked = await ImagePicker().pickMultiImage(
-      limit: DormitoryRules.pickLimit(_pending.length),
+      limit: _c.pickLimit,
       imageQuality: 90,
     );
     if (picked.isEmpty) return;
@@ -399,18 +336,18 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
     for (final p in picked) {
       final Uint8List bytes = await p.readAsBytes();
       if (bytes.length > DormitoryRules.maxImageBytes) {
-        _snack('${p.name} is larger than 5 MB');
+        _snack('undefined is larger than 5 MB');
         return;
       }
       added.add(UploadFile(bytes: bytes, filename: p.name));
     }
-    if (mounted) setState(() => _pending.addAll(added));
+    _c.addPending(added);
   }
 
   /// เลือกรูป (สูงสุด 5 รูปต่อครั้ง ไม่เกิน 10 รูปต่อหอ) แล้วอัปโหลด
   Future<void> _pickAndUploadImages() async {
     final picked = await ImagePicker().pickMultiImage(
-      limit: DormitoryRules.pickLimit(_images.length),
+      limit: _c.pickLimit,
       imageQuality: 90,
     );
     if (picked.isEmpty) return;
@@ -418,45 +355,24 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
     for (final p in picked) {
       final bytes = await p.readAsBytes();
       if (bytes.length > DormitoryRules.maxImageBytes) {
-        _snack('${p.name} is larger than 5 MB');
+        _snack('undefined is larger than 5 MB');
         return;
       }
       files.add(UploadFile(bytes: bytes, filename: p.name));
     }
-    setState(() => _busyImages = true);
-    try {
-      await widget.services.dormitories.uploadImages(
-        widget.existing!.id,
-        files,
-      );
-      await _reloadImages();
+    final ok = await _c.uploadImages(files);
+    if (!mounted) return;
+    if (ok) {
       _snack('Photos uploaded');
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _busyImages = false);
+    } else if (_c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
   Future<void> _deleteImage(DormImage img) async {
-    setState(() => _busyImages = true);
-    try {
-      await widget.services.dormitories.deleteImage(
-        widget.existing!.id,
-        img.id,
-      );
-      await _reloadImages();
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _busyImages = false);
-    }
-  }
-
-  /// โหลดรายการรูปใหม่จากรายละเอียดหอพัก
-  Future<void> _reloadImages() async {
-    final fresh = await widget.services.dormitories.get(widget.existing!.id);
-    if (mounted) setState(() => _images = List.of(fresh.images));
+    final ok = await _c.deleteImage(img);
+    if (!mounted) return;
+    if (!ok && _c.error != null) showApiError(context, widget.services, _c.error!);
   }
 
   void _snack(String text) =>
@@ -465,24 +381,16 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
 
   /// เปิดหน้าปักหมุด แล้วเอาพิกัดที่เลือกไปใส่ในช่อง lat/lng
   Future<void> _pickLocation() async {
-    final current =
-        double.tryParse(_lat.text.trim()) != null &&
-            double.tryParse(_lng.text.trim()) != null
-        ? LatLng(double.parse(_lat.text.trim()), double.parse(_lng.text.trim()))
-        : null;
     final picked = await Navigator.of(context).push<LatLng>(
-      MaterialPageRoute(builder: (_) => LocationPickerScreen(initial: current)),
+      MaterialPageRoute(builder: (_) => LocationPickerScreen(initial: _c.currentLocation)),
     );
     if (picked == null || !mounted) return;
-    setState(() {
-      _lat.text = picked.latitude.toStringAsFixed(6);
-      _lng.text = picked.longitude.toStringAsFixed(6);
-    });
+    _c.setLocation(picked);
+    _lat.text = _c.latitude;
+    _lng.text = _c.longitude;
   }
 
-  bool get _hasLocation =>
-      double.tryParse(_lat.text.trim()) != null &&
-      double.tryParse(_lng.text.trim()) != null;
+  bool get _hasLocation => _c.hasLocation;
 
   Widget _card(String title, List<Widget> children) => Card(
     margin: const EdgeInsets.only(bottom: 12),
@@ -513,10 +421,9 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
       _snack('File is larger than 10 MB');
       return;
     }
-    if (mounted) {
-      setState(() => _document = DormDocument(name: f.name, sizeBytes: size));
-    }
+    _c.setDocument(DormDocument(name: f.name, sizeBytes: size));
   }
+
 
   /// ตัวเลือก Set price / Included / Not specified + ช่องอัตราเมื่อเลือก Set price
   Widget _utilityBlock({
@@ -618,6 +525,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -630,7 +538,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
         ),
       ),
       body: AbsorbPointer(
-        absorbing: _saving,
+        absorbing: _c.saving,
         child: Column(
           children: [
             Expanded(
@@ -668,17 +576,17 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                                 for (final z in dormZones)
                                   ChoiceChip(
                                     label: Text(z),
-                                    selected: _zone == z,
+                                    selected: _c.zone == z,
                                     showCheckmark: false,
                                     selectedColor: AppColors.primary,
                                     labelStyle: TextStyle(
-                                      color: _zone == z
+                                      color: _c.zone == z
                                           ? Colors.white
                                           : const Color(0xFF111827),
                                       fontWeight: FontWeight.w600,
                                     ),
                                     onSelected: (_) =>
-                                        setState(() => _zone = z),
+                                        _c.setZone(z),
                                   ),
                               ],
                             ),
@@ -814,23 +722,23 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                           _card('Water & electricity', [
                             _label('Water'),
                             _utilityBlock(
-                              mode: _waterMode,
-                              onMode: (m) => setState(() => _waterMode = m),
+                              mode: _c.waterMode,
+                              onMode: _c.setWaterMode,
                               rate: _waterRate,
-                              type: _waterType,
-                              onType: (v) => setState(() => _waterType = v),
+                              type: _c.waterType,
+                              onType: _c.setWaterType,
                               rateLabel: 'Water rate',
                             ),
                             _gap(),
                             _label('Electricity'),
                             _utilityBlock(
-                              mode: _electricityMode,
+                              mode: _c.electricityMode,
                               onMode: (m) =>
-                                  setState(() => _electricityMode = m),
+                                  _c.setElectricityMode(m),
                               rate: _electricityRate,
-                              type: _electricityType,
+                              type: _c.electricityType,
                               onType: (v) =>
-                                  setState(() => _electricityType = v),
+                                  _c.setElectricityType(v),
                               rateLabel: 'Electricity rate',
                             ),
                             const SizedBox(height: 8),
@@ -848,24 +756,20 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                               spacing: 8,
                               runSpacing: 8,
                               children: [
-                                for (final a in _catalog)
+                                for (final a in _c.catalog)
                                   FilterChip(
                                     label: Text(a.name),
-                                    selected: _amenityIds.contains(a.id),
+                                    selected: _c.amenityIds.contains(a.id),
                                     showCheckmark: true,
                                     selectedColor: AppColors.primarySoft,
                                     checkmarkColor: AppColors.primary,
                                     labelStyle: TextStyle(
                                       fontWeight: FontWeight.w600,
-                                      color: _amenityIds.contains(a.id)
+                                      color: _c.amenityIds.contains(a.id)
                                           ? AppColors.primary
                                           : const Color(0xFF111827),
                                     ),
-                                    onSelected: (on) => setState(() {
-                                      on
-                                          ? _amenityIds.add(a.id)
-                                          : _amenityIds.remove(a.id);
-                                    }),
+                                    onSelected: (on) => _c.toggleAmenity(a.id),
                                   ),
                               ],
                             ),
@@ -883,7 +787,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                             ),
                           ]),
                           _card('Ownership document', [
-                            if (_document != null)
+                            if (_c.document != null)
                               Row(
                                 children: [
                                   const Icon(
@@ -897,7 +801,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          _document!.name,
+                                          _c.document!.name,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
@@ -905,7 +809,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                                           ),
                                         ),
                                         Text(
-                                          '${(_document!.sizeBytes / (1024 * 1024)).toStringAsFixed(1)} MB',
+                                          '${(_c.document!.sizeBytes / (1024 * 1024)).toStringAsFixed(1)} MB',
                                           style: const TextStyle(
                                             fontSize: 12,
                                             color: AppColors.textMuted,
@@ -977,8 +881,8 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                     ),
                     const SizedBox(height: 10),
                     FilledButton(
-                      onPressed: _saving ? null : _save,
-                      child: _saving
+                      onPressed: _c.saving ? null : _save,
+                      child: _c.saving
                           ? const SizedBox(
                               height: 20,
                               width: 20,

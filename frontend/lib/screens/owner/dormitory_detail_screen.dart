@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../models/dormitory.dart';
-import '../../models/review.dart';
 import '../../services/app_services.dart';
+import '../../controller/owner/owner_dorm_detail_controller.dart';
 import '../../controller/owner/owner_extras.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
@@ -31,69 +31,54 @@ class DormitoryDetailScreen extends StatefulWidget {
 }
 
 class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
-  Dormitory? _dorm;
-  List<OwnerReview> _reviews = [];
-  List<Amenity> _amenities = [];
-  DormUtilities? _utilities;
-  bool _loading = true;
-  bool _busy = false;
-  bool _changed = false;
+  late final OwnerDormDetailController _c;
 
   @override
   void initState() {
     super.initState();
+    _c = OwnerDormDetailController(
+      dormitoryId: widget.dormitoryId,
+      dorms: widget.services.dormitories,
+    );
+    _c.addListener(() {
+      if (mounted) setState(() {});
+    });
     _load();
   }
 
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final results = await Future.wait([
-        widget.services.dormitories.get(widget.dormitoryId),
-        widget.services.dormitories.reviews(widget.dormitoryId),
-      ]);
-      final dorm = results[0] as Dormitory;
-      final x = await widget.services.dormitories.loadDetailExtras(dorm);
-      if (!mounted) return;
-      setState(() {
-        _dorm = dorm;
-        _reviews = results[1] as List<OwnerReview>;
-        _amenities = x.amenities;
-        _utilities = x.utilities;
-      });
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    final ok = await _c.load();
+    if (!ok && mounted && _c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
   Future<void> _toggleVisibility() async {
-    setState(() => _busy = true);
-    try {
-      await widget.services.dormitories.toggleVisibility(widget.dormitoryId);
-      _changed = true;
-      await _load();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _dorm?.status == DormStatus.published
-                  ? 'Dorm is now visible to students'
-                  : 'Dorm is now hidden from students',
-            ),
+    final ok = await _c.toggleVisibility();
+    if (!mounted) return;
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _c.dorm?.status == DormStatus.published
+                ? 'Dorm is now visible to students'
+                : 'Dorm is now hidden from students',
           ),
-        );
-      }
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _busy = false);
+        ),
+      );
+    } else if (_c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
   Future<void> _edit() async {
-    final dorm = _dorm;
+    final dorm = _c.dorm;
     if (dorm == null) return;
     final changed = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
@@ -101,15 +86,12 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
             DormitoryFormScreen(services: widget.services, existing: dorm),
       ),
     );
-    if (changed == true) {
-      _changed = true;
-      await _load();
-    }
+    if (changed == true) await _c.reloadAfterEdit();
   }
 
   /// ลบหอ (Figma O-4): ยืนยันก่อน แล้วกลับไปหน้ารายการ
   Future<void> _confirmDelete() async {
-    final dorm = _dorm;
+    final dorm = _c.dorm;
     if (dorm == null) return;
     final ok = await showDialog<bool>(
       context: context,
@@ -144,15 +126,12 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
       ),
     );
     if (ok != true) return;
-    setState(() => _busy = true);
-    try {
-      await widget.services.dormitories.delete(dorm.id);
-      if (!mounted) return;
+    final deleted = await _c.delete();
+    if (!mounted) return;
+    if (deleted) {
       Navigator.of(context).pop(true);
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _busy = false);
+    } else if (_c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
@@ -197,10 +176,6 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
     _ => 'Cannot be changed in this status',
   };
 
-  double? get _avgRating => _reviews.isEmpty
-      ? null
-      : _reviews.fold<int>(0, (s, r) => s + r.rating) / _reviews.length;
-
   /// ไอคอนในกล่องสถานะ (วงกลมสีตามสถานะ ตาม Figma)
   IconData _statusIcon(String status) => switch (status) {
     DormStatus.published => Icons.check,
@@ -212,14 +187,14 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final dorm = _dorm;
+    final dorm = _c.dorm;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) Navigator.of(context).pop(_changed);
+        if (!didPop) Navigator.of(context).pop(_c.changed);
       },
       child: Scaffold(
-        body: _loading && dorm == null
+        body: _c.loading && dorm == null
             ? const Center(child: CircularProgressIndicator())
             : dorm == null
             ? Center(
@@ -228,20 +203,20 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                   children: [
                     const Text('Dorm not found'),
                     TextButton(
-                      onPressed: () => Navigator.of(context).pop(_changed),
+                      onPressed: () => Navigator.of(context).pop(_c.changed),
                       child: const Text('Back'),
                     ),
                   ],
                 ),
               )
             : AbsorbPointer(
-                absorbing: _busy,
+                absorbing: _c.busy,
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
                     _CoverHeader(
                       dorm: dorm,
-                      onBack: () => Navigator.of(context).pop(_changed),
+                      onBack: () => Navigator.of(context).pop(_c.changed),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -432,7 +407,7 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                                 value: _billingText(
                                   dorm.waterRate,
                                   dorm.waterBillingType,
-                                  _utilities?.water,
+                                  _c.utilities?.water,
                                 ),
                               ),
                               _InfoRow(
@@ -440,12 +415,12 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                                 value: _billingText(
                                   dorm.electricityRate,
                                   dorm.electricityBillingType,
-                                  _utilities?.electricity,
+                                  _c.utilities?.electricity,
                                 ),
                               ),
                             ],
                           ),
-                          if (_amenities.isNotEmpty)
+                          if (_c.amenities.isNotEmpty)
                             _Section(
                               title: 'Amenities',
                               children: [
@@ -453,7 +428,7 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                                   spacing: 8,
                                   runSpacing: 8,
                                   children: [
-                                    for (final a in _amenities)
+                                    for (final a in _c.amenities)
                                       Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 12,
@@ -512,7 +487,7 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
 
   /// กล่องรีวิว: ดาวเฉลี่ย + "See all" + รีวิวล่าสุด 1 รายการ (อ่านอย่างเดียว)
   Widget _reviewsCard() {
-    final latest = _reviews.isEmpty ? null : _reviews.first;
+    final latest = _c.latestReview;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Card(
@@ -532,11 +507,11 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                       ),
                     ),
                   ),
-                  if (_avgRating != null) ...[
+                  if (_c.averageRating != null) ...[
                     const Icon(Icons.star, size: 18, color: Color(0xFFF5A623)),
                     const SizedBox(width: 4),
                     Text(
-                      '${_avgRating!.toStringAsFixed(1)} (${_reviews.length})',
+                      '${_c.averageRating!.toStringAsFixed(1)} (${_c.reviews.length})',
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(width: 10),

@@ -56,10 +56,6 @@ class RegisterController extends ChangeNotifier {
   static String? validateConfirm(String? value, String password) =>
       value != password ? 'รหัสผ่านไม่ตรงกัน' : null;
 
-  /// username ที่เก็บในบัญชี = "ชื่อ นามสกุล" (ตัดช่องว่างหัวท้ายแล้ว)
-  static String usernameFor(String firstName, String surname) =>
-      '${firstName.trim()} ${surname.trim()}';
-
   /// เบอร์ซ้ำ: backend ตอบ 409 พร้อมข้อความที่มีคำว่า "เบอร์" หรือ "ถูกใช้"
   static bool isDuplicatePhone(Object error) {
     if (error is! ApiException) return false;
@@ -79,7 +75,8 @@ class RegisterController extends ChangeNotifier {
         input.phone.trim(),
         input.password,
         input.confirmPassword,
-        username: usernameFor(input.firstName, input.surname),
+        firstName: input.firstName.trim(),
+        surname: input.surname.trim(),
       );
       _done = true;
       return true;

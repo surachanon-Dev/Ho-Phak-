@@ -1,84 +1,124 @@
 import 'package:flutter/foundation.dart';
 
+import '../services/admin_service.dart';
+import '../services/api_client.dart';
+
+/// สิ่งอำนวยความสะดวก 1 รายการ (ตาราง amenities)
 @immutable
 class AdminAmenity {
-  const AdminAmenity({
-    required this.id,
-    required this.name,
-    this.usedByCount = 0,
-    this.addedLabel = 'Today',
-  });
+  const AdminAmenity({required this.id, required this.name});
 
-  final String id;
+  final int id;
   final String name;
-  final int usedByCount;
-  final String addedLabel;
+
+  factory AdminAmenity.fromJson(Map<String, dynamic> json) =>
+      AdminAmenity(id: (json['id'] as num).toInt(), name: json['name'] as String);
 }
 
-/// Edits the local catalogue displayed by the Amenities page.
+/// หน้า Amenities ของแอดมิน: รายการจาก backend และเพิ่ม/แก้ชื่อ/ลบ
+/// ชื่อซ้ำ (ไม่สนตัวพิมพ์) ไม่ถูกส่งขึ้น server
 class AdminAmenitiesController extends ChangeNotifier {
-  AdminAmenitiesController(Iterable<AdminAmenity> items)
-    : _items = List.of(items);
+  AdminAmenitiesController(this._service);
 
-  final List<AdminAmenity> _items;
-  int _lastLocalId = 0;
+  static const maxNameLength = 100;
 
-  List<AdminAmenity> get items => List.unmodifiable(_items);
+  final AdminService _service;
 
-  AdminAmenity add(String name) {
-    final trimmed = _validatedName(name);
-    String id;
-    do {
-      id = 'local-${++_lastLocalId}';
-    } while (_items.any((item) => item.id == id));
+  List<AdminAmenity> _items = const [];
+  bool _loading = false;
+  bool _busy = false;
+  Object? _error;
 
-    final amenity = AdminAmenity(id: id, name: trimmed);
-    _items.add(amenity);
-    notifyListeners();
-    return amenity;
-  }
+  List<AdminAmenity> get items => _items;
+  bool get loading => _loading;
+  bool get busy => _busy;
 
-  AdminAmenity rename(String id, String name) {
-    final index = _indexOf(id);
-    if (index < 0) throw StateError('Amenity no longer exists');
+  /// error ล่าสุด (โหลดหรือบันทึกไม่สำเร็จ) ให้หน้าจอแสดง
+  Object? get error => _error;
 
-    final original = _items[index];
-    final renamed = AdminAmenity(
-      id: original.id,
-      name: _validatedName(name, exceptId: id),
-      usedByCount: original.usedByCount,
-      addedLabel: original.addedLabel,
+  /// คืนข้อความ error ของชื่อ หรือ null ถ้าใช้ได้
+  /// [exceptId] = id ของรายการที่กำลังแก้ (ไม่นับเป็นชื่อซ้ำกับตัวเอง)
+  String? validateName(String name, {int? exceptId}) {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return 'Please enter an amenity name.';
+    if (trimmed.length > maxNameLength) {
+      return 'Amenity name must be $maxNameLength characters or fewer.';
+    }
+    final normalized = trimmed.toLowerCase();
+    final duplicate = _items.any(
+      (a) => a.id != exceptId && a.name.trim().toLowerCase() == normalized,
     );
-    _items[index] = renamed;
-    notifyListeners();
-    return renamed;
+    return duplicate ? 'This amenity name already exists.' : null;
   }
 
-  bool delete(String id) {
-    final index = _indexOf(id);
-    if (index < 0) return false;
-
-    _items.removeAt(index);
+  /// โหลดรายการ คืน true เมื่อสำเร็จ
+  Future<bool> load() async {
+    _loading = true;
+    _error = null;
     notifyListeners();
+    try {
+      final rows = await _service.amenities();
+      _items = List.unmodifiable(rows.map(AdminAmenity.fromJson));
+      return true;
+    } catch (e) {
+      _error = e;
+      return false;
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
+  }
+
+  /// เพิ่มสิ่งอำนวยความสะดวก คืน true เมื่อสำเร็จ
+  Future<bool> add(String name) => _write(name, null, () async {
+    await _service.createAmenity(name.trim());
+  });
+
+  /// เปลี่ยนชื่อ คืน true เมื่อสำเร็จ
+  Future<bool> rename(int id, String name) => _write(name, id, () async {
+    await _service.renameAmenity(id, name.trim());
+  });
+
+  /// ลบ คืน true เมื่อสำเร็จ
+  Future<bool> delete(int id) async {
+    if (_busy) return false;
+    _busy = true;
+    _error = null;
+    notifyListeners();
+    try {
+      await _service.deleteAmenity(id);
+    } catch (e) {
+      _error = e;
+      _busy = false;
+      notifyListeners();
+      return false;
+    }
+    _busy = false;
+    await load();
     return true;
   }
 
-  int _indexOf(String id) => _items.indexWhere((item) => item.id == id);
-
-  String _validatedName(String name, {String? exceptId}) {
-    final trimmed = name.trim();
-    if (trimmed.isEmpty) {
-      throw const FormatException('Please enter an amenity name.');
+  Future<bool> _write(String name, int? id, Future<void> Function() action) async {
+    final problem = validateName(name, exceptId: id);
+    if (problem != null) {
+      _error = ApiException(400, problem);
+      notifyListeners();
+      return false;
     }
-
-    final normalized = trimmed.toLowerCase();
-    final duplicate = _items.any(
-      (item) =>
-          item.id != exceptId && item.name.trim().toLowerCase() == normalized,
-    );
-    if (duplicate) {
-      throw const FormatException('This amenity name already exists.');
+    if (_busy) return false;
+    _busy = true;
+    _error = null;
+    notifyListeners();
+    try {
+      await action();
+    } catch (e) {
+      _error = e;
+      _busy = false;
+      notifyListeners();
+      return false;
     }
-    return trimmed;
+    _busy = false;
+    await load();
+    return true;
   }
 }

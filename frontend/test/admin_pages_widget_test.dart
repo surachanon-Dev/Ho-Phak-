@@ -4,11 +4,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/controllers/admin_activity_log_controller.dart';
-import 'package:hopak_frontend/controllers/admin_amenities_controller.dart';
 import 'package:hopak_frontend/controllers/admin_reviews_controller.dart';
 import 'package:hopak_frontend/controllers/admin_settings_controller.dart';
 import 'package:hopak_frontend/screens/admin/admin_logs_tab.dart';
-import 'package:hopak_frontend/screens/admin/admin_moderation_tab.dart';
 import 'package:hopak_frontend/screens/admin/admin_profile_tab.dart';
 import 'package:hopak_frontend/screens/admin/admin_reviews_tab.dart';
 import 'package:hopak_frontend/screens/admin/admin_settings_tab.dart';
@@ -172,37 +170,6 @@ void main() {
     );
   });
 
-  group('Amenities controller', () {
-    test(
-      'trims names and rejects blank or case-insensitive duplicate names',
-      () {
-        final controller = _amenities();
-        final added = controller.add('  Study room  ');
-
-        expect(added.name, 'Study room');
-        expect(() => controller.add('   '), throwsFormatException);
-        expect(() => controller.add(' wi-fi '), throwsFormatException);
-        expect(controller.items.map((item) => item.name), [
-          'Wi-Fi',
-          'Study room',
-        ]);
-      },
-    );
-
-    test('renaming preserves the amenity ID and usage count', () {
-      final controller = _amenities();
-      final renamed = controller.rename('wifi', ' Study Wi-Fi ');
-      expect(
-        (renamed.id, renamed.name, renamed.usedByCount),
-        ('wifi', 'Study Wi-Fi', 4),
-      );
-
-      expect(controller.delete('wifi'), isTrue);
-      expect(controller.delete('wifi'), isFalse);
-      expect(controller.items, isEmpty);
-    });
-  });
-
   group('Activity Log controller', () {
     test(
       'combines action and date filters without losing the original rows',
@@ -358,7 +325,7 @@ void main() {
 
   group('Admin page widgets', () {
     testWidgets(
-      'Settings masks passwords and shows a read-only support phone',
+      'Settings masks all password fields',
       (tester) async {
         _desktopSize(tester);
         await tester.pumpWidget(
@@ -370,9 +337,8 @@ void main() {
         final fields = tester
             .widgetList<TextField>(find.byType(TextField))
             .toList();
-        expect(fields, hasLength(4));
-        expect(fields.take(3).every((field) => field.obscureText), isTrue);
-        expect(fields.last.readOnly, isTrue);
+        expect(fields, hasLength(3));
+        expect(fields.every((field) => field.obscureText), isTrue);
       },
     );
 
@@ -403,43 +369,6 @@ void main() {
       expect(writes, ['/api/auth/logout']);
       expect(services.tokens.token, isNull);
       expect(find.byType(LoginScreen), findsOneWidget);
-    });
-
-    testWidgets('Amenities rejects a duplicate and saves a unique name', (
-      tester,
-    ) async {
-      _desktopSize(tester);
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: AdminModerationTab(
-              showAmenities: true,
-              services: _services((_) async => _json({})),
-            ),
-          ),
-          // Keep the default test font within the fixed-width action column.
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(context)
-                .copyWith(textScaler: const TextScaler.linear(0.45)),
-            child: child!,
-          ),
-        ),
-      );
-
-      await tester.tap(find.text('+ Add amenity'));
-      await tester.pumpAndSettle();
-      final field = find.byType(TextField);
-      final save = find.widgetWithText(ElevatedButton, 'Save');
-      await tester.enterText(field, ' wi-fi ');
-      await tester.tap(save);
-      await tester.pumpAndSettle();
-      expect(find.text('This amenity name already exists.'), findsOneWidget);
-
-      await tester.enterText(field, 'Study room');
-      await tester.tap(save);
-      await tester.pumpAndSettle();
-      expect(find.byType(Dialog), findsNothing);
-      expect(find.text('Study room'), findsOneWidget);
     });
 
     testWidgets(
@@ -506,14 +435,6 @@ AdminSettingsController _settings(
     auth: services.auth,
     updatePassword: updatePassword,
   );
-  addTearDown(controller.dispose);
-  return controller;
-}
-
-AdminAmenitiesController _amenities() {
-  final controller = AdminAmenitiesController(const [
-    AdminAmenity(id: 'wifi', name: 'Wi-Fi', usedByCount: 4),
-  ]);
   addTearDown(controller.dispose);
   return controller;
 }

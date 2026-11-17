@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/app_services.dart';
+import '../../controller/owner/owner_account_screens_controllers.dart';
 import '../../controller/owner/owner_extras.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
@@ -19,38 +20,41 @@ class NotificationSettingsScreen extends StatefulWidget {
 
 class _NotificationSettingsScreenState
     extends State<NotificationSettingsScreen> {
-  NotificationPrefs? _prefs;
+  late final NotificationSettingsController _c;
 
   @override
   void initState() {
     super.initState();
+    _c = NotificationSettingsController(widget.services.account);
+    _c.addListener(() {
+      if (mounted) setState(() {});
+    });
     _load();
   }
 
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
-    try {
-      final p = await widget.services.account.notificationPrefs();
-      if (mounted) setState(() => _prefs = p);
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
+    final ok = await _c.load();
+    if (!ok && mounted && _c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
   Future<void> _set(NotificationPrefs next) async {
-    final before = _prefs;
-    setState(() => _prefs = next);
-    try {
-      await widget.services.account.saveNotificationPrefs(next);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _prefs = before);
-      showApiError(context, widget.services, e);
+    final ok = await _c.update(next);
+    if (!ok && mounted && _c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final p = _prefs;
+    final p = _c.prefs;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notification settings'),

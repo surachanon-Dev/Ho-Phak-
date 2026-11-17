@@ -13,10 +13,10 @@ async function findByPhone(phone) {
     return rows[0];
 }
 
-async function insertStudent({ username, phone, passwordHash }) {
+async function insertStudent({ username, firstName, surname, phone, passwordHash }) {
     const [result] = await db.query(
-        "INSERT INTO users (username, phone, password, role, is_verified) VALUES (?, ?, ?, 'student', 0)",
-        [username, phone, passwordHash]);
+        "INSERT INTO users (username, first_name, surname, phone, password, role, is_verified) VALUES (?, ?, ?, ?, ?, 'student', 0)",
+        [username, firstName, surname, phone, passwordHash]);
     return result.insertId;
 }
 
@@ -56,7 +56,7 @@ async function listForAdmin({ role, status } = {}) {
     }
     const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const [rows] = await db.query(
-        `SELECT id, username, phone, role, status, is_verified, created_at FROM users
+        `SELECT id, username, phone, role, status, is_verified, created_at, suspension_reason, suspended_at FROM users
          ${where} ORDER BY id DESC`, params);
     return rows;
 }

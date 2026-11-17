@@ -116,4 +116,31 @@ class AdminService {
     final data = await _api.get('/api/admin/logs') as Map<String, dynamic>;
     return _list(data['logs']);
   }
+
+  /// GET /api/admin/verifications?status=pending|approved|rejected → { verifications: [...] }
+  Future<List<Map<String, dynamic>>> verifications(String status) async {
+    final data = await _api.get('/api/admin/verifications?status=$status')
+        as Map<String, dynamic>;
+    return _list(data['verifications']);
+  }
+
+  /// GET /api/admin/amenities → { amenities: [{id, name}] }
+  Future<List<Map<String, dynamic>>> amenities() async {
+    final data = await _api.get('/api/admin/amenities') as Map<String, dynamic>;
+    return _list(data['amenities']);
+  }
+
+  /// POST /api/admin/amenities { name } → { id }
+  Future<int> createAmenity(String name) async {
+    final data = await _api.post('/api/admin/amenities', {'name': name})
+        as Map<String, dynamic>;
+    return (data['id'] as num).toInt();
+  }
+
+  /// PUT /api/admin/amenities/:id { name }
+  Future<void> renameAmenity(int id, String name) =>
+      _api.put('/api/admin/amenities/$id', {'name': name});
+
+  /// DELETE /api/admin/amenities/:id
+  Future<void> deleteAmenity(int id) => _api.delete('/api/admin/amenities/$id');
 }

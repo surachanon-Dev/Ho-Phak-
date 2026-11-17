@@ -230,7 +230,62 @@ async function listUsers({ role, status }) {
     return userModel.listForAdmin({ role, status });
 }
 
+// คำขอยืนยันตัวตนตามสถานะ (pending | approved | rejected)
+const VERIFICATION_STATUSES = ['pending', 'approved', 'rejected'];
+
+async function verifications(status = 'pending') {
+    if (!VERIFICATION_STATUSES.includes(status)) fail(400, 'สถานะคำขอไม่ถูกต้อง');
+    return verificationModel.listByStatus(status);
+}
+
+// ---- สิ่งอำนวยความสะดวก (amenities) ----
+function amenityName(value) {
+    const name = typeof value === 'string' ? value.trim() : '';
+    if (name.length === 0 || name.length > 100) fail(400, 'ชื่อสิ่งอำนวยความสะดวกต้องมี 1–100 ตัวอักษร');
+    return name;
+}
+
+async function amenityOrFail(rawId) {
+    const id = toInt(rawId);
+    const amenity = id === null ? undefined : await amenityModel.findById(id);
+    if (!amenity) fail(404, 'ไม่พบสิ่งอำนวยความสะดวกนี้');
+    return amenity;
+}
+
+async function listAmenities() {
+    return amenityModel.listAll();
+}
+
+async function createAmenity(admin, rawName) {
+    const name = amenityName(rawName);
+    return withTransaction(async (conn) => {
+        const id = await amenityModel.insert(name, conn);
+        await adminLogModel.insert(admin, 'amenity.create', 'amenity', id, { name }, conn);
+        return id;
+    });
+}
+
+async function renameAmenity(rawId, admin, rawName) {
+    const amenity = await amenityOrFail(rawId);
+    const name = amenityName(rawName);
+    await withTransaction(async (conn) => {
+        await amenityModel.rename(amenity.id, name, conn);
+        await adminLogModel.insert(admin, 'amenity.rename', 'amenity', amenity.id,
+            { from: amenity.name, to: name }, conn);
+    });
+}
+
+async function deleteAmenity(rawId, admin) {
+    const amenity = await amenityOrFail(rawId);
+    await withTransaction(async (conn) => {
+        await amenityModel.remove(amenity.id, conn);
+        await adminLogModel.insert(admin, 'amenity.delete', 'amenity', amenity.id,
+            { name: amenity.name }, conn);
+    });
+}
+
 module.exports = {
+  verifications, listAmenities, createAmenity, renameAmenity, deleteAmenity,
     queue, approveDormitory, rejectDormitory, suspendDormitory, restoreDormitory,
     approveVerification, rejectVerification, suspendUser, restoreUser,
     listReviews, publishReview, hideReview, logs, listDormitories, listUsers, verificationDocument,

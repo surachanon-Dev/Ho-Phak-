@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/user.dart';
 import '../../services/app_services.dart';
-import '../../controller/owner/owner_extras.dart';
+import '../../controller/owner/owner_account_screens_controllers.dart';
 import '../../ui/app_theme.dart';
 import '../login_screen.dart';
 import 'change_password_screen.dart';
@@ -26,31 +26,36 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   AppServices get services => widget.services;
   CurrentUser get user => widget.user;
-  OwnerProfile? _profile;
+  late final OwnerProfileController _c;
 
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    _c = OwnerProfileController(
+      account: services.account,
+      auth: services.auth,
+      fallbackName: user.username,
+    );
+    _c.addListener(() {
+      if (mounted) setState(() {});
+    });
+    _c.load();
   }
 
-  Future<void> _loadProfile() async {
-    try {
-      final p = await services.account.profile(fallbackName: user.username);
-      if (mounted) setState(() => _profile = p);
-    } catch (_) {
-      // โหลดโปรไฟล์ไม่ได้ ใช้ชื่อจาก /api/me แทน
-    }
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
   }
 
   Future<void> _editProfile(BuildContext context) async {
-    final p = _profile ?? const OwnerProfile();
     final saved = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => EditProfileScreen(services: services, profile: p),
+        builder: (_) =>
+            EditProfileScreen(services: services, profile: _c.profile),
       ),
     );
-    if (saved == true) _loadProfile();
+    if (saved == true) _c.load();
   }
 
   Future<void> _logout(BuildContext context) async {
@@ -71,7 +76,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
     if (ok != true) return;
-    await services.auth.logout();
+    await _c.logout();
     if (!context.mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => LoginScreen(services: services)),
@@ -84,11 +89,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final saved = _profile?.fullName ?? '';
+    final saved = _c.profile.fullName;
     final name = saved.isNotEmpty
         ? saved
         : (user.username ?? 'Dorm owner #${user.id}');
-    final phone = _profile?.phone ?? '';
+    final phone = _c.profile.phone;
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -106,7 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 20),
             Center(
-              child: ProfileAvatar(photoBase64: _profile?.photoBase64),
+              child: ProfileAvatar(photoBase64: _c.profile.photoBase64),
             ),
             const SizedBox(height: 12),
             Center(

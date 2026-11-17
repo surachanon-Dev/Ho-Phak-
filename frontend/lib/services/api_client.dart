@@ -84,7 +84,8 @@ class ApiClient {
         ),
       );
     try {
-      final streamed = await request.send().timeout(_timeout);
+      // ใช้ client ที่ inject ไว้ (เทสต์ส่ง MockClient เข้ามาได้)
+      final streamed = await _client.send(request).timeout(_timeout);
       final res = await http.Response.fromStream(streamed);
       return _decode(res);
     } on ApiException {

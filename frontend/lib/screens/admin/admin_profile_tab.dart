@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../models/user.dart';
+import '../../controllers/admin_profile_controller.dart';
 import '../../services/app_services.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
@@ -17,25 +17,26 @@ class AdminProfileTab extends StatefulWidget {
 }
 
 class _AdminProfileTabState extends State<AdminProfileTab> {
-  CurrentUser? _user;
-  bool _loading = true;
+  late final AdminProfileController _c;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _c = AdminProfileController(widget.services.auth);
+    _c.addListener(() {
+      if (mounted) setState(() {});
+    });
+    _c.load().then((ok) {
+      if (!ok && mounted && _c.error != null) {
+        showApiError(context, widget.services, _c.error!);
+      }
+    });
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final u = await widget.services.auth.currentUser();
-      if (mounted) setState(() => _user = u);
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
   }
 
   Future<void> _logout() async {
@@ -56,7 +57,7 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
       ),
     );
     if (ok != true) return;
-    await widget.services.auth.logout();
+    await _c.logout();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => LoginScreen(services: widget.services)),
@@ -66,10 +67,10 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
 
   @override
   Widget build(BuildContext context) {
-    final u = _user;
+    final u = _c.user;
     return Scaffold(
       appBar: AppBar(title: const Text('โปรไฟล์')),
-      body: _loading
+      body: _c.loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(16),
@@ -90,7 +91,7 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
                   child: ListTile(
                     leading: const Icon(Icons.refresh),
                     title: const Text('โหลดข้อมูลบัญชีใหม่'),
-                    onTap: _load,
+                    onTap: _c.load,
                   ),
                 ),
                 const SizedBox(height: 12),

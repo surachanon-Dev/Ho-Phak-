@@ -28,4 +28,26 @@ async function listAll() {
     return rows;
 }
 
-module.exports = { forDormitory, countExisting, replaceForDormitory, listAll };
+async function findById(id) {
+    const [rows] = await db.query('SELECT id, name FROM amenities WHERE id = ?', [id]);
+    return rows[0];
+}
+
+async function insert(name, conn = db) {
+    const [result] = await conn.query('INSERT INTO amenities (name) VALUES (?)', [name]);
+    return result.insertId;
+}
+
+async function rename(id, name, conn = db) {
+    const [result] = await conn.query('UPDATE amenities SET name = ? WHERE id = ?', [name, id]);
+    return result.affectedRows;
+}
+
+async function remove(id, conn = db) {
+    const [result] = await conn.query('DELETE FROM amenities WHERE id = ?', [id]);
+    return result.affectedRows;
+}
+
+module.exports = {
+    forDormitory, countExisting, replaceForDormitory, listAll, findById, insert, rename, remove,
+};

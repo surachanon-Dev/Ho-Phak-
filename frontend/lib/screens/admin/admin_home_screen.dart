@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 
+import '../../controllers/admin_activity_log_controller.dart';
+import '../../controllers/admin_dashboard_controller.dart';
+import '../../services/admin_service.dart';
+import '../../ui/error_handling.dart';
 import '../../services/app_services.dart';
+import 'admin_dorms_tab.dart';
 import 'admin_logs_tab.dart';
 import 'admin_moderation_tab.dart';
 import 'admin_profile_tab.dart';
 import 'admin_queue_tab.dart';
 import 'admin_reviews_tab.dart';
+import 'admin_settings_tab.dart';
 
 /// โครงหลักของ Ho-Phak Admin Web + หน้า 02 · DASHBOARD (A-1 และ A-1b)
 /// วางทับที่: ช่องที่ 1 ในโฟลเดอร์ admin (lib/screens/admin/admin_home_screen.dart)
@@ -20,38 +26,104 @@ class AdminHomeScreen extends StatefulWidget {
 }
 
 class _AdminHomeScreenState extends State<AdminHomeScreen> {
-  // ลำดับเมนูซ้าย 7 รายการ:
-  // 0: Dashboard
-  // 1: Dorms        (เชื่อมไปที่ AdminQueueTab)
-  // 2: Users        (เชื่อมไปที่ AdminModerationTab -> showAmenities: false)
-  // 3: Reviews      (เชื่อมไปที่ AdminReviewsTab)
-  // 4: Activity log (เชื่อมไปที่ AdminLogsTab)
-  // 5: Amenities    (เชื่อมไปที่ AdminModerationTab -> showAmenities: true)
-  // 6: Settings     (เชื่อมไปที่ AdminProfileTab)
+  // ลำดับเมนูซ้าย 8 รายการ (ตรงกับลำดับหน้าใน IndexedStack):
+  // 0: Dashboard   1: Owner requests (แท็บ verification)   2: Dorms
+  // 3: Users       4: Reviews   5: Activity log   6: Amenities   7: Settings
+  // 8: Profile (เปิดจากไอคอนออกจากระบบด้านล่างแถบเมนู ไม่ได้อยู่ในรายการเมนู)
   int _menuIndex = 0;
 
-  bool _allCaughtUp = false;
+  late final AdminDashboardController _dash;
+  late final AdminActivityLogController _logs;
 
-  int get _dormsAwaitingCount => _allCaughtUp ? 0 : 5;
-  int get _reportedReviewsCount => _allCaughtUp ? 0 : 2;
-  int get _suspendedCount => _allCaughtUp ? 0 : 2;
+  @override
+  void initState() {
+    super.initState();
+    final admin = AdminService(widget.services.api);
+    _dash = AdminDashboardController(admin);
+    _logs = AdminActivityLogController(admin);
+    _dash.addListener(_onChanged);
+    _logs.addListener(_onChanged);
+    _dash.load().then((ok) {
+      if (!ok && mounted && _dash.error != null) {
+        showApiError(context, widget.services, _dash.error!);
+      }
+    });
+    _logs.refresh();
+  }
 
-  int get _totalWaiting => _dormsAwaitingCount + _reportedReviewsCount;
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
 
-  // แปลงเมนูซ้าย 7 รายการ ไปยังหน้าจอทั้ง 7 ใน IndexedStack
+  @override
+  void dispose() {
+    _dash.removeListener(_onChanged);
+    _logs.removeListener(_onChanged);
+    _dash.dispose();
+    _logs.dispose();
+    super.dispose();
+  }
+
+  int get _dormsAwaitingCount => _dash.dormsAwaitingCount;
+  int get _ownerRequestsCount => _dash.ownerRequestsCount;
+  int get _reportedReviewsCount => _dash.reportedReviewsCount;
+  int get _suspendedCount => _dash.suspendedCount;
+  int get _totalWaiting => _dash.totalWaiting;
+  bool get _allCaughtUp => _dash.allCaughtUp;
+
+  /// กิจกรรมล่าสุดของแอดมิน (แสดงบน Dashboard 4 รายการ)
+  List<_ActivityRowData> get _recentActivityRows => _logs.entries
+      .take(4)
+      .map(_activityRowFromLog)
+      .toList();
+
+  static _ActivityRowData _activityRowFromLog(Map<String, dynamic> e) {
+    final action = (e['action'] as String?) ?? '';
+    final approving = action.contains('approve') || action.contains('publish') ||
+        action.contains('restore') || action.contains('create');
+    final negative = action.contains('reject') || action.contains('hide') ||
+        action.contains('suspend') || action.contains('delete');
+    final target = '${e['target_type'] ?? ''} #${e['target_id'] ?? ''}'.trim();
+    return _ActivityRowData(
+      time: (e['created_at'] ?? '').toString(),
+      admin: (e['admin_name'] as String?) ?? 'Admin',
+      action: action,
+      target: target,
+      pillBg: approving
+          ? const Color(0xFFDCFCE7)
+          : negative
+              ? const Color(0xFFFEE2E2)
+              : const Color(0xFFE2E8F0),
+      pillText: approving
+          ? const Color(0xFF15803D)
+          : negative
+              ? const Color(0xFFB91C1C)
+              : const Color(0xFF475569),
+    );
+  }
+
   int get _stackIndex => _menuIndex;
 
   String get _currentTitle {
     const titles = [
       'Dashboard',
+      'Owner requests',
       'Dorms',
       'Users',
       'Reviews',
       'Activity log',
       'Amenities',
       'Settings',
+      'Profile',
     ];
     return titles[_menuIndex];
+  }
+
+  static String _todayLabel() {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final now = DateTime.now();
+    return '${days[now.weekday - 1]} ${now.day} ${months[now.month - 1]} ${now.year}';
   }
 
   void _selectMenu(int index) {
@@ -70,13 +142,16 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         suspendedCount: _suspendedCount,
         totalWaiting: _totalWaiting,
         onSelectMenu: _selectMenu,
+        activities: _recentActivityRows,
       ),
-      AdminQueueTab(services: s), // 1: Dorms
-      AdminModerationTab(services: s, showAmenities: false), // 2: Users
-      AdminReviewsTab(services: s), // 3: Reviews
-      AdminLogsTab(services: s), // 4: Activity log
-      AdminModerationTab(services: s, showAmenities: true), // 5: Amenities
-      AdminProfileTab(services: s), // 6: Settings
+      AdminQueueTab(services: s), // 1: Owner requests (verification)
+      AdminDormsTab(services: s), // 2: Dorms
+      AdminModerationTab(services: s, showAmenities: false), // 3: Users
+      AdminReviewsTab(services: s), // 4: Reviews
+      AdminLogsTab(services: s), // 5: Activity log
+      AdminModerationTab(services: s, showAmenities: true), // 6: Amenities
+      AdminSettingsTab(services: s), // 7: Settings
+      AdminProfileTab(services: s), // 8: Profile (ไอคอนออกจากระบบ)
     ];
 
     return Scaffold(
@@ -162,42 +237,49 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         onTap: () => _selectMenu(0),
                       ),
                       _SidebarItem(
-                        icon: Icons.apartment_outlined,
-                        label: 'Dorms',
-                        badgeCount: _dormsAwaitingCount,
+                        icon: Icons.how_to_reg_outlined,
+                        label: 'Owner requests',
+                        badgeCount: _ownerRequestsCount,
                         selected: _menuIndex == 1,
                         onTap: () => _selectMenu(1),
                       ),
                       _SidebarItem(
-                        icon: Icons.people_outline,
-                        label: 'Users',
+                        icon: Icons.apartment_outlined,
+                        label: 'Dorms',
+                        badgeCount: _dormsAwaitingCount,
                         selected: _menuIndex == 2,
                         onTap: () => _selectMenu(2),
+                      ),
+                      _SidebarItem(
+                        icon: Icons.people_outline,
+                        label: 'Users',
+                        selected: _menuIndex == 3,
+                        onTap: () => _selectMenu(3),
                       ),
                       _SidebarItem(
                         icon: Icons.star_border,
                         label: 'Reviews',
                         badgeCount: _reportedReviewsCount,
-                        selected: _menuIndex == 3,
-                        onTap: () => _selectMenu(3),
-                      ),
-                      _SidebarItem(
-                        icon: Icons.history,
-                        label: 'Activity log',
                         selected: _menuIndex == 4,
                         onTap: () => _selectMenu(4),
                       ),
                       _SidebarItem(
-                        icon: Icons.sell_outlined,
-                        label: 'Amenities',
+                        icon: Icons.history,
+                        label: 'Activity log',
                         selected: _menuIndex == 5,
                         onTap: () => _selectMenu(5),
                       ),
                       _SidebarItem(
-                        icon: Icons.tune,
-                        label: 'Settings',
+                        icon: Icons.sell_outlined,
+                        label: 'Amenities',
                         selected: _menuIndex == 6,
                         onTap: () => _selectMenu(6),
+                      ),
+                      _SidebarItem(
+                        icon: Icons.tune,
+                        label: 'Settings',
+                        selected: _menuIndex == 7,
+                        onTap: () => _selectMenu(7),
                       ),
                     ],
                   ),
@@ -260,7 +342,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       ),
                       IconButton(
                         tooltip: 'Profile / Sign out',
-                        onPressed: () => _selectMenu(6),
+                        onPressed: () => _selectMenu(8),
                         icon: const Icon(
                           Icons.logout,
                           size: 18,
@@ -300,40 +382,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         ),
                       ),
                       const Spacer(),
-                      if (_menuIndex == 0)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 14),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(6),
-                            onTap: () =>
-                                setState(() => _allCaughtUp = !_allCaughtUp),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: const Color(0xFFE2E8F0),
-                                ),
-                              ),
-                              child: Text(
-                                _allCaughtUp
-                                    ? 'โหมด: A-1b (All caught up)'
-                                    : 'โหมด: A-1 (มีงานรอ)',
-                                style: const TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF475569),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      const Text(
-                        'Sun 8 Nov 2026',
+                      Text(
+                        _todayLabel(),
                         style: TextStyle(
                           fontSize: 12.5,
                           color: Color(0xFF64748B),
@@ -444,6 +494,7 @@ class _DashboardView extends StatelessWidget {
     required this.suspendedCount,
     required this.totalWaiting,
     required this.onSelectMenu,
+    required this.activities,
   });
 
   final bool allCaughtUp;
@@ -452,41 +503,7 @@ class _DashboardView extends StatelessWidget {
   final int suspendedCount;
   final int totalWaiting;
   final ValueChanged<int> onSelectMenu;
-
-  static const List<_ActivityRowData> _recentActivities = [
-    _ActivityRowData(
-      time: 'Today 09:42',
-      admin: 'Admin',
-      action: 'dormitory.approve',
-      target: 'หอพักบ้านสวนดอย',
-      pillBg: Color(0xFFDCFCE7),
-      pillText: Color(0xFF15803D),
-    ),
-    _ActivityRowData(
-      time: 'Today 09:15',
-      admin: 'Admin',
-      action: 'review.hide',
-      target: 'Review #31 · หอพักริมดอย',
-      pillBg: Color(0xFFFEE2E2),
-      pillText: Color(0xFFB91C1C),
-    ),
-    _ActivityRowData(
-      time: 'Yesterday 16:40',
-      admin: 'Admin',
-      action: 'dormitory.suspend',
-      target: 'หอพักสวนหลวง',
-      pillBg: Color(0xFFFEF3C7),
-      pillText: Color(0xFFB45309),
-    ),
-    _ActivityRowData(
-      time: 'Yesterday 11:20',
-      admin: 'Admin',
-      action: 'amenity.create',
-      target: 'Elevator',
-      pillBg: Color(0xFFDBEAFE),
-      pillText: Color(0xFF1D4ED8),
-    ),
-  ];
+  final List<_ActivityRowData> activities;
 
   @override
   Widget build(BuildContext context) {
@@ -523,7 +540,7 @@ class _DashboardView extends StatelessWidget {
                   title: 'Dorms awaiting review',
                   subtitle:
                       allCaughtUp ? 'Nothing waiting' : '3 new · 2 changes',
-                  onTap: () => onSelectMenu(1),
+                  onTap: () => onSelectMenu(3),
                 ),
               ),
               const SizedBox(width: 14),
@@ -535,7 +552,7 @@ class _DashboardView extends StatelessWidget {
                   subtitle: allCaughtUp
                       ? 'Nothing waiting'
                       : 'Reported by owners',
-                  onTap: () => onSelectMenu(3),
+                  onTap: () => onSelectMenu(5),
                 ),
               ),
               const SizedBox(width: 14),
@@ -546,7 +563,7 @@ class _DashboardView extends StatelessWidget {
                   title: 'Suspended',
                   subtitle:
                       allCaughtUp ? 'Nothing waiting' : '1 dorm · 1 account',
-                  onTap: () => onSelectMenu(2),
+                  onTap: () => onSelectMenu(3),
                 ),
               ),
             ],
@@ -621,7 +638,7 @@ class _DashboardView extends StatelessWidget {
                     ),
                     const Spacer(),
                     InkWell(
-                      onTap: () => onSelectMenu(4),
+                      onTap: () => onSelectMenu(5),
                       child: const Text(
                         'View all',
                         style: TextStyle(
@@ -705,7 +722,7 @@ class _DashboardView extends StatelessWidget {
                           ],
                         ),
                       ),
-                      for (int i = 0; i < _recentActivities.length; i++) ...[
+                      for (int i = 0; i < activities.length; i++) ...[
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
                         Padding(
                           padding: const EdgeInsets.symmetric(
@@ -717,7 +734,7 @@ class _DashboardView extends StatelessWidget {
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  _recentActivities[i].time,
+                                  activities[i].time,
                                   style: const TextStyle(
                                     fontSize: 12.5,
                                     fontWeight: FontWeight.w600,
@@ -728,7 +745,7 @@ class _DashboardView extends StatelessWidget {
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  _recentActivities[i].admin,
+                                  activities[i].admin,
                                   style: const TextStyle(
                                     fontSize: 12.5,
                                     color: Color(0xFF475569),
@@ -745,15 +762,15 @@ class _DashboardView extends StatelessWidget {
                                       vertical: 3,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: _recentActivities[i].pillBg,
+                                      color: activities[i].pillBg,
                                       borderRadius: BorderRadius.circular(999),
                                     ),
                                     child: Text(
-                                      _recentActivities[i].action,
+                                      activities[i].action,
                                       style: TextStyle(
                                         fontSize: 11.5,
                                         fontWeight: FontWeight.w600,
-                                        color: _recentActivities[i].pillText,
+                                        color: activities[i].pillText,
                                       ),
                                     ),
                                   ),
@@ -762,7 +779,7 @@ class _DashboardView extends StatelessWidget {
                               Expanded(
                                 flex: 4,
                                 child: Text(
-                                  _recentActivities[i].target,
+                                  activities[i].target,
                                   style: const TextStyle(
                                     fontSize: 12.5,
                                     color: Color(0xFF334155),

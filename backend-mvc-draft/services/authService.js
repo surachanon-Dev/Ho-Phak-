@@ -7,7 +7,7 @@ const { fail } = require('../utils/AppError');
 const { normalizePhone, checkPassword, optionalText } = require('../utils/validators');
 
 // role บังคับเป็น student เสมอ ไม่รับจาก client
-async function register({ phone, password, confirmPassword, username }) {
+async function register({ phone, password, confirmPassword, username, first_name, surname }) {
     const normalized = normalizePhone(phone);
     checkPassword(password, confirmPassword);
 
@@ -16,6 +16,8 @@ async function register({ phone, password, confirmPassword, username }) {
     }
     return userModel.insertStudent({
         username: optionalText(username, 50),
+        firstName: optionalText(first_name, 50),
+        surname: optionalText(surname, 50),
         phone: normalized,
         passwordHash: argon2.hashSync(password),
     });

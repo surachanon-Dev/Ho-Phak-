@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../controllers/admin_reviews_controller.dart';
 import '../../services/admin_service.dart';
 import '../../services/app_services.dart';
 import '../../ui/error_handling.dart';
@@ -14,16 +15,23 @@ class AdminReviewsTab extends StatefulWidget {
 }
 
 class _AdminReviewsTabState extends State<AdminReviewsTab> with SingleTickerProviderStateMixin {
-  late final AdminService _admin = AdminService(widget.services.api);
+  late final AdminReviewsController _c;
   late TabController _tabController;
 
-  List<dynamic> _items = [];
-  bool _loading = true;
-  String _currentStatus = 'pending';
+  /// สถานะของแท็บตามที่หน้าจอใช้: pending | kept | hidden
+  String get _currentStatus => switch (_c.status) {
+    AdminReviewStatus.open => 'pending',
+    AdminReviewStatus.kept => 'kept',
+    AdminReviewStatus.hidden => 'hidden',
+  };
 
   @override
   void initState() {
     super.initState();
+    _c = AdminReviewsController(AdminService(widget.services.api));
+    _c.addListener(() {
+      if (mounted) setState(() {});
+    });
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_onTabChanged);
     _load();
@@ -32,53 +40,36 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> with SingleTickerProv
   @override
   void dispose() {
     _tabController.dispose();
+    _c.dispose();
     super.dispose();
   }
 
   void _onTabChanged() {
     if (_tabController.indexIsChanging) return;
+    _c.selectStatus(AdminReviewStatus.values[_tabController.index]);
+  }
 
-    final statuses = ['pending', 'kept', 'hidden'];
-    final newStatus = statuses[_tabController.index];
-
-    if (_currentStatus != newStatus) {
-      setState(() {
-        _currentStatus = newStatus;
-      });
-      _load();
-    }
+  void _report() {
+    if (!mounted) return;
+    final error = _c.actionError ?? _c.loadError;
+    if (error != null) showApiError(context, widget.services, error);
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final items = await _admin.reviews(_currentStatus);
-      if (mounted) setState(() => _items = items);
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+    await _c.refresh();
+    _report();
   }
 
   Future<void> _publish(int id) async {
-    try {
-      await _admin.publishReview(id);
-      await _load();
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    }
+    final ok = await _c.publishReview(id);
+    if (!ok) _report();
   }
 
   Future<void> _hide(int id) async {
     final reason = await askReason(context, 'เหตุผลที่ซ่อนรีวิว');
     if (reason == null) return;
-    try {
-      await _admin.hideReview(id, reason);
-      await _load();
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    }
+    final ok = await _c.hideReview(id, reason);
+    if (!ok) _report();
   }
 
   @override
@@ -93,7 +84,7 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> with SingleTickerProv
           IconButton(
             tooltip: 'รีเฟรช',
             icon: const Icon(Icons.refresh, color: Colors.black87),
-            onPressed: _loading ? null : _load,
+            onPressed: _c.isLoading ? null : _load,
           ),
         ],
         bottom: PreferredSize(
@@ -122,7 +113,7 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> with SingleTickerProv
   }
 
   Widget _buildBodyContent() {
-    if (_loading && _items.isEmpty) {
+    if (_c.isLoading && _c.reviews.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -156,16 +147,16 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> with SingleTickerProv
           ),
         ),
         Expanded(
-          child: _items.isEmpty
+          child: _c.reviews.isEmpty
               ? const Center(child: Text('ไม่มีรีวิวในสถานะนี้', style: TextStyle(color: Colors.grey)))
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView.separated(
                     padding: const EdgeInsets.all(16),
-                    itemCount: _items.length,
+                    itemCount: _c.reviews.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 16),
                     itemBuilder: (context, i) {
-                      final r = _items[i] as Map<String, dynamic>;
+                      final r = _c.reviews[i];
                       final id = r['id'] as int;
                       return _buildReviewCard(r, id);
                     },

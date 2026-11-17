@@ -44,4 +44,14 @@ async function listPending() {
     return rows;
 }
 
-module.exports = { findByOwner, findById, insert, resubmit, findForUpdate, setReviewed, listPending };
+// รายการคำขอยืนยันตัวตนตามสถานะ (pending | approved | rejected) พร้อมข้อมูลเจ้าของ
+async function listByStatus(status) {
+    const [rows] = await db.query(
+        `SELECT v.id, v.owner_id, v.document_url, v.status, v.submitted_at, v.reviewed_at,
+                v.rejection_reason, u.username AS owner_username, u.first_name, u.surname, u.phone AS owner_phone
+         FROM verifications v JOIN users u ON u.id = v.owner_id
+         WHERE v.status = ? ORDER BY v.id`, [status]);
+    return rows;
+}
+
+module.exports = { findByOwner, findById, insert, resubmit, findForUpdate, setReviewed, listPending, listByStatus };

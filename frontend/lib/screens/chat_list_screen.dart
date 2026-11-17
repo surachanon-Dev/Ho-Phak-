@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../controller/chat/chat_list_controller.dart';
 import '../models/chat.dart';
 import '../services/app_services.dart';
 import '../ui/app_theme.dart';
@@ -28,32 +29,31 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
-  List<Conversation> _items = [];
-  String? _dormFilter;
-  bool _loading = true;
-
-  List<String> get _dormNames =>
-      _items.map((c) => c.dormitoryName).toSet().toList();
-
-  List<Conversation> get _visible => _dormFilter == null
-      ? _items
-      : _items.where((c) => c.dormitoryName == _dormFilter).toList();
+  late final ChatListController _c;
 
   @override
   void initState() {
     super.initState();
+    _c = ChatListController(widget.services.chats);
+    _c.addListener(_onChanged);
     _load();
   }
 
+  void _onChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _c.removeListener(_onChanged);
+    _c.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final items = await widget.services.chats.conversations();
-      if (mounted) setState(() => _items = items);
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    final ok = await _c.load();
+    if (!ok && mounted && _c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
@@ -88,13 +88,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Future<void> _delete(Conversation c) async {
-    try {
-      await widget.services.chats.delete(c.id);
-      if (!mounted) return;
-      setState(() => _items.removeWhere((x) => x.id == c.id));
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-      _load();
+    final ok = await _c.delete(c.id);
+    if (!ok && mounted && _c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
@@ -116,7 +112,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 ),
               ),
             ),
-            if (_items.isNotEmpty) ...[
+            if (_c.items.isNotEmpty) ...[
               const Padding(
                 padding: EdgeInsets.fromLTRB(20, 6, 20, 0),
                 child: Text(
@@ -131,15 +127,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   children: [
                     _DormChip(
                       label: 'All',
-                      selected: _dormFilter == null,
-                      onTap: () => setState(() => _dormFilter = null),
+                      selected: _c.dormFilter == null,
+                      onTap: () => _c.setDormFilter(null),
                     ),
-                    for (final name in _dormNames) ...[
+                    for (final name in _c.dormNames) ...[
                       const SizedBox(width: 8),
                       _DormChip(
                         label: name,
-                        selected: _dormFilter == name,
-                        onTap: () => setState(() => _dormFilter = name),
+                        selected: _c.dormFilter == name,
+                        onTap: () => _c.setDormFilter(name),
                       ),
                     ],
                   ],
@@ -156,9 +152,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Widget _buildList() {
     return RefreshIndicator(
       onRefresh: _load,
-      child: _loading && _items.isEmpty
+      child: _c.loading && _c.items.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : _items.isEmpty
+          : _c.items.isEmpty
           ? ListView(
               children: [
                 const SizedBox(height: 120),
@@ -189,9 +185,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
             )
           : ListView.builder(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-              itemCount: _visible.length,
+              itemCount: _c.visible.length,
               itemBuilder: (context, i) {
-                final c = _visible[i];
+                final c = _c.visible[i];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: Dismissible(

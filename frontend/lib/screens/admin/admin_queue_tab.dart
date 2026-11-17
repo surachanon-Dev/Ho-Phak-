@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../controllers/admin_owner_requests_controller.dart';
+import '../../services/admin_service.dart';
 import '../../services/app_services.dart';
+import '../../ui/error_handling.dart';
 
-/// หน้า 03 · OWNER REQUESTS — คำขอเป็นเจ้าของหอ (ครบทั้ง 6 หน้าจอ: A-2, A-2a, A-2b, A-2c, A-2d, A-2e)
+/// หน้า 03 · OWNER REQUESTS — คำขอเป็นเจ้าของหอ (หน้า A-2, A-2a, A-2c, A-2d: รายการรอตรวจ อนุมัติ/ปฏิเสธ และดูประวัติ)
 /// วางทับที่: ช่องที่ 5 ในโฟลเดอร์ admin (lib/screens/admin/admin_queue_tab.dart)
 /// ใช้เฉพาะ import มาตรฐานและ AppServices ของโปรเจกต์ 100% เพื่อไม่ให้ขึ้นสีแดง
 class AdminQueueTab extends StatefulWidget {
@@ -18,7 +21,6 @@ enum _OwnerRequestSubView {
   list, // A-2 (Pending) / Approved / A-2c (Rejected tab)
   detailPending, // A-2a (Owner request – detail)
   detailRejected, // A-2d (Owner request – rejected)
-  detailPhoneChange, // A-2e (Owner request – phone change)
 }
 
 class _AdminQueueTabState extends State<AdminQueueTab> {
@@ -27,132 +29,42 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
   String _searchQuery = '';
   _OwnerRequestSubView _subView = _OwnerRequestSubView.list;
   _OwnerRequestItem? _selectedItem;
+  late final AdminOwnerRequestsController _c;
 
-  final List<_OwnerRequestItem> _pendingItems = [
-    _OwnerRequestItem(
-      id: 'req-1',
-      initials: 'SJ',
-      name: 'Somchai Jaidee',
-      phone: '081-234-5678',
-      newPhone: '081-999-0000',
-      role: 'Dorm Owner',
-      memberSince: '2 Sep 2026',
-      accountApprovedDate: '3 Sep 2026',
-      submitted: 'Today 08:31',
-      documentName: 'business-licence.jpg',
-      status: 'Pending',
-      isPhoneChange: false,
-    ),
-    _OwnerRequestItem(
-      id: 'req-2',
-      initials: 'PW',
-      name: 'Pimchanok Wongsa',
-      phone: '089-552-1043',
-      role: 'Dorm Owner',
-      memberSince: '10 Oct 2026',
-      submitted: 'Yesterday 19:12',
-      documentName: 'title-deed.pdf',
-      status: 'Pending',
-      isPhoneChange: false,
-    ),
-    _OwnerRequestItem(
-      id: 'req-3',
-      initials: 'AK',
-      name: 'Arthit Kaewmanee',
-      phone: '062-110-7789',
-      role: 'Dorm Owner',
-      memberSince: '1 Nov 2026',
-      submitted: '6 Nov 2026',
-      documentName: 'lease-contract.pdf',
-      status: 'Pending',
-      isPhoneChange: false,
-    ),
-    _OwnerRequestItem(
-      id: 'req-phone-1',
-      initials: 'SJ',
-      name: 'Somchai Jaidee',
-      phone: '081-234-5678',
-      newPhone: '081-999-0000',
-      role: 'Dorm Owner',
-      memberSince: '2 Sep 2026',
-      accountApprovedDate: '3 Sep 2026',
-      submitted: 'Today 10:12',
-      documentName: 'phone-change-request',
-      status: 'Pending',
-      isPhoneChange: true,
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _c = AdminOwnerRequestsController(AdminService(widget.services.api));
+    _c.addListener(() {
+      if (mounted) setState(() {});
+    });
+    _c.load().then((ok) {
+      if (!ok && mounted && _c.error != null) {
+        showApiError(context, widget.services, _c.error!);
+      }
+    });
+  }
 
-  final List<_OwnerRequestItem> _approvedItems = [
-    _OwnerRequestItem(
-      id: 'app-1',
-      initials: 'KS',
-      name: 'Kanya Srisuk',
-      phone: '081-555-8899',
-      role: 'Dorm Owner',
-      memberSince: '15 Aug 2026',
-      submitted: 'Yesterday 17:03',
-      reviewedDate: 'Yesterday 17:03',
-      documentName: 'business-licence.pdf',
-      status: 'Approved',
-    ),
-  ];
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
 
-  final List<_OwnerRequestItem> _rejectedItems = [
-    _OwnerRequestItem(
-      id: 'rej-1',
-      initials: 'NT',
-      name: 'Narin Thongdee',
-      phone: '086-301-2290',
-      role: 'Dorm Owner',
-      memberSince: '20 Oct 2026',
-      submitted: '5 Nov 2026 09:12',
-      reviewedDate: '5 Nov 2026',
-      rejectedTimestamp: '5 Nov 2026 14:20',
-      rejectReason:
-          'The document is blurry — please upload a clear photo of your business licence.',
-      documentName: 'business-licence.jpg',
-      status: 'Rejected',
-    ),
-    _OwnerRequestItem(
-      id: 'rej-2',
-      initials: 'MC',
-      name: 'Malee Chaiyo',
-      phone: '091-778-3321',
-      role: 'Dorm Owner',
-      memberSince: '18 Oct 2026',
-      submitted: '1 Nov 2026 10:05',
-      reviewedDate: '1 Nov 2026',
-      rejectedTimestamp: '1 Nov 2026 15:10',
-      rejectReason:
-          'The name on the title deed does not match the account name.',
-      documentName: 'title-deed.pdf',
-      status: 'Rejected',
-    ),
-    _OwnerRequestItem(
-      id: 'rej-3',
-      initials: 'SJ',
-      name: 'Somchai Jaidee',
-      phone: '081-234-5678',
-      role: 'Dorm Owner',
-      memberSince: '2 Sep 2026',
-      submitted: '7 Nov 2026 09:12',
-      reviewedDate: '7 Nov 2026',
-      rejectedTimestamp: '7 Nov 2026 16:40',
-      rejectReason:
-          'The name does not match your phone number. The owner can correct their details and resubmit.',
-      documentName: 'business-licence.jpg',
-      status: 'Rejected',
-    ),
-  ];
+  List<_OwnerRequestItem> get _pendingItems =>
+      _c.pending.map(_OwnerRequestItem.fromRow).toList();
+
+  List<_OwnerRequestItem> get _approvedItems =>
+      _c.approved.map(_OwnerRequestItem.fromRow).toList();
+
+  List<_OwnerRequestItem> get _rejectedItems =>
+      _c.rejected.map(_OwnerRequestItem.fromRow).toList();
 
   void _openReview(_OwnerRequestItem item) {
     setState(() {
       _selectedItem = item;
       if (item.status == 'Rejected') {
         _subView = _OwnerRequestSubView.detailRejected;
-      } else if (item.isPhoneChange) {
-        _subView = _OwnerRequestSubView.detailPhoneChange;
       } else {
         _subView = _OwnerRequestSubView.detailPending;
       }
@@ -166,25 +78,23 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
     });
   }
 
-  void _approveRequest(_OwnerRequestItem item) {
-    setState(() {
-      _pendingItems.removeWhere((e) => e.id == item.id);
-      _approvedItems.insert(
-        0,
-        item.copyWith(
-          status: 'Approved',
-          reviewedDate: 'Today',
+  Future<void> _approveRequest(_OwnerRequestItem item) async {
+    final ok = await _c.approve(int.parse(item.id));
+    if (!mounted) return;
+    if (ok) {
+      setState(() {
+        _subView = _OwnerRequestSubView.list;
+        _selectedItem = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Approved ${item.name} successfully.'),
+          backgroundColor: const Color(0xFF15803D),
         ),
       );
-      _subView = _OwnerRequestSubView.list;
-      _selectedItem = null;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Approved ${item.name} successfully.'),
-        backgroundColor: const Color(0xFF15803D),
-      ),
-    );
+    } else if (_c.error != null) {
+      showApiError(context, widget.services, _c.error!);
+    }
   }
 
   // A-2b · Owner request – reject dialog (ป๊อปอัปกรอกเหตุผลตอน Reject)
@@ -342,19 +252,16 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
       },
     );
 
-    if (confirmedReason != null && mounted) {
+    if (confirmedReason == null || !mounted) return;
+    final ok = await _c.reject(int.parse(item.id), confirmedReason);
+    if (!mounted) return;
+    if (ok) {
       setState(() {
-        _pendingItems.removeWhere((e) => e.id == item.id);
-        final rejectedItem = item.copyWith(
-          status: 'Rejected',
-          reviewedDate: '7 Nov 2026',
-          rejectedTimestamp: '7 Nov 2026 16:40',
-          rejectReason: confirmedReason,
-        );
-        _rejectedItems.insert(0, rejectedItem);
-        _selectedItem = rejectedItem;
-        _subView = _OwnerRequestSubView.detailRejected;
+        _subView = _OwnerRequestSubView.list;
+        _selectedItem = null;
       });
+    } else if (_c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
@@ -365,8 +272,6 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
         return _buildDetailPending(_selectedItem!);
       case _OwnerRequestSubView.detailRejected:
         return _buildDetailRejected(_selectedItem!);
-      case _OwnerRequestSubView.detailPhoneChange:
-        return _buildDetailPhoneChange(_selectedItem!);
       case _OwnerRequestSubView.list:
         return _buildListView();
     }
@@ -416,30 +321,6 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
                 onTap: () => setState(() => _selectedTab = 2),
               ),
               const Spacer(),
-
-              // ปุ่มลัดเปิดดูหน้า A-2d และ A-2e ได้ทันที
-              OutlinedButton.icon(
-                onPressed: () => _openReview(_pendingItems.last),
-                icon: const Icon(Icons.phone_iphone, size: 15),
-                label: const Text(
-                  'ดูหน้า A-2e (ขอเปลี่ยนเบอร์)',
-                  style: TextStyle(fontSize: 12),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF0062D6),
-                  side: const BorderSide(color: Color(0xFFBFDBFE)),
-                  backgroundColor: const Color(0xFFEFF6FF),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-
               // ช่อง Search name or phone...
               SizedBox(
                 width: 240,
@@ -569,9 +450,7 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                filtered[i].isPhoneChange
-                                    ? '${filtered[i].name} (Phone change)'
-                                    : filtered[i].name,
+                                filtered[i].name,
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
@@ -982,142 +861,35 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
     );
   }
 
-  // ===========================================================================
-  // A-2e · Owner request – phone change (ขอเปลี่ยนเบอร์ล็อกอิน)
-  // ===========================================================================
-  Widget _buildDetailPhoneChange(_OwnerRequestItem item) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _BreadcrumbHeader(
-            parent: 'Owner requests',
-            current: 'Phone change · ${item.name}',
-            title: 'Phone change request',
-            onBack: _backToList,
-          ),
-          const SizedBox(height: 18),
-
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _ApplicantHeader(
-                  initials: item.initials,
-                  name: item.name,
-                  subtitle: 'Phone change request',
-                ),
-                const SizedBox(height: 20),
-                _DetailRow(label: 'Current phone', value: item.phone),
-                const Divider(height: 24, color: Color(0xFFF1F5F9)),
-                _DetailRow(
-                  label: 'New phone',
-                  value: item.newPhone ?? '081-999-0000',
-                ),
-                const Divider(height: 24, color: Color(0xFFF1F5F9)),
-                _DetailRow(
-                  label: 'Account approved',
-                  value: item.accountApprovedDate ?? '3 Sep 2026',
-                ),
-                const Divider(height: 24, color: Color(0xFFF1F5F9)),
-                _DetailRow(label: 'Submitted', value: item.submitted),
-                const Divider(height: 24, color: Color(0xFFF1F5F9)),
-                _DetailRow(
-                  label: 'Status',
-                  customValue: const _StatusPill(status: 'Pending'),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.info_outline,
-                  size: 18,
-                  color: Color(0xFF0062D6),
-                ),
-                const SizedBox(width: 10),
-                const Expanded(
-                  child: Text(
-                    "Approving replaces this owner's sign-in number. Rejecting keeps the old number and sends the reason to the owner (D-163, D-166).",
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: Color(0xFF475569),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                OutlinedButton(
-                  onPressed: () => _showRejectDialog(item),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFC92A2A),
-                    side: const BorderSide(color: Color(0xFFFCA5A5)),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Reject',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: () => _approveRequest(item),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0062D6),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Approve',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _OwnerRequestItem {
+  /// แปลงแถวจาก GET /api/admin/verifications เป็นรายการที่หน้าจอใช้
+  factory _OwnerRequestItem.fromRow(Map<String, dynamic> row) {
+    final status = switch (row['status']) {
+      'approved' => 'Approved',
+      'rejected' => 'Rejected',
+      _ => 'Pending',
+    };
+    final name = AdminOwnerRequestsController.displayName(row);
+    final words = name.split(' ').where((w) => w.isNotEmpty).toList();
+    final initials = words.take(2).map((w) => w[0].toUpperCase()).join();
+    final url = (row['document_url'] as String?) ?? '';
+    return _OwnerRequestItem(
+      id: '${row['id']}',
+      initials: initials.isEmpty ? '?' : initials,
+      name: name,
+      phone: (row['owner_phone'] as String?) ?? '-',
+      role: 'Dorm Owner',
+      memberSince: '-',
+      submitted: (row['submitted_at'] ?? '').toString(),
+      reviewedDate: row['reviewed_at']?.toString(),
+      documentName: url.isEmpty ? '-' : url.split('/').last,
+      status: status,
+      rejectReason: row['rejection_reason'] as String?,
+    );
+  }
+
   const _OwnerRequestItem({
     required this.id,
     required this.initials,
@@ -1128,29 +900,23 @@ class _OwnerRequestItem {
     required this.submitted,
     required this.documentName,
     required this.status,
-    this.newPhone,
-    this.accountApprovedDate,
     this.reviewedDate,
     this.rejectedTimestamp,
     this.rejectReason,
-    this.isPhoneChange = false,
   });
 
   final String id;
   final String initials;
   final String name;
   final String phone;
-  final String? newPhone;
   final String role;
   final String memberSince;
-  final String? accountApprovedDate;
   final String submitted;
   final String? reviewedDate;
   final String? rejectedTimestamp;
   final String? rejectReason;
   final String documentName;
   final String status;
-  final bool isPhoneChange;
 
   _OwnerRequestItem copyWith({
     String? status,
@@ -1163,17 +929,14 @@ class _OwnerRequestItem {
       initials: initials,
       name: name,
       phone: phone,
-      newPhone: newPhone,
       role: role,
       memberSince: memberSince,
-      accountApprovedDate: accountApprovedDate,
       submitted: submitted,
       documentName: documentName,
       status: status ?? this.status,
       reviewedDate: reviewedDate ?? this.reviewedDate,
       rejectedTimestamp: rejectedTimestamp ?? this.rejectedTimestamp,
       rejectReason: rejectReason ?? this.rejectReason,
-      isPhoneChange: isPhoneChange,
     );
   }
 }

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../controller/owner/location_picker_controller.dart';
 import '../../ui/app_theme.dart';
-import '../../ui/format.dart';
 import '../../widgets/dorm_map.dart';
 
 /// ปักหมุดตำแหน่งหอพัก: ลากแผนที่ให้หมุดตรงตำแหน่ง แล้วกดยืนยัน
@@ -20,15 +19,26 @@ class LocationPickerScreen extends StatefulWidget {
 
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
   final MapController _map = MapController();
-  late LatLng _center = widget.initial ?? mfuCenter;
+  late final LocationPickerController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = LocationPickerController(initial: widget.initial);
+    _c.addListener(() {
+      if (!mounted) return;
+      setState(() {});
+      final message = _c.message;
+      if (message != null) _snack(message);
+    });
+  }
 
   @override
   void dispose() {
+    _c.dispose();
     _map.dispose();
     super.dispose();
   }
-
-  bool _locating = false;
 
   void _snack(String text) => ScaffoldMessenger.maybeOf(
     context,
@@ -36,34 +46,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   /// ขอตำแหน่งปัจจุบันของเครื่องแล้วเลื่อนแผนที่ไปที่นั่น
   Future<void> _useMyLocation() async {
-    setState(() => _locating = true);
-    try {
-      if (!await Geolocator.isLocationServiceEnabled()) {
-        _snack('Turn on location services to use your location');
-        return;
-      }
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        _snack('Location permission was not granted');
-        return;
-      }
-      final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 15),
-        ),
-      );
-      if (!mounted) return;
-      _map.move(LatLng(pos.latitude, pos.longitude), 17);
-    } catch (_) {
-      _snack('Could not get your location');
-    } finally {
-      if (mounted) setState(() => _locating = false);
-    }
+    final ok = await _c.useMyLocation();
+    if (ok && mounted) _map.move(_c.center, 17);
   }
 
   void _confirm() {
@@ -90,11 +74,11 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 FlutterMap(
                   mapController: _map,
                   options: MapOptions(
-                    initialCenter: _center,
+                    initialCenter: _c.center,
                     initialZoom: 16,
                     onPositionChanged: (camera, _) {
                       // อัปเดตข้อความระยะจาก MFU ตามจุดกึ่งกลางที่ลากไป
-                      setState(() => _center = camera.center);
+                      _c.setCenter(camera.center);
                     },
                   ),
                   children: [
@@ -144,7 +128,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     elevation: 1,
                     child: InkWell(
                       customBorder: const StadiumBorder(),
-                      onTap: _locating ? null : _useMyLocation,
+                      onTap: _c.locating ? null : _useMyLocation,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -153,7 +137,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _locating
+                            _c.locating
                                 ? const SizedBox(
                                     width: 16,
                                     height: 16,
@@ -242,7 +226,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Pin set · ${kmFromMfu(_center.latitude, _center.longitude)} km from MFU',
+                        'Pin set · ${_c.distanceFromMfuLabel} km from MFU',
                         style: const TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 13,

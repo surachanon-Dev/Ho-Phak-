@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../controller/owner/dormitory_controller.dart';
 import '../../models/dormitory.dart';
+import '../../controller/owner/owner_dashboard_controller.dart';
 import '../../services/app_services.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
@@ -20,24 +20,28 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  List<Dormitory> _items = [];
-  bool _loading = true;
+  late final OwnerDashboardController _c;
 
   @override
   void initState() {
     super.initState();
+    _c = OwnerDashboardController(widget.services.dormitories);
+    _c.addListener(() {
+      if (mounted) setState(() {});
+    });
     _load();
   }
 
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final items = await widget.services.dormitories.list();
-      if (mounted) setState(() => _items = items);
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    final ok = await _c.load();
+    if (!ok && mounted && _c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
@@ -64,7 +68,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final summary = DormitorySummary.of(_items);
+    final summary = _c.summary;
     final totalAvailable = summary.totalAvailable;
     final published = summary.published;
     final attention = summary.attention;
@@ -74,7 +78,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
-          child: _loading && _items.isEmpty
+          child: _c.showFullLoader
               ? const Center(child: CircularProgressIndicator())
               : ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -110,7 +114,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           _StatCard(
                             label: 'Total dorms',
-                            value: '${_items.length}',
+                            value: '${_c.items.length}',
                             color: const Color(0xFF111827),
                           ),
                           const SizedBox(width: 10),
@@ -136,10 +140,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(height: 12),
                     ],
-                    if (_items.isEmpty)
+                    if (_c.items.isEmpty)
                       _EmptyState(onAdd: _openForm)
                     else
-                      ..._items.map(
+                      ..._c.items.map(
                         (dorm) => _DormCard(
                           dorm: dorm,
                           onTap: () => _openDetail(dorm),

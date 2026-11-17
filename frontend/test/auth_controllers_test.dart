@@ -171,10 +171,6 @@ void main() {
       expect(RegisterController.validateConfirm('abc', 'abc'), isNull);
     });
 
-    test('usernameFor ตัดช่องว่างและต่อด้วยช่องว่างหนึ่งช่อง', () {
-      expect(RegisterController.usernameFor(' สมชาย ', ' ใจดี  '), 'สมชาย ใจดี');
-    });
-
     test('submit สำเร็จ ส่ง phone, รหัส, confirm และ username ตามที่กำหนด', () async {
       final h = Harness((req) => _json({'message': 'สมัครสมาชิกสำเร็จ', 'id': 30}, 201));
       final c = RegisterController(h.auth);
@@ -193,7 +189,9 @@ void main() {
       expect(body['phone'], '0855500009');
       expect(body['password'], 'pw12345678');
       expect(body['confirmPassword'], 'pw12345678');
-      expect(body['username'], 'สมชาย ใจดี');
+      expect(body['first_name'], 'สมชาย');
+      expect(body['surname'], 'ใจดี');
+      expect(body.containsKey('username'), isFalse);
       expect(h.requests.single.url.path, '/api/auth/register');
     });
 

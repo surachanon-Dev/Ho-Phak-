@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../controller/owner/dormitory_controller.dart';
+import '../../controller/owner/owner_review_and_verification_controllers.dart';
 import '../../services/app_services.dart';
-import '../../controller/owner/owner_extras.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
 import '../../ui/format.dart';
@@ -18,41 +18,30 @@ class MyReviewsScreen extends StatefulWidget {
 }
 
 class _MyReviewsScreenState extends State<MyReviewsScreen> {
-  List<OwnerReviewEntry> _all = [];
-  List<String> _dormNames = [];
-  Map<int, ReviewReport> _reports = {};
-  String? _filter;
-  bool _loading = true;
+  late final MyReviewsController _c;
 
   @override
   void initState() {
     super.initState();
+    _c = MyReviewsController(widget.services.dormitories);
+    _c.addListener(() {
+      if (mounted) setState(() {});
+    });
     _load();
   }
 
-  /// รวมรีวิวจากทุกหอพักของเจ้าของ (GET reviews ต่อหอ)
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final bundle = await widget.services.dormitories.allReviews();
-      final reports = await widget.services.dormitories.reviewReports();
-      if (!mounted) return;
-      setState(() {
-        _reports = reports;
-        _all = bundle.entries;
-        _dormNames = bundle.dormNames;
-      });
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
   }
 
-  List<OwnerReviewEntry> get _visible =>
-      OwnerReviewsBundle(_all, _dormNames).visible(_filter);
-
-  double? get _avg => OwnerReviewsBundle.average(_visible);
+  Future<void> _load() async {
+    final ok = await _c.load();
+    if (!ok && mounted && _c.error != null) {
+      showApiError(context, widget.services, _c.error!);
+    }
+  }
 
   /// Report รีวิว (Figma O-12e): ต้องใส่เหตุผล ไม่เกิน 300 ตัวอักษร
   Future<void> _report(OwnerReviewEntry e) async {
@@ -61,22 +50,20 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
       builder: (_) => _ReportDialog(entry: e),
     );
     if (reason == null) return;
-    try {
-      await widget.services.dormitories.reportReview(e.review.id, reason);
-      final reports = await widget.services.dormitories.reviewReports();
-      if (!mounted) return;
-      setState(() => _reports = reports);
+    final ok = await _c.report(e.review.id, reason);
+    if (!mounted) return;
+    if (ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Report sent. Admin will check it.')),
       );
-    } catch (err) {
-      if (mounted) showApiError(context, widget.services, err);
+    } else if (_c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final avg = _avg;
+    final avg = _c.average;
     return Scaffold(
       appBar: AppBar(
         title: const Text('My reviews'),
@@ -85,7 +72,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
       ),
-      body: _loading && _all.isEmpty
+      body: _c.showFullLoader
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.all(16),
@@ -112,8 +99,8 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
                               _Stars(rating: avg?.round() ?? 0, size: 18),
                               const SizedBox(height: 4),
                               Text(
-                                '${_visible.length} ${_visible.length == 1 ? 'review' : 'reviews'}'
-                                '${_filter == null ? ' across ${_dormNames.length} ${_dormNames.length == 1 ? 'dorm' : 'dorms'}' : ''}',
+                                '${_c.visible.length} ${_c.visible.length == 1 ? 'review' : 'reviews'}'
+                                '${_c.filter == null ? ' across ${_c.dormNames.length} ${_c.dormNames.length == 1 ? 'dorm' : 'dorms'}' : ''}',
                                 style: const TextStyle(
                                   color: AppColors.textMuted,
                                 ),
@@ -133,28 +120,28 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
                     children: [
                       _FilterChip(
                         label: 'All',
-                        selected: _filter == null,
-                        onTap: () => setState(() => _filter = null),
+                        selected: _c.filter == null,
+                        onTap: () => _c.setFilter(null),
                       ),
-                      for (final name in _dormNames) ...[
+                      for (final name in _c.dormNames) ...[
                         const SizedBox(width: 8),
                         _FilterChip(
                           label: name,
-                          selected: _filter == name,
-                          onTap: () => setState(() => _filter = name),
+                          selected: _c.filter == name,
+                          onTap: () => _c.setFilter(name),
                         ),
                       ],
                     ],
                   ),
                 ),
                 const SizedBox(height: 12),
-                if (_visible.isEmpty)
+                if (_c.visible.isEmpty)
                   const Padding(
                     padding: EdgeInsets.only(top: 32),
                     child: Center(child: Text('No published reviews yet')),
                   )
                 else
-                  ..._visible.map(
+                  ..._c.visible.map(
                     (e) => Card(
                       margin: const EdgeInsets.only(bottom: 10),
                       child: Padding(
@@ -200,7 +187,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
                               ),
                             Align(
                               alignment: Alignment.centerRight,
-                              child: _reports.containsKey(e.review.id)
+                              child: _c.isReported(e.review.id)
                                   ? Container(
                                       margin: const EdgeInsets.only(top: 8),
                                       padding: const EdgeInsets.symmetric(

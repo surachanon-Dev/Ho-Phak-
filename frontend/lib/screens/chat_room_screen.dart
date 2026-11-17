@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../controller/chat/chat_room_controller.dart';
 import '../models/chat.dart';
 import '../services/app_services.dart';
 import '../ui/app_theme.dart';
@@ -30,73 +31,59 @@ class ChatRoomScreen extends StatefulWidget {
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
   final _input = TextEditingController();
   final _scroll = ScrollController();
-  List<ChatMessage> _messages = [];
-  bool _readOnly = false;
-  bool _loading = true;
-  bool _sending = false;
+  late final ChatRoomController _c;
 
   @override
   void initState() {
     super.initState();
+    _c = ChatRoomController(
+      conversationId: widget.conversation.id,
+      chats: widget.services.chats,
+    );
+    _c.addListener(_onChanged);
     _load();
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    _c.removeListener(_onChanged);
+    _c.dispose();
     _input.dispose();
     _scroll.dispose();
     super.dispose();
   }
 
   Future<void> _load() async {
-    try {
-      final thread = await widget.services.chats.thread(widget.conversation.id);
-      if (!mounted) return;
-      setState(() {
-        _messages = thread.messages;
-        _readOnly = thread.readOnly;
-      });
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    final ok = await _c.load();
+    if (!ok && mounted && _c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
   Future<void> _send() async {
-    final text = _input.text.trim();
-    if (text.isEmpty || _readOnly) return;
-    if (text.length > 2000) {
-      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        const SnackBar(content: Text('Message is longer than 2000 characters')),
-      );
-      return;
-    }
-    setState(() => _sending = true);
-    try {
-      await widget.services.chats.send(widget.conversation.id, text);
+    final ok = await _c.send(_input.text);
+    if (!mounted) return;
+    if (ok) {
       _input.clear();
-      await _load();
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _sending = false);
+    } else if (_c.validationError != null) {
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(content: Text(_c.validationError!)),
+      );
+    } else if (_c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
-  /// เวลาของข้อความ "HH:mm" (ข้อความของเราต่อท้าย " · Read" เมื่ออีกฝ่ายอ่านแล้ว)
-  String _stamp(ChatMessage m, bool mine) {
-    final t = DateTime.tryParse(m.sentAt);
-    final base = t == null ? '' : hhmm(t.toLocal());
-    if (mine && m.readAt != null) return base.isEmpty ? 'Read' : '$base · Read';
-    return base;
-  }
+  /// เวลาของข้อความ (ข้อความของเราต่อท้าย Read เมื่ออีกฝ่ายอ่านแล้ว)
+  String _stamp(ChatMessage m, bool mine) =>
+      ChatRoomController.stampFor(m, mine: mine);
 
   /// วันที่ของข้อความ (ใช้ขึ้นหัวคั่นวัน)
-  DateTime? _day(ChatMessage m) {
-    final t = DateTime.tryParse(m.sentAt)?.toLocal();
-    return t == null ? null : DateTime(t.year, t.month, t.day);
-  }
+  DateTime? _day(ChatMessage m) => ChatRoomController.dayOf(m);
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +118,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       ),
       body: Column(
         children: [
-          if (_readOnly)
+          if (_c.readOnly)
             Container(
               width: double.infinity,
               color: AppColors.warningBg,
@@ -143,9 +130,9 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               ),
             ),
           Expanded(
-            child: _loading
+            child: _c.loading
                 ? const Center(child: CircularProgressIndicator())
-                : _messages.isEmpty
+                : _c.messages.isEmpty
                 ? const Center(
                     child: Text(
                       'No messages yet',
@@ -155,14 +142,14 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                 : ListView.builder(
                     controller: _scroll,
                     padding: const EdgeInsets.all(16),
-                    itemCount: _messages.length,
+                    itemCount: _c.messages.length,
                     itemBuilder: (context, i) {
-                      final m = _messages[i];
+                      final m = _c.messages[i];
                       final mine = m.senderId == widget.myUserId;
                       final day = _day(m);
                       final showDay =
                           i == 0 ||
-                          (day != null && day != _day(_messages[i - 1]));
+                          (day != null && day != _day(_c.messages[i - 1]));
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -203,11 +190,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     Expanded(
                       child: TextField(
                         controller: _input,
-                        enabled: !_readOnly,
+                        enabled: !_c.readOnly,
                         minLines: 1,
                         maxLines: 4,
                         decoration: InputDecoration(
-                          hintText: _readOnly
+                          hintText: _c.readOnly
                               ? 'Can’t send messages'
                               : 'Type a message…',
                           filled: true,
@@ -238,7 +225,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                         backgroundColor: AppColors.primary,
                         fixedSize: const Size(48, 48),
                       ),
-                      onPressed: (_readOnly || _sending) ? null : _send,
+                      onPressed: (_c.readOnly || _c.sending) ? null : _send,
                       icon: const Icon(Icons.send_outlined),
                     ),
                   ],

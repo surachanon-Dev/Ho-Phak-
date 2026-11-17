@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../controller/owner/owner_account_rules.dart';
+import '../../controller/owner/owner_account_screens_controllers.dart';
 import '../../services/app_services.dart';
 import '../../ui/app_theme.dart';
 import '../../ui/error_handling.dart';
@@ -20,10 +21,23 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _current = TextEditingController();
   final _next = TextEditingController();
   final _confirm = TextEditingController();
-  bool _saving = false;
+  late final ChangePasswordController _c;
+
+  @override
+  void initState() {
+    super.initState();
+    _c = ChangePasswordController(widget.services.account);
+    _c.addListener(() {
+      if (mounted) setState(() {});
+    });
+    _current.addListener(() => _c.setCurrent(_current.text));
+    _next.addListener(() => _c.setNext(_next.text));
+    _confirm.addListener(() => _c.setConfirm(_confirm.text));
+  }
 
   @override
   void dispose() {
+    _c.dispose();
     _current.dispose();
     _next.dispose();
     _confirm.dispose();
@@ -32,21 +46,15 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _saving = true);
-    try {
-      await widget.services.account.changePassword(
-        current: _current.text,
-        next: _next.text,
-      );
-      if (!mounted) return;
+    final ok = await _c.submit();
+    if (!mounted) return;
+    if (ok) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Password updated')));
       Navigator.of(context).pop();
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _saving = false);
+    } else if (_c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
@@ -105,8 +113,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   (v) => OwnerAccountRules.confirmPassword(v, next: _next.text),
                 ),
                 FilledButton(
-                  onPressed: _saving ? null : _save,
-                  child: _saving
+                  onPressed: _c.saving ? null : _save,
+                  child: _c.saving
                       ? const SizedBox(
                           height: 20,
                           width: 20,

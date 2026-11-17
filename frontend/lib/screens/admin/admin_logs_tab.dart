@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../controllers/admin_activity_log_controller.dart';
 import '../../services/admin_service.dart';
 import '../../services/app_services.dart';
 import '../../ui/app_theme.dart';
@@ -16,30 +17,34 @@ class AdminLogsTab extends StatefulWidget {
 }
 
 class _AdminLogsTabState extends State<AdminLogsTab> {
-  late final AdminService _admin = AdminService(widget.services.api);
-  List<Map<String, dynamic>> _items = [];
-  bool _loading = true;
+  late final AdminActivityLogController _c;
 
   @override
   void initState() {
     super.initState();
+    _c = AdminActivityLogController(AdminService(widget.services.api));
+    _c.addListener(() {
+      if (mounted) setState(() {});
+    });
     _load();
   }
 
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final items = await _admin.logs();
-      if (mounted) setState(() => _items = items);
-    } catch (e) {
-      if (mounted) showApiError(context, widget.services, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    await _c.refresh();
+    if (mounted && _c.error != null) {
+      showApiError(context, widget.services, _c.error!);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final items = _c.entries;
     return Scaffold(
       appBar: AppBar(
         title: const Text('ประวัติการทำงาน'),
@@ -47,22 +52,22 @@ class _AdminLogsTabState extends State<AdminLogsTab> {
           IconButton(
             tooltip: 'รีเฟรช',
             icon: const Icon(Icons.refresh),
-            onPressed: _loading ? null : _load,
+            onPressed: _c.isLoading ? null : _load,
           ),
         ],
       ),
-      body: _loading && _items.isEmpty
+      body: _c.isLoading && items.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : _items.isEmpty
+          : items.isEmpty
           ? const Center(child: Text('ยังไม่มีประวัติ'))
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView.separated(
                 padding: const EdgeInsets.all(16),
-                itemCount: _items.length,
+                itemCount: items.length,
                 separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, i) {
-                  final l = _items[i];
+                  final l = items[i];
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text('${l['action'] ?? '-'}'),
