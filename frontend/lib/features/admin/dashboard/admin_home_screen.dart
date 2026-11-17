@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../ui/responsive.dart';
+
 import '../../controllers/admin_activity_log_controller.dart';
 import '../../controllers/admin_dashboard_controller.dart';
 import '../../services/admin_service.dart';
@@ -126,8 +128,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     return '${days[now.weekday - 1]} ${now.day} ${months[now.month - 1]} ${now.year}';
   }
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   void _selectMenu(int index) {
     setState(() => _menuIndex = index);
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      Navigator.of(_scaffoldKey.currentContext!).pop();
+    }
   }
 
   @override
@@ -156,12 +163,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       AdminProfileTab(services: s), // 8: Profile (ไอคอนออกจากระบบ)
     ];
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F5F8),
-      body: Row(
-        children: [
-          // แถบเมนูซ้าย (Sidebar)
-          Container(
+    final wide = isWideLayout(context);
+
+    // เมนูซ้าย: ถาวรบนจอกว้าง ใช้เป็น drawer บนจอแคบ
+    final Widget sidebar = Container(
             width: 220,
             decoration: const BoxDecoration(
               color: Colors.white,
@@ -356,57 +361,72 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 ),
               ],
             ),
-          ),
+          );
 
-          // พื้นที่เนื้อหาหลักด้านขวา
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // แถบด้านบน (บนจอแคบแสดงใน AppBar แทน)
+        if (wide)
+          Container(
+            height: 56,
+            padding: const EdgeInsets.symmetric(horizontal: 28),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                bottom: BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+            ),
+            child: Row(
               children: [
-                // แถบด้านบน
-                Container(
-                  height: 56,
-                  padding: const EdgeInsets.symmetric(horizontal: 28),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    border: Border(
-                      bottom: BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        _currentTitle,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF0F172A),
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        _todayLabel(),
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
+                Text(
+                  _currentTitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
                   ),
                 ),
-
-                // เนื้อหาของแต่ละหน้าจอ
-                Expanded(
-                  child: IndexedStack(
-                    index: _stackIndex,
-                    children: stackPages,
+                const Spacer(),
+                Text(
+                  _todayLabel(),
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: Color(0xFF64748B),
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        Expanded(
+          child: IndexedStack(
+            index: _stackIndex,
+            children: stackPages,
+          ),
+        ),
+      ],
+    );
+
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: const Color(0xFFF3F5F8),
+      drawer: wide ? null : Drawer(width: 240, child: SafeArea(child: sidebar)),
+      appBar: wide
+          ? null
+          : AppBar(
+              title: Text(_currentTitle),
+              backgroundColor: Colors.white,
+              foregroundColor: const Color(0xFF0F172A),
+              elevation: 0,
+            ),
+      body: wide
+          ? Row(
+              children: [
+                sidebar,
+                Expanded(child: content),
+              ],
+            )
+          : content,
     );
   }
 }
@@ -514,7 +534,7 @@ class _DashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(28),
+      padding: EdgeInsets.all(isWideLayout(context) ? 28 : 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -537,7 +557,8 @@ class _DashboardView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          Row(
+          StackOnNarrow(
+            row: Row(
             children: [
               Expanded(
                 child: _MetricCard(
@@ -575,6 +596,7 @@ class _DashboardView extends StatelessWidget {
                 ),
               ),
             ],
+          ),
           ),
           if (allCaughtUp) ...[
             const SizedBox(height: 18),
@@ -634,7 +656,10 @@ class _DashboardView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     const Text(
                       'Recent activity',
@@ -644,7 +669,6 @@ class _DashboardView extends StatelessWidget {
                         color: Color(0xFF0F172A),
                       ),
                     ),
-                    const Spacer(),
                     InkWell(
                       onTap: () => onSelectMenu(5),
                       child: const Text(
@@ -659,7 +683,7 @@ class _DashboardView extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 14),
-                Container(
+                if (isWideLayout(context)) Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: const Color(0xFFE2E8F0)),
@@ -801,6 +825,7 @@ class _DashboardView extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (!isWideLayout(context)) _activityCards(activities),
               ],
             ),
           ),
@@ -808,6 +833,60 @@ class _DashboardView extends StatelessWidget {
       ),
     );
   }
+}
+
+/// กิจกรรมล่าสุดแบบการ์ดสำหรับจอแคบ
+Widget _activityCards(List<_ActivityRowData> rows) {
+  if (rows.isEmpty) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 24),
+      child: Center(
+        child: Text('No recent activity', style: TextStyle(color: Color(0xFF64748B))),
+      ),
+    );
+  }
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      for (final r in rows)
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      r.time,
+                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${r.admin} · ${r.target}',
+                      style: const TextStyle(fontSize: 12.5, color: Color(0xFF334155)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: r.pillBg,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  r.action,
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: r.pillText),
+                ),
+              ),
+            ],
+          ),
+        ),
+    ],
+  );
 }
 
 class _MetricCard extends StatelessWidget {

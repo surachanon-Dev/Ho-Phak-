@@ -8,6 +8,7 @@ import '../../services/admin_service.dart';
 import '../../services/app_services.dart';
 import '../../ui/error_handling.dart';
 import '../../ui/open_document.dart';
+import '../../ui/responsive.dart';
 
 /// หน้า 03 · OWNER REQUESTS — คำขอเป็นเจ้าของหอ (หน้า A-2, A-2a, A-2c, A-2d: รายการรอตรวจ อนุมัติ/ปฏิเสธ และดูประวัติ)
 /// วางทับที่: ช่องที่ 5 ในโฟลเดอร์ admin (lib/screens/admin/admin_queue_tab.dart)
@@ -333,7 +334,7 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
         return _buildDetailRejected(_selectedItem!);
       case _OwnerRequestSubView.list:
         // ตารางกว้าง 1000 พิกเซล เลื่อนแนวนอนได้เมื่อหน้าจอแคบกว่า (ปุ่ม Review ไม่ถูกตัด)
-        return _MinWidthScroll(minWidth: 1000, child: _buildListView());
+        return _buildListView();
     }
   }
 
@@ -353,12 +354,15 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
     }).toList();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(28),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // แถบแท็บ Pending / Approved / Rejected + ช่องค้นหา
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               _TabButton(
                 label: 'Pending',
@@ -380,7 +384,7 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
                 selected: _selectedTab == 2,
                 onTap: () => setState(() => _selectedTab = 2),
               ),
-              const Spacer(),
+              const SizedBox(width: 12),
               // ช่อง Search name or phone...
               SizedBox(
                 width: 240,
@@ -418,8 +422,8 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
           const SizedBox(height: 18),
 
-          // ตารางรายการคำขอ
-          Container(
+          // ตารางรายการคำขอ (จอกว้าง) / การ์ดรายการ (จอแคบ)
+          if (isWideLayout(context)) Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
@@ -617,6 +621,7 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
             ),
           ],
 
+          if (!isWideLayout(context)) _requestCards(filtered),
           const SizedBox(height: 14),
 
           // Pagination ด้านล่างตาราง
@@ -639,6 +644,102 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
   // ===========================================================================
   // A-2a · Owner request – detail (รายละเอียดผู้ขอ + ปุ่ม Reject / Approve)
   // ===========================================================================
+  /// รายการคำขอแบบการ์ดสำหรับจอแคบ (กดการ์ดเพื่อเปิดหน้ารายละเอียด)
+  Widget _requestCards(List<_OwnerRequestItem> items) {
+    if (items.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Center(
+          child: Text('No requests', style: TextStyle(color: Color(0xFF64748B))),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final item in items)
+          Card(
+            margin: const EdgeInsets.only(bottom: 10),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => _openReview(item),
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: const Color(0xFFDBEAFE),
+                          child: Text(
+                            item.initials,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0062D6),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF0F172A),
+                                ),
+                              ),
+                              Text(
+                                item.phone,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _StatusPill(status: item.status),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      _selectedTab == 2
+                          ? 'Reviewed: ${item.reviewedDate ?? '-'}'
+                          : 'Submitted: ${item.submitted}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    if (_selectedTab == 2)
+                      Text(
+                        item.rejectReason ?? '-',
+                        style: const TextStyle(fontSize: 12.5, color: Color(0xFF334155)),
+                      )
+                    else
+                      _DocumentLink(
+                        name: item.documentName,
+                        onTap: () => _viewDocument(item),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _buildDetailPending(_OwnerRequestItem item) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
@@ -1285,31 +1386,6 @@ class _DocumentLink extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// ให้เนื้อหาไม่บีบเกินความกว้างขั้นต่ำ ถ้าหน้าจอแคบกว่าจะเลื่อนแนวนอนได้
-class _MinWidthScroll extends StatelessWidget {
-  const _MinWidthScroll({required this.minWidth, required this.child});
-
-  final double minWidth;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth < minWidth ? minWidth : constraints.maxWidth;
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(
-            width: width,
-            height: constraints.maxHeight,
-            child: child,
-          ),
-        );
-      },
     );
   }
 }

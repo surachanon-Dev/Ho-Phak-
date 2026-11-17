@@ -7,6 +7,7 @@ import '../../services/admin_service.dart';
 import 'admin_user_detail_screen.dart';
 import '../../services/app_services.dart';
 import '../../ui/error_handling.dart';
+import '../../ui/responsive.dart';
 
 /// รวมทั้งหน้า 05 · USERS (A-4 ถึง A-4d) และหน้า 07 · Amenities (A-7 ถึง A-7b) ไว้ในไฟล์เดียว
 /// วางทับที่: ช่องที่ 3 ในโฟลเดอร์ admin (lib/screens/admin/admin_moderation_tab.dart)
@@ -98,6 +99,79 @@ class _AdminModerationTabState extends State<AdminModerationTab> {
   // ===========================================================================
   // ส่วนที่ 1: โค้ดของ 05 · USERS (A-4, A-4a, A-4b, A-4c, A-4d)
   // ===========================================================================
+  /// รายการผู้ใช้แบบการ์ดสำหรับจอแคบ (กด View เพื่อเปิดรายละเอียด)
+  Widget _userCards(List<_UserRowData> users) {
+    if (users.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Center(
+          child: Text('No users', style: TextStyle(color: Color(0xFF64748B))),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final u in users)
+          Card(
+            margin: const EdgeInsets.only(bottom: 10),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              u.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF0F172A),
+                              ),
+                            ),
+                            Text(
+                              u.phone,
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (u.role != 'Admin')
+                        TextButton(
+                          onPressed: () => setState(() => _selectedUserId = u.id),
+                          child: const Text('View'),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      _RolePill(role: u.role),
+                      _UserStatusPill(status: u.status),
+                      Text(
+                        'Joined ${u.joined}',
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _buildUsersListView() {
     final filtered = _users.where((u) {
       if (_roleFilter != 'All roles' && u.role != _roleFilter) {
@@ -119,7 +193,10 @@ class _AdminModerationTabState extends State<AdminModerationTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               SizedBox(
                 width: 240,
@@ -168,7 +245,6 @@ class _AdminModerationTabState extends State<AdminModerationTab> {
                   if (v != null) setState(() => _statusFilter = v);
                 },
               ),
-              const Spacer(),
               Text(
                 '${filtered.length} users',
                 style: TextStyle(
@@ -179,7 +255,7 @@ class _AdminModerationTabState extends State<AdminModerationTab> {
             ],
           ),
           const SizedBox(height: 16),
-          Container(
+          if (isWideLayout(context)) Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
@@ -372,6 +448,7 @@ class _AdminModerationTabState extends State<AdminModerationTab> {
               ],
             ),
           ),
+          if (!isWideLayout(context)) _userCards(filtered),
           const SizedBox(height: 14),
           Text(
             'Showing ${filtered.length} of ${_users.length}',
@@ -687,6 +764,55 @@ class _AdminModerationTabState extends State<AdminModerationTab> {
     }
   }
 
+  /// สิ่งอำนวยความสะดวกแบบการ์ดสำหรับจอแคบ (แก้ไข/ลบได้)
+  Widget _amenityCards(List<_AmenityItem> items) {
+    if (items.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Center(
+          child: Text('No amenities', style: TextStyle(color: Color(0xFF64748B))),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final item in items)
+          Card(
+            margin: const EdgeInsets.only(bottom: 10),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      item.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => _showAddOrEditAmenityDialog(existing: item),
+                    child: const Text('Edit'),
+                  ),
+                  TextButton(
+                    onPressed: () => _showDeleteAmenityDialog(item),
+                    style: TextButton.styleFrom(foregroundColor: const Color(0xFFC92A2A)),
+                    child: const Text('Delete'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _buildAmenitiesView() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
@@ -729,7 +855,7 @@ class _AdminModerationTabState extends State<AdminModerationTab> {
             ],
           ),
           const SizedBox(height: 16),
-          Container(
+          if (isWideLayout(context)) Container(
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
@@ -885,6 +1011,7 @@ class _AdminModerationTabState extends State<AdminModerationTab> {
               ],
             ),
           ),
+          if (!isWideLayout(context)) _amenityCards(_amenities),
         ],
       ),
     );

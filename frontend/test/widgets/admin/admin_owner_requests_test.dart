@@ -3,19 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/screens/admin/admin_queue_tab.dart';
-import 'package:hopak_frontend/services/api_client.dart';
 import 'package:hopak_frontend/services/app_services.dart';
-import 'package:hopak_frontend/services/auth_service.dart';
-import 'package:hopak_frontend/services/token_store.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-http.Response _json(Object data, [int status = 200]) => http.Response(
-  jsonEncode(data),
-  status,
-  headers: {'content-type': 'application/json; charset=utf-8'},
-);
+import '../../helpers/admin_test_helpers.dart';
+
 
 Map<String, dynamic> _verification({
   int id = 7,
@@ -35,34 +28,6 @@ Map<String, dynamic> _verification({
   'owner_phone': '0899900003',
 };
 
-_TestAppServices _services(
-  Future<http.Response> Function(http.Request) handler,
-) {
-  final client = MockClient(handler);
-  addTearDown(client.close);
-  final tokens = TokenStore();
-  return _TestAppServices(
-    ApiClient(tokenProvider: () => tokens.token, client: client),
-    tokens,
-  );
-}
-
-class _TestAppServices implements AppServices {
-  _TestAppServices(this.api, this.tokens) : auth = AuthService(api, tokens);
-
-  @override
-  final ApiClient api;
-
-  @override
-  final TokenStore tokens;
-
-  @override
-  final AuthService auth;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 /// ตอบรายการคำขอตามสถานะ โดยให้ pending เปลี่ยนเป็นว่างหลังอนุมัติ/ปฏิเสธ
 Future<http.Response> Function(http.Request) _router({
   required List<Map<String, dynamic>> pending,
@@ -74,19 +39,19 @@ Future<http.Response> Function(http.Request) _router({
     if (req.method == 'GET' && path == '/api/admin/verifications') {
       switch (req.url.queryParameters['status']) {
         case 'pending':
-          return _json({'verifications': pending});
+          return jsonResponse({'verifications': pending});
         case 'rejected':
-          return _json({'verifications': rejectedAfter});
+          return jsonResponse({'verifications': rejectedAfter});
         default:
-          return _json({'verifications': <Map<String, dynamic>>[]});
+          return jsonResponse({'verifications': <Map<String, dynamic>>[]});
       }
     }
     if (req.method == 'POST') {
       writes.add(req);
       pending.clear();
-      return _json({'ok': true});
+      return jsonResponse({'ok': true});
     }
-    return _json({'error': 'not found'}, 404);
+    return jsonResponse({'error': 'not found'}, 404);
   };
 }
 
@@ -117,7 +82,7 @@ void main() {
 
     final writes = <http.Request>[];
     final pending = [_verification()];
-    final services = _services(_router(
+    final services = servicesWith(_router(
       pending: pending,
       writes: writes,
       rejectedAfter: const [],
@@ -146,7 +111,7 @@ void main() {
 
     final writes = <http.Request>[];
     final pending = [_verification()];
-    final services = _services(_router(
+    final services = servicesWith(_router(
       pending: pending,
       writes: writes,
       rejectedAfter: [_verification(status: 'rejected', rejectionReason: 'เอกสารไม่ชัด')],
@@ -184,15 +149,22 @@ void main() {
     tester.view.physicalSize = const Size(1200, 900);
     addTearDown(tester.view.reset);
 
-    final services = _services((req) async {
+    final services = servicesWith((req) async {
       if (req.url.queryParameters['status'] == 'approved') {
-        return _json({'verifications': [_verification(id: 1, status: 'approved'), _verification(id: 2, status: 'approved')]});
+        return jsonResponse({'verifications': [_verification(id: 1, status: 'approved'), _verification(id: 2, status: 'approved')]});
       }
-      return _json({'verifications': <Map<String, dynamic>>[]});
+      return jsonResponse({'verifications': <Map<String, dynamic>>[]});
     });
 
     await _pump(tester, services, () {});
 
     expect(find.text('2'), findsOneWidget);
+  });
+
+  testWidgets('Owner requests ไม่ overflow บนจอมือถือ', (tester) async {
+    await expectPhoneLayout(
+      tester,
+      AdminQueueTab(services: sampleDataServices()),
+    );
   });
 }

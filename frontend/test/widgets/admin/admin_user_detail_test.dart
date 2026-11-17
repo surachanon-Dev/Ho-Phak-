@@ -3,19 +3,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/screens/admin/admin_user_detail_screen.dart';
-import 'package:hopak_frontend/services/api_client.dart';
 import 'package:hopak_frontend/services/app_services.dart';
-import 'package:hopak_frontend/services/auth_service.dart';
-import 'package:hopak_frontend/services/token_store.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-http.Response _json(Object data, [int status = 200]) => http.Response(
-  jsonEncode(data),
-  status,
-  headers: {'content-type': 'application/json; charset=utf-8'},
-);
+import '../../helpers/admin_test_helpers.dart';
+
 
 Map<String, dynamic> _row({
   required int id,
@@ -34,34 +26,6 @@ Map<String, dynamic> _row({
   'suspension_reason': suspensionReason,
   'suspended_at': suspensionReason == null ? null : '2026-11-12T08:30:00.000Z',
 };
-
-_TestAppServices _services(
-  Future<http.Response> Function(http.Request) handler,
-) {
-  final client = MockClient(handler);
-  addTearDown(client.close);
-  final tokens = TokenStore();
-  return _TestAppServices(
-    ApiClient(tokenProvider: () => tokens.token, client: client),
-    tokens,
-  );
-}
-
-class _TestAppServices implements AppServices {
-  _TestAppServices(this.api, this.tokens) : auth = AuthService(api, tokens);
-
-  @override
-  final ApiClient api;
-
-  @override
-  final TokenStore tokens;
-
-  @override
-  final AuthService auth;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 Future<void> _pumpDetail(
   WidgetTester tester,
@@ -95,10 +59,10 @@ void main() {
 
     var suspended = false;
     final posted = <String>[];
-    final services = _services((request) async {
+    final services = servicesWith((request) async {
       final path = request.url.path;
       if (path == '/api/admin/users') {
-        return _json({
+        return jsonResponse({
           'users': [
             _row(
               id: 5,
@@ -110,7 +74,7 @@ void main() {
         });
       }
       if (path == '/api/admin/dormitories') {
-        return _json({
+        return jsonResponse({
           'dormitories': [
             {'id': 1, 'name': 'หอพักสุข', 'owner_id': 5, 'status': 'published'},
             {'id': 2, 'name': 'หอพักอื่น', 'owner_id': 9, 'status': 'hidden'},
@@ -120,9 +84,9 @@ void main() {
       if (path == '/api/admin/users/5/suspend') {
         posted.add(jsonDecode(request.body)['reason'] as String);
         suspended = true;
-        return _json({'ok': true});
+        return jsonResponse({'ok': true});
       }
-      return _json({'error': 'not found'}, 404);
+      return jsonResponse({'error': 'not found'}, 404);
     });
 
     await _pumpDetail(tester, services);
@@ -157,10 +121,10 @@ void main() {
     addTearDown(tester.view.reset);
 
     var restored = false;
-    final services = _services((request) async {
+    final services = servicesWith((request) async {
       final path = request.url.path;
       if (path == '/api/admin/users') {
-        return _json({
+        return jsonResponse({
           'users': [
             restored
                 ? _row(id: 5, role: 'student', status: 'active', username: 'stu')
@@ -176,9 +140,9 @@ void main() {
       }
       if (path == '/api/admin/users/5/restore') {
         restored = true;
-        return _json({'ok': true});
+        return jsonResponse({'ok': true});
       }
-      return _json({'error': 'not found'}, 404);
+      return jsonResponse({'error': 'not found'}, 404);
     });
 
     await _pumpDetail(tester, services);
@@ -195,11 +159,11 @@ void main() {
   });
 
   testWidgets('ไม่พบผู้ใช้แสดงข้อความและปุ่มกลับ', (tester) async {
-    final services = _services((request) async {
+    final services = servicesWith((request) async {
       if (request.url.path == '/api/admin/users') {
-        return _json({'users': <Map<String, dynamic>>[]});
+        return jsonResponse({'users': <Map<String, dynamic>>[]});
       }
-      return _json({'error': 'not found'}, 404);
+      return jsonResponse({'error': 'not found'}, 404);
     });
 
     await _pumpDetail(tester, services, userId: 99);
