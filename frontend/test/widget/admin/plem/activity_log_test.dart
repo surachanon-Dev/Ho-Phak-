@@ -34,6 +34,34 @@ void main() {
     },
   );
 
+  testWidgets('Activity Log retains the last entries when a refresh fails', (
+    tester,
+  ) async {
+    var reads = 0;
+    final services = servicesWith((request) async {
+      expect(request.url.path, '/api/admin/logs');
+      reads++;
+      if (reads == 1) {
+        return jsonResponse({
+          'logs': [logFixture],
+        });
+      }
+      return jsonResponse({'message': 'Cannot reload activity log'}, 503);
+    });
+    await tester.pumpWidget(
+      MaterialApp(home: AdminLogsTab(services: services)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('review.hide'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('รีเฟรช'));
+    await tester.pumpAndSettle();
+
+    expect(reads, 2);
+    expect(find.text('review.hide'), findsOneWidget);
+    expect(find.text('Cannot reload activity log'), findsOneWidget);
+  });
+
   testWidgets('Activity log ไม่ overflow บนจอมือถือ', (tester) async {
     await expectPhoneLayout(
       tester,
