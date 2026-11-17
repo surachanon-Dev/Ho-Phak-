@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:hopak_frontend/features/student/dorm_detail/dorm_detail_controller.dart';
+import 'package:hopak_frontend/features/student/review/review_form_screen.dart';
+import 'package:hopak_frontend/features/student/widgets/student_widgets.dart';
 import 'package:hopak_frontend/shared/models/chat.dart';
 import 'package:hopak_frontend/shared/models/dormitory.dart';
 import 'package:hopak_frontend/core/app_services.dart';
 import 'package:hopak_frontend/core/theme/app_theme.dart';
 import 'package:hopak_frontend/core/utils/error_handling.dart';
+import 'package:hopak_frontend/core/utils/format.dart';
 import 'package:hopak_frontend/shared/widgets/dorm_map.dart';
 import 'package:hopak_frontend/features/chat/chat_room/chat_room_screen.dart';
 
-/// รายละเอียดหอพักฝั่งนักศึกษา: ข้อมูลหอ, ค่าน้ำ-ไฟ, รีวิว, บันทึกรายการโปรด,
-/// ติดต่อเจ้าของ (เปิดแชท) และดูเบอร์โทร
+/// รายละเอียดหอพักฝั่งนักศึกษา (หน้าตาตาม Frontend-Big): รูปหอ, ราคา, ระยะทาง,
+/// ค่าน้ำ-ไฟ, สิ่งอำนวยความสะดวก, แผนที่, รีวิว, รายการโปรด, โทร และแชทกับเจ้าของ
 class StudentDormDetailScreen extends StatefulWidget {
   const StudentDormDetailScreen({
     super.key,
@@ -30,6 +34,7 @@ class StudentDormDetailScreen extends StatefulWidget {
 
 class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
   late final DormDetailController _c;
+  int _page = 0;
 
   @override
   void initState() {
@@ -60,9 +65,16 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
     super.dispose();
   }
 
+  void _snack(String message) => ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(message)));
+
   Future<void> _toggleFavorite() async {
     final ok = await _c.toggleFavorite();
-    if (!ok && mounted && _c.error != null) {
+    if (!mounted) return;
+    if (ok) {
+      _snack(_c.isFavorite ? 'บันทึกเป็นรายการโปรดแล้ว' : 'นำออกจากรายการโปรดแล้ว');
+    } else if (_c.error != null) {
       showApiError(context, widget.services, _c.error!);
     }
   }
@@ -93,261 +105,255 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
     );
   }
 
-  void _showPhone(Dormitory dorm) {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'ติดต่อ ${dorm.name}',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: null,
-                icon: const Icon(Icons.phone),
-                label: Text(dorm.contactPhone ?? 'ยังไม่ได้ระบุเบอร์'),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'การโทรออกจากแอปยังไม่รองรับ กรุณากดเบอร์ด้านบนเพื่อจดไว้',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 12),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  /// โทรหาเจ้าของ ถ้าอุปกรณ์โทรไม่ได้ (เช่น เปิดบนคอมพิวเตอร์) จะแสดงเบอร์ให้จดแทน
+  Future<void> _call(Dormitory dorm) async {
+    final phone = dorm.contactPhone?.trim() ?? '';
+    if (phone.isEmpty) return _snack('หอพักนี้ไม่ได้ระบุเบอร์ติดต่อ');
+    final uri = Uri(scheme: 'tel', path: phone.replaceAll(RegExp(r'[^0-9+]'), ''));
+    var ok = false;
+    try {
+      ok = await launchUrl(uri);
+    } catch (_) {
+      ok = false;
+    }
+    if (!ok && mounted) _snack('โทรออกไม่ได้บนอุปกรณ์นี้ เบอร์ติดต่อ: $phone');
   }
 
-  Future<void> _writeReview() async {
-    int rating = 5;
-    final body = TextEditingController();
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setInner) => AlertDialog(
-          title: const Text('เขียนรีวิว'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  for (var i = 1; i <= 5; i++)
-                    IconButton(
-                      icon: Icon(
-                        i <= rating ? Icons.star : Icons.star_border,
-                        color: AppColors.warningText,
-                      ),
-                      onPressed: () => setInner(() => rating = i),
-                    ),
-                ],
-              ),
-              TextField(
-                controller: body,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  hintText: 'เล่าประสบการณ์ของคุณ (ไม่บังคับ)',
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'รีวิวจะแสดงหลังแอดมินตรวจสอบ',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 12),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('ยกเลิก'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('ส่งรีวิว'),
-            ),
-          ],
+  Future<void> _writeReview(Dormitory dorm) async {
+    final sent = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => ReviewFormScreen(
+          dormName: dorm.name,
+          onSubmit: (rating, body) async {
+            final ok = await _c.submitReview(rating: rating, body: body);
+            if (!ok && mounted && _c.error != null) {
+              showApiError(context, widget.services, _c.error!);
+            }
+            return ok;
+          },
         ),
       ),
     );
-    final text = body.text.trim();
-    body.dispose();
-    if (ok != true) return;
-    final sent = await _c.submitReview(rating: rating, body: text);
-    if (!mounted) return;
-    if (sent) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ส่งรีวิวแล้ว รอแอดมินตรวจสอบ')),
-      );
-    } else if (_c.error != null) {
-      showApiError(context, widget.services, _c.error!);
-    }
+    if (sent == true && mounted) _snack('ส่งรีวิวแล้ว รอแอดมินตรวจสอบ');
   }
 
   @override
   Widget build(BuildContext context) {
     final dorm = _c.dorm;
+    if (dorm == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('รายละเอียดหอพัก')),
+        body: _c.loading
+            ? const Center(child: CircularProgressIndicator())
+            : EmptyState(
+                icon: Icons.apartment_outlined,
+                message: 'ไม่พบหอพักนี้',
+                action: OutlinedButton(
+                  onPressed: _c.load,
+                  child: const Text('ลองอีกครั้ง'),
+                ),
+              ),
+      );
+    }
     return Scaffold(
-      appBar: AppBar(
-        title: Text(dorm?.name ?? 'รายละเอียดหอพัก'),
-        actions: [
-          IconButton(
-            tooltip: _c.isFavorite ? 'นำออกจากรายการโปรด' : 'บันทึกเป็นรายการโปรด',
-            icon: Icon(
-              _c.isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: _c.isFavorite ? AppColors.danger : null,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 240,
+            pinned: true,
+            title: Text(dorm.name),
+            actions: [
+              IconButton(
+                tooltip: _c.isFavorite
+                    ? 'นำออกจากรายการโปรด'
+                    : 'บันทึกเป็นรายการโปรด',
+                icon: Icon(
+                  _c.isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: _c.isFavorite ? AppColors.danger : null,
+                ),
+                onPressed: _c.busy ? null : _toggleFavorite,
+              ),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              background: Padding(
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top + kToolbarHeight,
+                ),
+                child: _Gallery(
+                  images: dorm.images,
+                  page: _page,
+                  onPage: (i) => setState(() => _page = i),
+                ),
+              ),
             ),
-            onPressed: (dorm == null || _c.busy) ? null : _toggleFavorite,
           ),
-        ],
-      ),
-      body: _c.loading && dorm == null
-          ? const Center(child: CircularProgressIndicator())
-          : dorm == null
-          ? const Center(child: Text('ไม่พบหอพักนี้'))
-          : ListView(
-              padding: const EdgeInsets.all(16),
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList.list(
               children: [
-                Container(
-                  height: 180,
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySoft,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.apartment_outlined,
-                    size: 56,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(dorm.name, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 2),
                 Text(
-                  '${dorm.zone}'
-                  '${dorm.address != null ? ' · ${dorm.address}' : ''}',
-                  style: const TextStyle(color: AppColors.textMuted),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${dorm.pricePerMonth} บาท/เดือน',
+                  dorm.name,
                   style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 18,
+                    fontSize: 22,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 4),
+                RatingText(rating: dorm.ratingAvg, count: dorm.reviewCount),
+                const SizedBox(height: 6),
                 Text(
+                  formatPrice(dorm.pricePerMonth),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                InfoRow(
+                  Icons.place_outlined,
+                  '${dorm.zone} · ${dorm.address ?? 'ไม่ระบุที่อยู่'}',
+                ),
+                InfoRow(
+                  Icons.directions_walk,
+                  'ห่างจากมหาวิทยาลัย ${formatDistance(metersFromMfu(dorm.latitude, dorm.longitude))}',
+                ),
+                InfoRow(
+                  Icons.meeting_room_outlined,
                   dorm.availableRooms <= 0
                       ? 'เต็มแล้ว'
                       : 'ว่าง ${dorm.availableRooms} จาก ${dorm.totalRooms} ห้อง',
                 ),
-                const SizedBox(height: 16),
-                _Section(
-                  title: 'ค่าน้ำ-ค่าไฟ',
-                  children: [
-                    _Row(
-                      label: 'ค่าน้ำ',
-                      value: _rate(dorm.waterRate, dorm.waterBillingType),
-                    ),
-                    _Row(
-                      label: 'ค่าไฟ',
-                      value: _rate(
-                        dorm.electricityRate,
-                        dorm.electricityBillingType,
+                if ((dorm.description ?? '').isNotEmpty) ...[
+                  const SectionTitle('รายละเอียด'),
+                  Text(dorm.description!),
+                ],
+                const SectionTitle('ค่าน้ำ / ค่าไฟ'),
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(
+                          Icons.water_drop_outlined,
+                          color: AppColors.primary,
+                        ),
+                        title: const Text('ค่าน้ำ'),
+                        trailing: Text(
+                          _rate(dorm.waterRate, dorm.waterBillingType),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                if (dorm.description != null)
-                  _Section(
-                    title: 'รายละเอียด',
-                    children: [Text(dorm.description!)],
-                  ),
-                _Section(
-                  title: 'ที่ตั้ง',
-                  children: [
-                    Text(
-                      'พิกัด ${dorm.latitude}, ${dorm.longitude}',
-                      style: const TextStyle(color: AppColors.textMuted),
-                    ),
-                    const SizedBox(height: 4),
-                    const SizedBox(height: 8),
-                    DormLocationMap(dorm: dorm),
-                    if (dorm.address != null) ...[
-                      const SizedBox(height: 6),
-                      Text(dorm.address!),
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(
+                          Icons.bolt_outlined,
+                          color: Color(0xFFF4A261),
+                        ),
+                        title: const Text('ค่าไฟ'),
+                        trailing: Text(
+                          _rate(
+                            dorm.electricityRate,
+                            dorm.electricityBillingType,
+                          ),
+                        ),
+                      ),
                     ],
-                  ],
+                  ),
                 ),
-                _Section(
-                  title:
-                      'รีวิว (${dorm.ratingAvg?.toStringAsFixed(1) ?? '-'} ดาว · ${_c.reviews.length} รีวิว)',
+                if (dorm.amenityNames.isNotEmpty) ...[
+                  const SectionTitle('สิ่งอำนวยความสะดวก'),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final a in dorm.amenityNames)
+                        Chip(
+                          avatar: const Icon(
+                            Icons.check_circle,
+                            size: 18,
+                            color: AppColors.primary,
+                          ),
+                          label: Text(a),
+                        ),
+                    ],
+                  ),
+                ],
+                const SectionTitle('ตำแหน่งที่ตั้ง'),
+                DormLocationMap(dorm: dorm, height: 180),
+                SectionTitle(
+                  'รีวิว (${_c.reviews.length})',
                   trailing: TextButton(
-                    onPressed: _writeReview,
+                    onPressed: () => _writeReview(dorm),
                     child: const Text('เขียนรีวิว'),
                   ),
-                  children: [
-                    if (_c.reviews.isEmpty)
-                      const Text('ยังไม่มีรีวิว')
-                    else
-                      for (final r in _c.reviews)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
+                ),
+                if (_c.reviews.isEmpty)
+                  const Text(
+                    'ยังไม่มีรีวิว',
+                    style: TextStyle(color: AppColors.textMuted),
+                  )
+                else
+                  for (final r in _c.reviews)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                '★' * r.rating,
-                                style: const TextStyle(
-                                  color: AppColors.warningText,
-                                ),
+                              Row(
+                                children: [
+                                  Stars(r.rating),
+                                  const Spacer(),
+                                  Text(
+                                    formatDate(r.createdAt),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.textMuted,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              if (r.body != null && r.body!.isNotEmpty)
-                                Text(r.body!),
-                              Text(
-                                r.createdAt,
-                                style: const TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 12,
+                              if ((r.body ?? '').isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(r.body!),
                                 ),
-                              ),
                             ],
                           ),
                         ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _showPhone(dorm),
-                        icon: const Icon(Icons.phone_outlined),
-                        label: const Text('โทร'),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: _c.busy ? null : () => _chat(dorm),
-                        icon: const Icon(Icons.chat_bubble_outline),
-                        label: const Text('แชท'),
-                      ),
-                    ),
-                  ],
-                ),
+                const SizedBox(height: 24),
               ],
             ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _call(dorm),
+                  icon: const Icon(Icons.call),
+                  label: const Text('โทร'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: FilledButton.icon(
+                  onPressed: _c.busy ? null : () => _chat(dorm),
+                  icon: const Icon(Icons.chat_bubble_outline),
+                  label: const Text('แชทกับเจ้าของ'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -357,64 +363,45 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
   }
 }
 
-class _Section extends StatelessWidget {
-  const _Section({required this.title, required this.children, this.trailing});
+/// รูปหอแบบเลื่อนดูได้ พร้อมตัวนับ "1/3" ถ้าไม่มีรูปจะแสดงกรอบไอคอน
+class _Gallery extends StatelessWidget {
+  const _Gallery({
+    required this.images,
+    required this.page,
+    required this.onPage,
+  });
 
-  final String title;
-  final List<Widget> children;
-  final Widget? trailing;
+  final List<DormImage> images;
+  final int page;
+  final ValueChanged<int> onPage;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ),
-                if (trailing != null) trailing!,
-              ],
-            ),
-            const SizedBox(height: 8),
-            ...children,
-          ],
+    if (images.isEmpty) return const NetImage(null, radius: 0);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        PageView.builder(
+          itemCount: images.length,
+          onPageChanged: onPage,
+          itemBuilder: (_, i) => NetImage(images[i].fullUrl, radius: 0),
         ),
-      ),
-    );
-  }
-}
-
-class _Row extends StatelessWidget {
-  const _Row({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 90,
+        Positioned(
+          right: 12,
+          bottom: 12,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Text(
-              label,
-              style: const TextStyle(color: AppColors.textMuted),
+              '${page + 1}/${images.length}',
+              style: const TextStyle(color: Colors.white),
             ),
           ),
-          Expanded(child: Text(value)),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

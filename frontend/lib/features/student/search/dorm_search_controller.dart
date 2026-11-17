@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'package:hopak_frontend/core/utils/format.dart';
 import 'package:hopak_frontend/shared/models/dormitory.dart';
 import 'package:hopak_frontend/features/student/services/public_dormitory_service.dart';
 
@@ -30,7 +31,7 @@ class SearchFilters {
   final String maxPriceText;
   final bool roomsOnly;
 
-  /// newest | price_asc | price_desc
+  /// newest | price_asc | price_desc (backend เรียงให้) หรือ rating | distance (เรียงในแอป)
   final String sort;
 
   int? get minPrice => parsePriceInput(minPriceText);
@@ -68,11 +69,21 @@ class SearchFilters {
 class DormSearchController extends ChangeNotifier {
   DormSearchController(this._dorms);
 
+  /// การเรียงที่ backend รองรับ (ส่งไปเป็น ?sort=)
   static const sortLabels = {
     'newest': 'ใหม่ล่าสุด',
     'price_asc': 'ราคาต่ำไปสูง',
     'price_desc': 'ราคาสูงไปต่ำ',
   };
+
+  /// การเรียงที่ backend ยังไม่รองรับ แอปจึงเรียงผลลัพธ์เอง
+  static const clientSortLabels = {
+    'rating': 'คะแนนรีวิว',
+    'distance': 'ใกล้มหาวิทยาลัย',
+  };
+
+  /// ตัวเลือกการเรียงทั้งหมดที่แสดงในหน้าจอ
+  static const allSortLabels = {...sortLabels, ...clientSortLabels};
 
   final PublicDormitoryService _dorms;
 
@@ -114,13 +125,23 @@ class DormSearchController extends ChangeNotifier {
   void setRoomsOnly(bool value) => _update(_filters.copyWith(roomsOnly: value));
 
   void setSort(String sort) {
-    if (!sortLabels.containsKey(sort)) return;
+    if (!allSortLabels.containsKey(sort)) return;
     _update(_filters.copyWith(sort: sort));
   }
 
   void _update(SearchFilters next) {
     _filters = next;
     notifyListeners();
+  }
+
+  /// ตั้งตัวกรองใหม่ทั้งหมดจากทางลัดในหน้าแรก (เลือกโซน / "ดูทั้งหมด") แล้วค้นหา
+  Future<bool> applyQuick({String? zone, String? sort}) {
+    _filters = SearchFilters(
+      zone: zone,
+      sort: allSortLabels.containsKey(sort) ? sort! : 'newest',
+    );
+    notifyListeners();
+    return search();
   }
 
   /// ล้างตัวกรองทั้งหมดกลับค่าเริ่มต้น
@@ -147,8 +168,9 @@ class DormSearchController extends ChangeNotifier {
         minPrice: _filters.minPrice,
         maxPrice: _filters.maxPrice,
         roomsOnly: _filters.roomsOnly,
-        sort: _filters.sort,
+        sort: sortLabels.containsKey(_filters.sort) ? _filters.sort : 'newest',
       );
+      _items = sortLocally(_items, _filters.sort);
       return true;
     } catch (e) {
       _error = e;
@@ -157,5 +179,27 @@ class DormSearchController extends ChangeNotifier {
       _loading = false;
       notifyListeners();
     }
+  }
+}
+
+/// เรียงแบบที่ backend ยังไม่รองรับ: rating = คะแนนมากไปน้อย (ไม่มีรีวิวอยู่ท้าย),
+/// distance = ใกล้มหาวิทยาลัยแม่ฟ้าหลวงก่อน; แบบอื่นคืนลำดับเดิม
+List<Dormitory> sortLocally(List<Dormitory> items, String sort) {
+  switch (sort) {
+    case 'rating':
+      return [...items]..sort((a, b) {
+        final byRating = (b.ratingAvg ?? -1).compareTo(a.ratingAvg ?? -1);
+        if (byRating != 0) return byRating;
+        return (b.reviewCount ?? 0).compareTo(a.reviewCount ?? 0);
+      });
+    case 'distance':
+      return [...items]..sort(
+        (a, b) => metersFromMfu(
+          a.latitude,
+          a.longitude,
+        ).compareTo(metersFromMfu(b.latitude, b.longitude)),
+      );
+    default:
+      return items;
   }
 }

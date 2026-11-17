@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 
 import 'package:hopak_frontend/shared/models/dormitory.dart';
 import 'package:hopak_frontend/core/theme/app_theme.dart';
+import 'package:hopak_frontend/core/utils/format.dart';
+import 'package:hopak_frontend/features/student/widgets/student_widgets.dart';
 
-/// การ์ดหอพักฝั่งนักศึกษา: ชื่อ โซน ราคา ห้องว่าง และคะแนนรีวิว
-/// backend ยังไม่ส่งรูปในรายการ จึงแสดงกรอบรูปว่างไว้ก่อน
+/// การ์ดหอพักฝั่งนักศึกษา (แนวนอน ตามดีไซน์ของ Frontend-Big):
+/// รูป ชื่อ ราคา โซน · ระยะจากมหาวิทยาลัย ห้องว่าง และคะแนนรีวิว
+/// รายการค้นหาของ backend ยังไม่ส่งรูปมา จึงแสดงกรอบรูปว่างแทน
 class DormCard extends StatelessWidget {
   const DormCard({
     super.key,
@@ -19,88 +22,76 @@ class DormCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final full = dorm.availableRooms <= 0;
+    final d = dorm;
+    final full = d.availableRooms <= 0;
+    final distance = formatDistance(metersFromMfu(d.latitude, d.longitude));
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 96,
-              width: double.infinity,
-              color: AppColors.primarySoft,
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.apartment_outlined,
-                color: AppColors.primary,
-                size: 36,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          dorm.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              NetImage(d.coverUrl, width: 96, height: 96),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            d.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                            ),
+                          ),
                         ),
+                        if (trailing != null) trailing!,
+                      ],
+                    ),
+                    Text(
+                      formatPrice(d.pricePerMonth),
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
                       ),
-                      if (trailing != null) trailing!,
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    dorm.zone,
-                    style: const TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 12,
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${dorm.pricePerMonth} บาท/เดือน',
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
+                    const SizedBox(height: 4),
+                    Text(
+                      '${d.zone} · $distance',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textMuted,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          full ? 'เต็ม' : 'ว่าง ${dorm.availableRooms} ห้อง',
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        RatingText(rating: d.ratingAvg, count: d.reviewCount),
+                        const Spacer(),
+                        Text(
+                          full ? 'เต็ม' : 'ว่าง ${d.availableRooms} ห้อง',
                           style: TextStyle(
                             fontSize: 12,
-                            color: full
-                                ? AppColors.danger
-                                : AppColors.textMuted,
+                            color: full ? AppColors.danger : AppColors.textMuted,
                           ),
                         ),
-                      ),
-                      if (dorm.ratingAvg != null)
-                        Text(
-                          '★ ${dorm.ratingAvg!.toStringAsFixed(1)}'
-                          ' (${dorm.reviewCount ?? 0})',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.warningText,
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

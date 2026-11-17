@@ -97,6 +97,7 @@ class Dormitory {
     this.ratingAvg,
     this.reviewCount,
     this.amenityIds = const [],
+    this.amenityNames = const [],
     this.images = const [],
   });
 
@@ -124,7 +125,13 @@ class Dormitory {
   final double? ratingAvg;
   final int? reviewCount;
   final List<int> amenityIds;
+
+  /// ชื่อสิ่งอำนวยความสะดวก (มีเฉพาะหน้ารายละเอียด ที่ backend ส่ง amenities: [{id, name}])
+  final List<String> amenityNames;
   final List<DormImage> images;
+
+  /// รูปแรกของหอ (null ถ้าไม่มีรูป เช่น รายการค้นหาที่ backend ไม่ส่งรูปมา)
+  String? get coverUrl => images.isEmpty ? null : images.first.fullUrl;
 
   /// เปิด/ปิดการแสดงผลได้เฉพาะ published และ hidden (backend ตอบ 409 กรณีอื่น)
   bool get canToggleVisibility =>
@@ -158,6 +165,11 @@ class Dormitory {
         : _toInt(json['review_count']),
     amenityIds: ((json['amenity_ids'] as List?) ?? const [])
         .map(_toInt)
+        .toList(),
+    amenityNames: ((json['amenities'] as List?) ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map((a) => a['name']?.toString() ?? '')
+        .where((n) => n.isNotEmpty)
         .toList(),
     images: ((json['images'] as List?) ?? const [])
         .map((e) => DormImage.fromJson(e as Map<String, dynamic>))

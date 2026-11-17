@@ -51,3 +51,34 @@ String relativeDay(String raw, {DateTime? now}) {
   if (days < 30) return '${days ~/ 7} weeks ago';
   return '${local.day}/${local.month}/${local.year}';
 }
+
+/// ระยะจากมหาวิทยาลัยแม่ฟ้าหลวงเป็นเมตร
+double metersFromMfu(double latitude, double longitude) =>
+    const Distance().distance(mfuCenter, LatLng(latitude, longitude));
+
+/// ข้อความระยะทาง เช่น "850 ม." หรือ "1.2 กม."
+String formatDistance(double meters) => meters < 1000
+    ? '${meters.round()} ม.'
+    : '${(meters / 1000).toStringAsFixed(1)} กม.';
+
+/// ใส่ comma คั่นหลักพัน เช่น 3500 → "3,500"
+String withCommas(int value) {
+  final s = value.abs().toString();
+  final out = StringBuffer(value < 0 ? '-' : '');
+  for (var i = 0; i < s.length; i++) {
+    if (i > 0 && (s.length - i) % 3 == 0) out.write(',');
+    out.write(s[i]);
+  }
+  return out.toString();
+}
+
+/// ราคาต่อเดือน เช่น "3,500 บาท/เดือน"
+String formatPrice(int pricePerMonth) => '${withCommas(pricePerMonth)} บาท/เดือน';
+
+/// วันที่จาก API เป็น "วัน/เดือน/ปี" ถ้าอ่านไม่ได้คืนข้อความเดิม
+String formatDate(String raw) {
+  final t = DateTime.tryParse(raw);
+  if (t == null) return raw;
+  final l = t.toLocal();
+  return '${l.day}/${l.month}/${l.year}';
+}

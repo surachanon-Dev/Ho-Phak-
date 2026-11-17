@@ -4,6 +4,8 @@ import 'package:hopak_frontend/features/student/favorites/favorites_controller.d
 import 'package:hopak_frontend/core/app_services.dart';
 import 'package:hopak_frontend/core/theme/app_theme.dart';
 import 'package:hopak_frontend/core/utils/error_handling.dart';
+import 'package:hopak_frontend/core/utils/format.dart';
+import 'package:hopak_frontend/features/student/widgets/student_widgets.dart';
 import 'package:hopak_frontend/features/student/dorm_detail/student_dorm_detail_screen.dart';
 
 /// รายการโปรด: หอที่ถูกซ่อนหรือระงับจะแสดงเป็น "ไม่พร้อมให้บริการ" และกดเข้าดูไม่ได้
@@ -13,6 +15,7 @@ class FavoritesScreen extends StatefulWidget {
     required this.services,
     required this.myUserId,
     this.onExplore,
+    this.actions,
   });
 
   final AppServices services;
@@ -20,6 +23,9 @@ class FavoritesScreen extends StatefulWidget {
 
   /// กดปุ่ม "ไปค้นหาหอพัก" (ให้หน้าหลักสลับไปแท็บค้นหา)
   final VoidCallback? onExplore;
+
+  /// ปุ่มบน app bar (แชท / แจ้งเตือน)
+  final List<Widget>? actions;
 
   @override
   State<FavoritesScreen> createState() => _FavoritesScreenState();
@@ -59,10 +65,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     }
   }
 
+  void _open(int dormitoryId) => Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => StudentDormDetailScreen(
+        services: widget.services,
+        dormitoryId: dormitoryId,
+        myUserId: widget.myUserId,
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('รายการโปรด')),
+      appBar: AppBar(title: const Text('รายการโปรด'), actions: widget.actions),
       body: RefreshIndicator(
         onRefresh: _c.load,
         child: _c.showFullLoader
@@ -97,46 +113,73 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             : ListView.separated(
                 padding: const EdgeInsets.all(16),
                 itemCount: _c.items.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, i) {
                   final f = _c.items[i];
                   final available = f.isAvailable;
                   return Card(
-                    child: ListTile(
-                      onTap: available
-                          ? () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => StudentDormDetailScreen(
-                                  services: widget.services,
-                                  dormitoryId: f.id,
-                                  myUserId: widget.myUserId,
-                                ),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: available ? () => _open(f.id) : null,
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Row(
+                          children: [
+                            Opacity(
+                              opacity: available ? 1 : 0.4,
+                              child: const NetImage(null, width: 72, height: 72),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    f.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
+                                      color: available
+                                          ? null
+                                          : AppColors.textMuted,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  if (available) ...[
+                                    Text(
+                                      formatPrice(f.pricePerMonth),
+                                      style: const TextStyle(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    Text(
+                                      f.zone,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textMuted,
+                                      ),
+                                    ),
+                                  ] else
+                                    const Text(
+                                      'ไม่พร้อมให้บริการ',
+                                      style: TextStyle(color: AppColors.danger),
+                                    ),
+                                ],
                               ),
-                            )
-                          : null,
-                      title: Text(
-                        f.name,
-                        style: TextStyle(
-                          color: available ? null : AppColors.textMuted,
+                            ),
+                            IconButton(
+                              tooltip: 'นำออก',
+                              icon: const Icon(
+                                Icons.favorite,
+                                color: AppColors.danger,
+                              ),
+                              onPressed: () => _remove(f.id),
+                            ),
+                          ],
                         ),
-                      ),
-                      subtitle: Text(
-                        available
-                            ? '${f.zone} · ${f.pricePerMonth} บาท/เดือน'
-                            : 'ไม่พร้อมให้บริการ',
-                        style: TextStyle(
-                          color: available
-                              ? AppColors.textMuted
-                              : AppColors.danger,
-                        ),
-                      ),
-                      trailing: IconButton(
-                        tooltip: 'นำออก',
-                        icon: const Icon(
-                          Icons.favorite,
-                          color: AppColors.danger,
-                        ),
-                        onPressed: () => _remove(f.id),
                       ),
                     ),
                   );

@@ -12,10 +12,14 @@ class StudentProfileScreen extends StatelessWidget {
     super.key,
     required this.services,
     required this.user,
+    this.actions,
   });
 
   final AppServices services;
   final CurrentUser user;
+
+  /// ปุ่มบน app bar (แชท / แจ้งเตือน)
+  final List<Widget>? actions;
 
   Future<void> _logout(BuildContext context) async {
     final ok = await showDialog<bool>(
@@ -46,7 +50,7 @@ class StudentProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('โปรไฟล์')),
+      appBar: AppBar(title: const Text('โปรไฟล์'), actions: actions),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
