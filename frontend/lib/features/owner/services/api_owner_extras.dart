@@ -1,4 +1,4 @@
-import '../../services/api_client.dart';
+import '../../../core/network/api_client.dart';
 import 'owner_extras.dart';
 
 /// ฝั่งเชื่อม backend จริง — endpoint ด้านล่าง "คาดไว้" ยังไม่มีใน backend
@@ -58,13 +58,20 @@ class ApiOwnerExtras implements OwnerExtras {
   Future<void> deleteDorm(int dormId) =>
       _api.delete('$_owner/dormitories/$dormId');
 
-  // GET/PUT/DELETE /api/owner/dormitories/:id/document (multipart, ช่อง "document")
-  // ฝั่งแอปยังไม่มี bytes ของไฟล์ในสัญญานี้ → ต้องขยายตอนเชื่อมจริง
+  // POST /api/owner/dormitories/:id/document (multipart, ช่อง "document") อัปโหลดเมื่อมีไฟล์ใหม่
   @override
   Future<DormDocument?> dormDocument(int dormId) async => null;
 
   @override
-  Future<void> saveDormDocument(int dormId, DormDocument? doc) async {}
+  Future<void> saveDormDocument(int dormId, DormDocument? doc) async {
+    final bytes = doc?.bytes;
+    if (doc == null || bytes == null) return;
+    await _api.uploadFiles(
+      '$_owner/dormitories/$dormId/document',
+      fieldName: 'document',
+      files: [UploadFile(bytes: bytes, filename: doc.name)],
+    );
+  }
 
   // GET /api/owner/review-reports → { reports: [{review_id, reason}] }
   // POST /api/owner/reviews/:id/report { reason }

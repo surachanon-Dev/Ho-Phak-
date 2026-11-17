@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../controllers/admin_settings_controller.dart';
-import '../../services/app_services.dart';
-import '../../ui/app_theme.dart';
-import '../../ui/error_handling.dart';
-import '../login_screen.dart';
+import 'admin_settings_controller.dart';
+import '../../../core/app_services.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/error_handling.dart';
+import '../../auth/screens/login_screen.dart';
 
 /// หน้า Settings ของแอดมิน: ข้อมูลบัญชี, เปลี่ยนรหัสผ่าน (ผ่าน /api/me/password), ออกจากระบบ
 class AdminSettingsTab extends StatefulWidget {

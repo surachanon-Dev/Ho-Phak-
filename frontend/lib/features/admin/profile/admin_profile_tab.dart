@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../controllers/admin_profile_controller.dart';
-import '../../services/app_services.dart';
-import '../../ui/app_theme.dart';
-import '../../ui/error_handling.dart';
-import '../login_screen.dart';
+import 'admin_profile_controller.dart';
+import '../../../core/app_services.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/error_handling.dart';
+import '../../auth/screens/login_screen.dart';
 
 /// โปรไฟล์แอดมิน: แสดงบัญชีที่ login อยู่ และออกจากระบบ
 class AdminProfileTab extends StatefulWidget {

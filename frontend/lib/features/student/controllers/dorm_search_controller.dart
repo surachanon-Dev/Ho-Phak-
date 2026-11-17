@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../models/dormitory.dart';
-import '../../services/public_dormitory_service.dart';
+import '../../../shared/models/dormitory.dart';
+import '../services/public_dormitory_service.dart';
 
 /// แปลงช่องราคาที่ผู้ใช้พิมพ์เป็นจำนวนเต็ม
 /// ค่าว่าง ค่าที่ไม่ใช่ตัวเลข หรือค่าติดลบ คืน null (= ไม่กรองด้านนั้น)

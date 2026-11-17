@@ -2,13 +2,13 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import '../../controllers/admin_owner_requests_controller.dart';
-import '../../controllers/admin_user_detail_controller.dart';
-import '../../services/admin_service.dart';
-import '../../services/app_services.dart';
-import '../../ui/error_handling.dart';
-import '../../ui/open_document.dart';
-import '../../ui/responsive.dart';
+import 'admin_owner_requests_controller.dart';
+import '../user_detail/admin_user_detail_controller.dart';
+import '../services/admin_service.dart';
+import '../../../core/app_services.dart';
+import '../../../core/utils/error_handling.dart';
+import '../../../shared/widgets/document_viewer.dart';
+import '../../../core/utils/responsive.dart';
 
 /// หน้า 03 · OWNER REQUESTS — คำขอเป็นเจ้าของหอ (หน้า A-2, A-2a, A-2c, A-2d: รายการรอตรวจ อนุมัติ/ปฏิเสธ และดูประวัติ)
 /// วางทับที่: ช่องที่ 5 ในโฟลเดอร์ admin (lib/screens/admin/admin_queue_tab.dart)
@@ -87,7 +87,6 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
   }
 
   /// เปิดดูเอกสารยืนยันตัวตน (ดึงไฟล์พร้อม token ของแอดมิน)
-  /// รูปภาพ png/jpg แสดงในกล่อง ส่วน pdf เปิดในแท็บใหม่ของเบราว์เซอร์
   Future<void> _viewDocument(_OwnerRequestItem item) async {
     final Uint8List bytes;
     try {
@@ -98,39 +97,7 @@ class _AdminQueueTabState extends State<AdminQueueTab> {
       return;
     }
     if (!mounted) return;
-    final isImage = RegExp(r'\.(png|jpe?g)$', caseSensitive: false)
-        .hasMatch(item.documentName);
-    final isPdf = RegExp(r'\.pdf$', caseSensitive: false).hasMatch(item.documentName);
-    final sizeKb = (bytes.length / 1024).toStringAsFixed(0);
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(item.documentName),
-        content: SizedBox(
-          width: 520,
-          child: isImage
-              ? InteractiveViewer(child: Image.memory(bytes))
-              : Text('${item.documentName} ($sizeKb KB)'),
-        ),
-        actions: [
-          if (isPdf)
-            FilledButton(
-              onPressed: () {
-                if (!openPdfInNewTab(bytes)) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('เปิด PDF ไม่ได้บนแพลตฟอร์มนี้')),
-                  );
-                }
-              },
-              child: const Text('Open PDF in new tab'),
-            ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
+    await showDocumentViewer(context, name: item.documentName, bytes: bytes);
   }
 
   Future<void> _approveRequest(_OwnerRequestItem item) async {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../controller/owner/dormitory_controller.dart';
-import '../../controller/owner/owner_review_and_verification_controllers.dart';
-import '../../services/app_services.dart';
-import '../../ui/app_theme.dart';
-import '../../ui/error_handling.dart';
-import '../../ui/format.dart';
+import '../controllers/dormitory_controller.dart';
+import '../controllers/owner_review_and_verification_controllers.dart';
+import '../../../core/app_services.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/error_handling.dart';
+import '../../../core/utils/format.dart';
 
 /// รีวิวของหอพักทั้งหมดของเจ้าของ (อ่านอย่างเดียว) พร้อมตัวกรองตามหอพัก
 class MyReviewsScreen extends StatefulWidget {

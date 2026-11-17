@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/services/api_client.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 

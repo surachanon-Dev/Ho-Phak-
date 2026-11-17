@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../services/app_services.dart';
-import '../ui/app_theme.dart';
+import '../../../core/app_services.dart';
+import '../../../core/theme/app_theme.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../models/dormitory.dart';
-import '../../controller/owner/owner_dashboard_controller.dart';
-import '../../services/app_services.dart';
-import '../../ui/app_theme.dart';
-import '../../ui/error_handling.dart';
-import '../../ui/status_style.dart';
+import '../../../shared/models/dormitory.dart';
+import '../controllers/owner_dashboard_controller.dart';
+import '../../../core/app_services.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/error_handling.dart';
+import '../../../core/utils/status_style.dart';
 import 'dormitory_detail_screen.dart';
 import 'dormitory_form_screen.dart';
 

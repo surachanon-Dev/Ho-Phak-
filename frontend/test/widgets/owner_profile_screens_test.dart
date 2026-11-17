@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/screens/owner/change_password_screen.dart';
-import 'package:hopak_frontend/screens/owner/edit_profile_screen.dart';
-import 'package:hopak_frontend/screens/owner/notification_settings_screen.dart';
-import 'package:hopak_frontend/services/app_services.dart';
-import 'package:hopak_frontend/controller/owner/owner_extras.dart';
+import 'package:hopak_frontend/features/owner/screens/change_password_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/edit_profile_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/notification_settings_screen.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

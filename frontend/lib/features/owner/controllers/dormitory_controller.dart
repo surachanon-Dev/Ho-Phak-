@@ -1,7 +1,7 @@
-import '../../models/dormitory.dart';
-import '../../models/review.dart';
-import '../../services/api_client.dart';
-import 'owner_extras.dart';
+import '../../../shared/models/dormitory.dart';
+import '../../../shared/models/review.dart';
+import '../../../core/network/api_client.dart';
+import '../services/owner_extras.dart';
 
 /// ข้อมูลเสริมของฟอร์มหอ (ส่วนที่ backend ยังไม่มี) — ดู DormitoryController.loadFormExtras
 class DormFormExtras {

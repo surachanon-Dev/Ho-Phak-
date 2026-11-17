@@ -1,4 +1,4 @@
-import '../config/api_config.dart';
+import '../../core/config/api_config.dart';
 
 /// zone ที่ backend รองรับ
 const List<String> dormZones = ['หน้ามอ', 'หลังมอ', 'คชพลแลนด์'];

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../controller/chat/chat_room_controller.dart';
-import '../models/chat.dart';
-import '../services/app_services.dart';
-import '../ui/app_theme.dart';
-import '../ui/error_handling.dart';
-import '../ui/format.dart';
+import '../controllers/chat_room_controller.dart';
+import '../../../shared/models/chat.dart';
+import '../../../core/app_services.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/error_handling.dart';
+import '../../../core/utils/format.dart';
 
 /// ห้องแชท — หน้าตาตาม Figma O-7: หัวข้อสองบรรทัด (ชื่อ / "About ชื่อหอ"),
 /// ฟองข้อความขาว (อีกฝ่าย) / น้ำเงิน (เรา) พร้อมเวลา, ช่องพิมพ์ทรงแคปซูล + ปุ่มส่งกลม

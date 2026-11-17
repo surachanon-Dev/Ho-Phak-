@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../models/dormitory.dart';
-import '../../services/app_services.dart';
-import '../../controller/owner/owner_dorm_detail_controller.dart';
-import '../../controller/owner/owner_extras.dart';
-import '../../ui/app_theme.dart';
-import '../../ui/error_handling.dart';
-import '../../ui/status_style.dart';
-import '../../ui/format.dart';
-import '../../widgets/dorm_map.dart';
+import '../../../shared/models/dormitory.dart';
+import '../../../core/app_services.dart';
+import '../controllers/owner_dorm_detail_controller.dart';
+import '../services/owner_extras.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/error_handling.dart';
+import '../../../core/utils/status_style.dart';
+import '../../../core/utils/format.dart';
+import '../../../shared/widgets/dorm_map.dart';
 import 'dashboard_screen.dart' show formatBaht;
 import 'my_reviews_screen.dart';
 import 'dormitory_form_screen.dart';

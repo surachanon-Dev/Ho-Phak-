@@ -66,6 +66,11 @@ async function verificationDocument(req, res) {
     res.sendFile(file);
 }
 
+async function dormitoryDocument(req, res) {
+    const file = await adminService.dormitoryDocument(req.params.id);
+    res.sendFile(file);
+}
+
 async function logs(req, res) {
     res.json({ logs: await adminService.logs() });
 }
@@ -107,5 +112,5 @@ module.exports = {
   verifications, listAmenities, createAmenity, renameAmenity, deleteAmenity,
     queue, approveDormitory, rejectDormitory, suspendDormitory, restoreDormitory,
     approveVerification, rejectVerification, suspendUser, restoreUser,
-    listReviews, publishReview, hideReview, logs, listDormitories, listUsers, verificationDocument,
+    listReviews, publishReview, hideReview, logs, listDormitories, listUsers, verificationDocument, dormitoryDocument,
 };

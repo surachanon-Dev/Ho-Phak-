@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../services/api_client.dart';
+import '../../../core/network/api_client.dart';
 import 'owner_extras.dart';
 
 /// เก็บข้อมูลฟีเจอร์ที่ backend ยังไม่มีไว้ในเครื่อง (shared_preferences)

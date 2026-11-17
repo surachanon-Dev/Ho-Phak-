@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-import '../../ui/responsive.dart';
+import '../../../core/utils/responsive.dart';
 
-import '../../controllers/admin_activity_log_controller.dart';
-import '../../controllers/admin_dashboard_controller.dart';
-import '../../services/admin_service.dart';
-import '../../ui/error_handling.dart';
-import '../../services/app_services.dart';
-import 'admin_dorms_tab.dart';
-import 'admin_logs_tab.dart';
-import 'admin_moderation_tab.dart';
-import 'admin_profile_tab.dart';
-import 'admin_queue_tab.dart';
-import 'admin_reviews_tab.dart';
-import 'admin_settings_tab.dart';
+import '../activity_log/admin_activity_log_controller.dart';
+import 'admin_dashboard_controller.dart';
+import '../services/admin_service.dart';
+import '../../../core/utils/error_handling.dart';
+import '../../../core/app_services.dart';
+import '../dorms/admin_dorms_tab.dart';
+import '../activity_log/admin_logs_tab.dart';
+import '../moderation/admin_moderation_tab.dart';
+import '../profile/admin_profile_tab.dart';
+import '../owner_requests/admin_queue_tab.dart';
+import '../reviews/admin_reviews_tab.dart';
+import '../settings/admin_settings_tab.dart';
 
 /// โครงหลักของ Ho-Phak Admin Web + หน้า 02 · DASHBOARD (A-1 และ A-1b)
 /// วางทับที่: ช่องที่ 1 ในโฟลเดอร์ admin (lib/screens/admin/admin_home_screen.dart)

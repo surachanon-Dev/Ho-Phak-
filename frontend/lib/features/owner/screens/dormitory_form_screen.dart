@@ -4,16 +4,16 @@ import 'dart:typed_data';
 
 import 'package:image_picker/image_picker.dart';
 
-import '../../models/dormitory.dart';
-import '../../services/api_client.dart';
-import '../../services/app_services.dart';
-import '../../controller/owner/dormitory_rules.dart';
-import '../../controller/owner/owner_dorm_form_controller.dart';
-import '../../controller/owner/owner_extras.dart';
+import '../../../shared/models/dormitory.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/app_services.dart';
+import '../validation/dormitory_rules.dart';
+import '../controllers/owner_dorm_form_controller.dart';
+import '../services/owner_extras.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../ui/app_theme.dart';
-import '../../ui/error_handling.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/error_handling.dart';
 import 'location_picker_screen.dart';
 
 /// ฟอร์มเพิ่ม/แก้ไขหอพัก
@@ -421,7 +421,8 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
       _snack('File is larger than 10 MB');
       return;
     }
-    _c.setDocument(DormDocument(name: f.name, sizeBytes: size));
+    final bytes = await f.readAsBytes();
+    _c.setDocument(DormDocument(name: f.name, sizeBytes: bytes.length, bytes: bytes));
   }
 
 

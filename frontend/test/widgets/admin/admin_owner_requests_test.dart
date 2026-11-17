@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/screens/admin/admin_queue_tab.dart';
-import 'package:hopak_frontend/services/app_services.dart';
+import 'package:hopak_frontend/features/admin/owner_requests/admin_queue_tab.dart';
+import 'package:hopak_frontend/core/app_services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 

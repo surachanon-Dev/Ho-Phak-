@@ -1,5 +1,5 @@
-import '../../models/verification.dart';
-import '../../services/api_client.dart';
+import '../../../shared/models/verification.dart';
+import '../../../core/network/api_client.dart';
 
 class VerificationController {
   VerificationController(this._api);

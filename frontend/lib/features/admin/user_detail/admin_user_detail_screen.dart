@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../controllers/admin_user_detail_controller.dart';
-import '../../controllers/admin_users_controller.dart';
-import '../../services/admin_service.dart';
-import '../../services/app_services.dart';
-import '../../ui/error_handling.dart';
+import 'admin_user_detail_controller.dart';
+import '../moderation/admin_users_controller.dart';
+import '../services/admin_service.dart';
+import '../../../core/app_services.dart';
+import '../../../core/utils/error_handling.dart';
 
 /// รายละเอียดผู้ใช้ 1 คน (เมนู Users → View): ข้อมูลบัญชี หอของเจ้าของ และการระงับ/ยกเลิกการระงับ
 /// ไม่มี Scaffold เพราะแสดงอยู่ในพื้นที่เนื้อหาของหน้าแอดมิน

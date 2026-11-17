@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'models/user.dart';
-import 'screens/home_router.dart';
-import 'screens/welcome_screen.dart';
-import 'ui/app_theme.dart';
-import 'services/app_services.dart';
+import 'shared/models/user.dart';
+import 'app/home_router.dart';
+import 'features/auth/screens/welcome_screen.dart';
+import 'core/theme/app_theme.dart';
+import 'core/app_services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

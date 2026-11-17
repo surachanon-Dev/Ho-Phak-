@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../controllers/admin_activity_log_controller.dart';
-import '../../services/admin_service.dart';
-import '../../services/app_services.dart';
-import '../../ui/app_theme.dart';
-import '../../ui/error_handling.dart';
+import 'admin_activity_log_controller.dart';
+import '../services/admin_service.dart';
+import '../../../core/app_services.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/error_handling.dart';
 
 /// ประวัติการทำงานของแอดมิน 100 รายการล่าสุด (อ่านอย่างเดียว)
 class AdminLogsTab extends StatefulWidget {

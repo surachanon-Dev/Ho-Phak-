@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../services/admin_service.dart';
-import '../services/api_client.dart';
+import '../../../core/network/api_client.dart';
 
 enum AdminReviewStatus {
   open('pending'),

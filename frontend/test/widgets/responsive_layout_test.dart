@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/ui/responsive.dart';
+import 'package:hopak_frontend/core/utils/responsive.dart';
 
 void main() {
   testWidgets('StackOnNarrow เรียงแนวนอนบนจอกว้าง และซ้อนแนวตั้งบนจอแคบ', (tester) async {

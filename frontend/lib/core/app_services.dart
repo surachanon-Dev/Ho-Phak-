@@ -1,16 +1,16 @@
-import 'api_client.dart';
-import '../controller/owner/api_owner_extras.dart';
-import 'auth_service.dart';
-import 'chat_service.dart';
-import '../controller/owner/dormitory_controller.dart';
-import 'favorite_service.dart';
-import '../controller/owner/local_owner_extras.dart';
-import '../controller/owner/owner_account_controller.dart';
-import 'notification_service.dart';
-import '../controller/owner/owner_extras.dart';
-import 'public_dormitory_service.dart';
-import 'token_store.dart';
-import '../controller/owner/verification_controller.dart';
+import 'network/api_client.dart';
+import '../features/owner/services/api_owner_extras.dart';
+import '../features/auth/services/auth_service.dart';
+import '../features/chat/services/chat_service.dart';
+import '../features/owner/controllers/dormitory_controller.dart';
+import '../features/student/services/favorite_service.dart';
+import '../features/owner/services/local_owner_extras.dart';
+import '../features/owner/controllers/owner_account_controller.dart';
+import '../features/notifications/services/notification_service.dart';
+import '../features/owner/services/owner_extras.dart';
+import '../features/student/services/public_dormitory_service.dart';
+import 'network/token_store.dart';
+import '../features/owner/controllers/verification_controller.dart';
 
 /// true = ฟีเจอร์ owner ที่ backend ยังไม่มี (amenities, ลบหอ, report รีวิว,
 /// โปรไฟล์/รหัสผ่าน, ตั้งค่าแจ้งเตือน ฯลฯ) เก็บในเครื่อง

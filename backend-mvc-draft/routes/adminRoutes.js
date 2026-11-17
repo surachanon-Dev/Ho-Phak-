@@ -21,6 +21,7 @@ router.post('/dormitories/:id/approve', adminController.approveDormitory);
 router.post('/dormitories/:id/reject', adminController.rejectDormitory);
 router.post('/dormitories/:id/suspend', adminController.suspendDormitory);
 router.post('/dormitories/:id/restore', adminController.restoreDormitory);
+router.get('/dormitories/:id/document', adminController.dormitoryDocument);
 
 router.get('/verifications/:id/document', adminController.verificationDocument);
 router.post('/verifications/:id/approve', adminController.approveVerification);

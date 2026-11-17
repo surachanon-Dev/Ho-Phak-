@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../models/user.dart';
-import '../../services/app_services.dart';
-import '../../controller/owner/owner_account_screens_controllers.dart';
-import '../../ui/app_theme.dart';
-import '../login_screen.dart';
+import '../../../shared/models/user.dart';
+import '../../../core/app_services.dart';
+import '../controllers/owner_account_screens_controllers.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../auth/screens/login_screen.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
 import 'my_reviews_screen.dart';

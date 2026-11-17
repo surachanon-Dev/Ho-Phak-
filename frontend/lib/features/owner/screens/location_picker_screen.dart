@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../controller/owner/location_picker_controller.dart';
-import '../../ui/app_theme.dart';
-import '../../widgets/dorm_map.dart';
+import '../controllers/location_picker_controller.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/dorm_map.dart';
 
 /// ปักหมุดตำแหน่งหอพัก: ลากแผนที่ให้หมุดตรงตำแหน่ง แล้วกดยืนยัน
 /// คืนค่าเป็น LatLng ของจุดกึ่งกลางหมุด (pop(LatLng))

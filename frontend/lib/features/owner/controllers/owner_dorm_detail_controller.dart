@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 
-import '../../models/dormitory.dart';
-import '../../models/review.dart';
+import '../../../shared/models/dormitory.dart';
+import '../../../shared/models/review.dart';
 import 'dormitory_controller.dart';
-import 'owner_extras.dart';
+import '../services/owner_extras.dart';
 
 /// หน้ารายละเอียดหอของเจ้าของ: โหลดข้อมูลหอ รีวิว amenities และค่าน้ำ-ไฟ
 /// สลับการแสดงให้นักศึกษาเห็น และลบหอ

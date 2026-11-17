@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../models/dormitory.dart';
-import '../../services/api_client.dart';
+import '../../../shared/models/dormitory.dart';
+import '../../../core/network/api_client.dart';
 import 'dormitory_controller.dart';
-import 'dormitory_rules.dart';
-import 'owner_extras.dart';
+import '../validation/dormitory_rules.dart';
+import '../services/owner_extras.dart';
 
 /// ผลการบันทึกฟอร์มหอ
 class DormSaveResult {
@@ -207,6 +207,12 @@ class OwnerDormFormController extends ChangeNotifier {
     }
     if (!isEdit && _pending.isEmpty) {
       _error = StateError('Add at least 1 photo');
+      notifyListeners();
+      return null;
+    }
+    // หอใหม่ต้องแนบเอกสารความเป็นเจ้าของให้ admin ตรวจ
+    if (!isEdit && _document == null) {
+      _error = StateError('Attach an ownership document');
       notifyListeners();
       return null;
     }

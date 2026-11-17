@@ -1,14 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/controller/student/dorm_detail_controller.dart';
-import 'package:hopak_frontend/controller/student/dorm_search_controller.dart';
-import 'package:hopak_frontend/controller/student/favorites_controller.dart';
-import 'package:hopak_frontend/controller/student/student_home_controller.dart';
-import 'package:hopak_frontend/services/api_client.dart';
-import 'package:hopak_frontend/services/chat_service.dart';
-import 'package:hopak_frontend/services/favorite_service.dart';
-import 'package:hopak_frontend/services/public_dormitory_service.dart';
+import 'package:hopak_frontend/features/student/controllers/dorm_detail_controller.dart';
+import 'package:hopak_frontend/features/student/controllers/dorm_search_controller.dart';
+import 'package:hopak_frontend/features/student/controllers/favorites_controller.dart';
+import 'package:hopak_frontend/features/student/controllers/student_home_controller.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
+import 'package:hopak_frontend/features/chat/services/chat_service.dart';
+import 'package:hopak_frontend/features/student/services/favorite_service.dart';
+import 'package:hopak_frontend/features/student/services/public_dormitory_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 

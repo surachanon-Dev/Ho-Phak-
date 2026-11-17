@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/controller/owner/location_picker_controller.dart';
-import 'package:hopak_frontend/widgets/dorm_map.dart';
+import 'package:hopak_frontend/features/owner/controllers/location_picker_controller.dart';
+import 'package:hopak_frontend/shared/widgets/dorm_map.dart';
 import 'package:latlong2/latlong.dart';
 
 void main() {

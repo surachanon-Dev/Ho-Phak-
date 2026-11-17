@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../services/admin_service.dart';
-import '../services/api_client.dart';
+import '../../../core/network/api_client.dart';
 
 /// หน้า Users ของแอดมิน: โหลดผู้ใช้ (กรองด้วย role/status) ระงับ และยกเลิกการระงับ
 class AdminUsersController extends ChangeNotifier {

@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 
-import '../../models/dormitory.dart';
-import '../../models/favorite.dart';
-import '../../models/review.dart';
-import '../../services/chat_service.dart';
-import '../../services/favorite_service.dart';
-import '../../services/public_dormitory_service.dart';
+import '../../../shared/models/dormitory.dart';
+import '../../../shared/models/favorite.dart';
+import '../../../shared/models/review.dart';
+import '../../chat/services/chat_service.dart';
+import '../services/favorite_service.dart';
+import '../services/public_dormitory_service.dart';
 
 /// รายละเอียดหอพักฝั่งนักศึกษา: ข้อมูลหอ รีวิว สถานะรายการโปรด
 /// การเปิดแชท และการส่งรีวิว

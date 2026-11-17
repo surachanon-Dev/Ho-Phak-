@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../models/user.dart';
-import '../services/api_client.dart';
-import '../services/auth_service.dart';
+import '../../../shared/models/user.dart';
+import '../../../core/network/api_client.dart';
+import '../../auth/services/auth_service.dart';
 
 typedef AdminPasswordUpdater = Future<void> Function({
   required String currentPassword,

@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/controller/chat/chat_list_controller.dart';
-import 'package:hopak_frontend/controller/chat/chat_room_controller.dart';
-import 'package:hopak_frontend/models/chat.dart';
-import 'package:hopak_frontend/services/api_client.dart';
-import 'package:hopak_frontend/services/chat_service.dart';
+import 'package:hopak_frontend/features/chat/controllers/chat_list_controller.dart';
+import 'package:hopak_frontend/features/chat/controllers/chat_room_controller.dart';
+import 'package:hopak_frontend/shared/models/chat.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
+import 'package:hopak_frontend/features/chat/services/chat_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 

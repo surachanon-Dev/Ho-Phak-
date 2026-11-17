@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/controller/owner/api_owner_extras.dart';
-import 'package:hopak_frontend/controller/owner/dormitory_controller.dart';
-import 'package:hopak_frontend/controller/owner/owner_review_and_verification_controllers.dart';
-import 'package:hopak_frontend/controller/owner/verification_controller.dart';
-import 'package:hopak_frontend/services/api_client.dart';
+import 'package:hopak_frontend/features/owner/services/api_owner_extras.dart';
+import 'package:hopak_frontend/features/owner/controllers/dormitory_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/owner_review_and_verification_controllers.dart';
+import 'package:hopak_frontend/features/owner/controllers/verification_controller.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 

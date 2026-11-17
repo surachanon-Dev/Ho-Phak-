@@ -8,6 +8,8 @@
 /// สัญญา endpoint ทั้งหมดอยู่ใน vault: `Project/Spec - Owner extras API (รอเชื่อม backend).md`
 library;
 
+import 'dart:typed_data';
+
 /// สิ่งอำนวยความสะดวก (ตาราง `amenities`)
 class Amenity {
   const Amenity(this.id, this.name);
@@ -73,10 +75,13 @@ UtilityMode utilityModeFor({required double? rate, UtilityMode? saved}) {
 
 /// เอกสารกรรมสิทธิ์ของหอ (ชื่อไฟล์ + ขนาด)
 class DormDocument {
-  const DormDocument({required this.name, required this.sizeBytes});
+  const DormDocument({required this.name, required this.sizeBytes, this.bytes});
 
   final String name;
   final int sizeBytes;
+
+  /// เนื้อไฟล์ที่เลือกในฟอร์ม (ใช้อัปโหลดตอนบันทึก) เป็น null เมื่อโหลดจากที่เก็บในเครื่อง
+  final Uint8List? bytes;
 
   Map<String, dynamic> toJson() => {'name': name, 'size': sizeBytes};
 

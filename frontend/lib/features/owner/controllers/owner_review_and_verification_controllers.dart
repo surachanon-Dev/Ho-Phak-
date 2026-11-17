@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 
-import '../../models/verification.dart';
-import '../../services/api_client.dart';
+import '../../../shared/models/verification.dart';
+import '../../../core/network/api_client.dart';
 import 'dormitory_controller.dart';
-import 'owner_extras.dart';
+import '../services/owner_extras.dart';
 import 'verification_controller.dart';
 
 /// หน้ารีวิวของฉัน (อ่านอย่างเดียว + report): โหลดรีวิวทุกหอ กรองตามหอ และ report รีวิว

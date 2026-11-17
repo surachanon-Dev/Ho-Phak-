@@ -1,6 +1,6 @@
 import 'package:latlong2/latlong.dart';
 
-import '../widgets/dorm_map.dart' show mfuCenter;
+import '../../shared/widgets/dorm_map.dart' show mfuCenter;
 
 /// ระยะจากมหาวิทยาลัยแม่ฟ้าหลวง เป็นกิโลเมตร ทศนิยม 1 ตำแหน่ง (เช่น "1.2")
 String kmFromMfu(double latitude, double longitude) {

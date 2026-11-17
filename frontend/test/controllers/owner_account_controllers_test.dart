@@ -1,13 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/controller/owner/api_owner_extras.dart';
-import 'package:hopak_frontend/controller/owner/owner_account_controller.dart';
-import 'package:hopak_frontend/controller/owner/owner_account_screens_controllers.dart';
-import 'package:hopak_frontend/controller/owner/owner_extras.dart';
-import 'package:hopak_frontend/services/api_client.dart';
-import 'package:hopak_frontend/services/auth_service.dart';
-import 'package:hopak_frontend/services/token_store.dart';
+import 'package:hopak_frontend/features/owner/services/api_owner_extras.dart';
+import 'package:hopak_frontend/features/owner/controllers/owner_account_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/owner_account_screens_controllers.dart';
+import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
+import 'package:hopak_frontend/features/auth/services/auth_service.dart';
+import 'package:hopak_frontend/core/network/token_store.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 

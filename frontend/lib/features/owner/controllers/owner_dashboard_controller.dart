@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../../models/dormitory.dart';
+import '../../../shared/models/dormitory.dart';
 import 'dormitory_controller.dart';
 
 /// หน้า Dashboard ของเจ้าของ: รายการหอทั้งหมดของเจ้าของ และสรุปสถานะ

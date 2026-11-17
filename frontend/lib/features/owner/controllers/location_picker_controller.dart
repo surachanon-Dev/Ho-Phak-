@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../ui/format.dart';
-import '../../widgets/dorm_map.dart';
+import '../../../core/utils/format.dart';
+import '../../../shared/widgets/dorm_map.dart';
 
 /// ผลการขอตำแหน่งปัจจุบันของเครื่อง
 class DeviceLocationResult {

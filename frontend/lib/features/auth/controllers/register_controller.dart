@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../services/api_client.dart';
-import '../../services/auth_service.dart';
+import '../../../core/network/api_client.dart';
+import '../services/auth_service.dart';
 
 /// ข้อมูลฟอร์มสมัครสมาชิก
 class RegisterInput {

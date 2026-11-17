@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../controller/owner/owner_account_rules.dart';
-import '../../controller/owner/owner_account_screens_controllers.dart';
-import '../../services/app_services.dart';
-import '../../ui/app_theme.dart';
-import '../../ui/error_handling.dart';
+import '../validation/owner_account_rules.dart';
+import '../controllers/owner_account_screens_controllers.dart';
+import '../../../core/app_services.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/error_handling.dart';
 
 /// เปลี่ยนรหัสผ่าน: รหัสเดิม + รหัสใหม่ + ยืนยัน (อย่างน้อย 8 ตัวอักษร)
 class ChangePasswordScreen extends StatefulWidget {

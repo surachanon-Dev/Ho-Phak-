@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
 import '../services/admin_service.dart';
-import '../services/api_client.dart';
-import 'admin_users_controller.dart';
+import '../../../core/network/api_client.dart';
+import '../moderation/admin_users_controller.dart';
 
 /// หน้ารายละเอียดผู้ใช้ของแอดมิน: โหลดผู้ใช้ 1 คนพร้อมหอของเจ้าของ และระงับ/ยกเลิกการระงับ
 class AdminUserDetailController extends ChangeNotifier {

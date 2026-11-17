@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/models/dormitory.dart';
-import 'package:hopak_frontend/screens/owner/dashboard_screen.dart' show formatBaht;
-import 'package:hopak_frontend/ui/status_style.dart';
+import 'package:hopak_frontend/shared/models/dormitory.dart';
+import 'package:hopak_frontend/features/owner/screens/dashboard_screen.dart' show formatBaht;
+import 'package:hopak_frontend/core/utils/status_style.dart';
 
 void main() {
   test('formatBaht ใส่จุลภาคคั่นหลักพัน', () {

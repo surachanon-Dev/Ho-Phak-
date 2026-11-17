@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
-import '../../models/verification.dart';
-import '../../services/api_client.dart';
-import '../../controller/owner/owner_review_and_verification_controllers.dart';
-import '../../controller/owner/verification_controller.dart';
-import '../../services/app_services.dart';
-import '../../ui/error_handling.dart';
-import '../login_screen.dart';
+import '../../../shared/models/verification.dart';
+import '../../../core/network/api_client.dart';
+import '../controllers/owner_review_and_verification_controllers.dart';
+import '../controllers/verification_controller.dart';
+import '../../../core/app_services.dart';
+import '../../../core/utils/error_handling.dart';
+import '../../auth/screens/login_screen.dart';
 
 /// หน้าการยืนยันตัวตนเจ้าของหอพัก
 /// gate = true เมื่อยังไม่ได้ยืนยัน: แสดงเป็นหน้าหลักของแอปจนกว่าจะยืนยัน

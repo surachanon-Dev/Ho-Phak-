@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../controller/notifications/notifications_controller.dart';
-import '../models/notification.dart';
-import '../services/app_services.dart';
-import '../ui/app_theme.dart';
-import '../ui/error_handling.dart';
+import '../controllers/notifications_controller.dart';
+import '../../../shared/models/notification.dart';
+import '../../../core/app_services.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/error_handling.dart';
 
 /// การแจ้งเตือน: แสดง 50 รายการล่าสุด กดแล้วทำเครื่องหมายว่าอ่านแล้ว
 /// หมายเหตุ: หน้า "ตั้งค่าการแจ้งเตือน" ในดีไซน์ยังไม่มี API จึงยังไม่ทำ

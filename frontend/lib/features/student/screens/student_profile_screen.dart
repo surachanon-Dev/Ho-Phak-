@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../models/user.dart';
-import '../../services/app_services.dart';
-import '../login_screen.dart';
-import '../notifications_screen.dart';
+import '../../../shared/models/user.dart';
+import '../../../core/app_services.dart';
+import '../../auth/screens/login_screen.dart';
+import '../../notifications/screens/notifications_screen.dart';
 
 /// โปรไฟล์นักศึกษา: การแจ้งเตือน, ติดต่อแอดมิน และออกจากระบบ
 /// หมายเหตุ: แก้ไขโปรไฟล์, รีวิวของฉัน และสมัครเป็นเจ้าของ ยังไม่มี API ใน TEST-API.js

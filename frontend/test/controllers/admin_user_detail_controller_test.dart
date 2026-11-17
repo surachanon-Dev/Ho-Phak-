@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/controllers/admin_user_detail_controller.dart';
-import 'package:hopak_frontend/services/admin_service.dart';
-import 'package:hopak_frontend/services/api_client.dart';
+import 'package:hopak_frontend/features/admin/user_detail/admin_user_detail_controller.dart';
+import 'package:hopak_frontend/features/admin/services/admin_service.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';

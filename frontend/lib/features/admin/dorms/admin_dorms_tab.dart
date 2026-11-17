@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../controllers/admin_dorms_controller.dart';
-import '../../services/admin_service.dart';
-import '../../services/app_services.dart';
-import '../../ui/error_handling.dart';
+import 'dart:typed_data';
+
+import 'admin_dorms_controller.dart';
+import '../services/admin_service.dart';
+import '../../../core/app_services.dart';
+import '../../../shared/widgets/document_viewer.dart';
+import '../../../core/utils/error_handling.dart';
 
 /// หน้า Dorms ของแอดมิน (เมนู Dorms)
 /// - Awaiting review: หอใหม่และฉบับแก้ไขที่รอตรวจ อนุมัติ/ปฏิเสธ
@@ -150,6 +153,10 @@ class _AdminDormsTabState extends State<AdminDormsTab>
               spacing: 4,
               children: [
                 TextButton(
+                  onPressed: () => _viewDocument(dormId.toInt(), name),
+                  child: const Text('Document'),
+                ),
+                TextButton(
                   onPressed: _c.busy ? null : () => _reject(dormId.toInt()),
                   child: const Text('Reject'),
                 ),
@@ -165,6 +172,19 @@ class _AdminDormsTabState extends State<AdminDormsTab>
         );
       },
     );
+  }
+
+  /// เปิดดูเอกสารความเป็นเจ้าของของหอ (ก่อนอนุมัติ)
+  Future<void> _viewDocument(int dormId, String name) async {
+    final Uint8List bytes;
+    try {
+      bytes = await AdminService(widget.services.api).dormitoryDocument(dormId);
+    } catch (e) {
+      if (mounted) showApiError(context, widget.services, e);
+      return;
+    }
+    if (!mounted) return;
+    await showDocumentViewer(context, name: name, bytes: bytes);
   }
 
   Future<void> _reject(int dormId) async {

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/services/api_client.dart';
-import 'package:hopak_frontend/controller/owner/local_owner_extras.dart';
-import 'package:hopak_frontend/controller/owner/owner_extras.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
+import 'package:hopak_frontend/features/owner/services/local_owner_extras.dart';
+import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {

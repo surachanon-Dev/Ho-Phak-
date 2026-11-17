@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/screens/admin/admin_moderation_tab.dart';
+import 'package:hopak_frontend/features/admin/moderation/admin_moderation_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/admin_test_helpers.dart';

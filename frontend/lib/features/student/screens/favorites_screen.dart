@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../controller/student/favorites_controller.dart';
-import '../../services/app_services.dart';
-import '../../ui/app_theme.dart';
-import '../../ui/error_handling.dart';
+import '../controllers/favorites_controller.dart';
+import '../../../core/app_services.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/error_handling.dart';
 import 'student_dorm_detail_screen.dart';
 
 /// รายการโปรด: หอที่ถูกซ่อนหรือระงับจะแสดงเป็น "ไม่พร้อมให้บริการ" และกดเข้าดูไม่ได้

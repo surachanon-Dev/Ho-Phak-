@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/ui/format.dart';
+import 'package:hopak_frontend/core/utils/format.dart';
 
 void main() {
   final now = DateTime(2026, 11, 9, 15, 30);

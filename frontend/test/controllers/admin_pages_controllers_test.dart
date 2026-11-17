@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/controllers/admin_activity_log_controller.dart';
-import 'package:hopak_frontend/controllers/admin_reviews_controller.dart';
-import 'package:hopak_frontend/controllers/admin_settings_controller.dart';
-import 'package:hopak_frontend/services/admin_service.dart';
-import 'package:hopak_frontend/services/api_client.dart';
+import 'package:hopak_frontend/features/admin/activity_log/admin_activity_log_controller.dart';
+import 'package:hopak_frontend/features/admin/reviews/admin_reviews_controller.dart';
+import 'package:hopak_frontend/features/admin/settings/admin_settings_controller.dart';
+import 'package:hopak_frontend/features/admin/services/admin_service.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'api_client.dart';
+import '../../../core/network/api_client.dart';
 
 /// รายการที่รอตรวจจาก GET /api/admin/queue
 /// เก็บเป็น Map ดิบ เพราะ field ของแต่ละรายการยังไม่ได้ทำเป็นโมเดล
@@ -88,6 +88,10 @@ class AdminService {
   /// GET /api/admin/verifications/:id/document → ไฟล์เอกสาร (ไม่เปิดสาธารณะ ต้องใช้ token แอดมิน)
   Future<Uint8List> verificationDocument(int id) =>
       _api.getBytes('/api/admin/verifications/$id/document');
+
+  /// GET /api/admin/dormitories/:id/document → ไฟล์เอกสารความเป็นเจ้าของหอฉบับล่าสุด (ต้องใช้ token แอดมิน)
+  Future<Uint8List> dormitoryDocument(int dormitoryId) =>
+      _api.getBytes('/api/admin/dormitories/$dormitoryId/document');
 
   /// GET /api/admin/dormitories?status= → { dormitories: [...] }
   Future<List<Map<String, dynamic>>> allDormitories({String? status}) async {

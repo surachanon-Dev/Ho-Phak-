@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../controller/student/student_home_controller.dart';
-import '../../models/dormitory.dart';
-import '../../models/user.dart';
-import '../../services/app_services.dart';
-import '../../ui/app_theme.dart';
-import '../../widgets/dorm_card.dart';
+import '../controllers/student_home_controller.dart';
+import '../../../shared/models/dormitory.dart';
+import '../../../shared/models/user.dart';
+import '../../../core/app_services.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../shared/widgets/dorm_card.dart';
 import 'search_screen.dart';
 import 'student_dorm_detail_screen.dart';
 

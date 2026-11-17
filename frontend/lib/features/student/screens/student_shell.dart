@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../models/user.dart';
-import '../../services/app_services.dart';
-import '../chat_list_screen.dart';
+import '../../../shared/models/user.dart';
+import '../../../core/app_services.dart';
+import '../../chat/screens/chat_list_screen.dart';
 import 'favorites_screen.dart';
 import 'search_screen.dart';
 import 'student_home_screen.dart';

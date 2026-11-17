@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../services/admin_service.dart';
-import '../services/api_client.dart';
+import '../../../core/network/api_client.dart';
 
 /// คำขอยืนยันตัวตนของเจ้าของ (แท็บ verification ของคิวตรวจ)
 /// แท็บ: pending (รอตรวจ) / approved (อนุมัติแล้ว) / rejected (ไม่ผ่าน)

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../models/user.dart';
-import '../services/auth_service.dart';
+import '../../../shared/models/user.dart';
+import '../../auth/services/auth_service.dart';
 
 /// โปรไฟล์แอดมิน: โหลดบัญชีที่ login อยู่ และออกจากระบบ
 class AdminProfileController extends ChangeNotifier {

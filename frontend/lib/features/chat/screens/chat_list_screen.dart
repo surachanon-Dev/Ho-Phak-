@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../controller/chat/chat_list_controller.dart';
-import '../models/chat.dart';
-import '../services/app_services.dart';
-import '../ui/app_theme.dart';
-import '../ui/error_handling.dart';
-import '../ui/format.dart';
+import '../controllers/chat_list_controller.dart';
+import '../../../shared/models/chat.dart';
+import '../../../core/app_services.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/error_handling.dart';
+import '../../../core/utils/format.dart';
 import 'chat_room_screen.dart';
 
 /// รายการแชท (ใช้ทั้งฝั่ง owner และ student) — หน้าตาตาม Figma O-6:

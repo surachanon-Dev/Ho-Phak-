@@ -1,6 +1,6 @@
-import '../models/user.dart';
-import 'api_client.dart';
-import 'token_store.dart';
+import '../../../shared/models/user.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/network/token_store.dart';
 
 class AuthService {
   AuthService(this._api, this._tokens);

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../controllers/admin_reviews_controller.dart';
-import '../../services/admin_service.dart';
-import '../../services/app_services.dart';
-import '../../ui/error_handling.dart';
+import 'admin_reviews_controller.dart';
+import '../services/admin_service.dart';
+import '../../../core/app_services.dart';
+import '../../../core/utils/error_handling.dart';
 
 class AdminReviewsTab extends StatefulWidget {
   const AdminReviewsTab({super.key, required this.services});

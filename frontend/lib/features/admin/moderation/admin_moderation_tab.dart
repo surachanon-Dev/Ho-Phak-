@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../controllers/admin_amenities_controller.dart';
-import '../../controllers/admin_user_detail_controller.dart';
-import '../../controllers/admin_users_controller.dart';
-import '../../services/admin_service.dart';
-import 'admin_user_detail_screen.dart';
-import '../../services/app_services.dart';
-import '../../ui/error_handling.dart';
-import '../../ui/responsive.dart';
+import 'admin_amenities_controller.dart';
+import '../user_detail/admin_user_detail_controller.dart';
+import 'admin_users_controller.dart';
+import '../services/admin_service.dart';
+import '../user_detail/admin_user_detail_screen.dart';
+import '../../../core/app_services.dart';
+import '../../../core/utils/error_handling.dart';
+import '../../../core/utils/responsive.dart';
 
 /// รวมทั้งหน้า 05 · USERS (A-4 ถึง A-4d) และหน้า 07 · Amenities (A-7 ถึง A-7b) ไว้ในไฟล์เดียว
 /// วางทับที่: ช่องที่ 3 ในโฟลเดอร์ admin (lib/screens/admin/admin_moderation_tab.dart)

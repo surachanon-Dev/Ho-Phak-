@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/controller/owner/api_owner_extras.dart';
-import 'package:hopak_frontend/controller/owner/dormitory_controller.dart';
-import 'package:hopak_frontend/controller/owner/dormitory_rules.dart';
-import 'package:hopak_frontend/controller/owner/owner_dorm_form_controller.dart';
-import 'package:hopak_frontend/controller/owner/owner_extras.dart';
-import 'package:hopak_frontend/models/dormitory.dart';
-import 'package:hopak_frontend/services/api_client.dart';
+import 'package:hopak_frontend/features/owner/services/api_owner_extras.dart';
+import 'package:hopak_frontend/features/owner/controllers/dormitory_controller.dart';
+import 'package:hopak_frontend/features/owner/validation/dormitory_rules.dart';
+import 'package:hopak_frontend/features/owner/controllers/owner_dorm_form_controller.dart';
+import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
+import 'package:hopak_frontend/shared/models/dormitory.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -79,6 +79,9 @@ void main() {
         }
         if (req.method == 'POST' && req.url.path == '/api/owner/dormitories/42/images') {
           return _json({'message': 'ok'}, 201);
+        }
+        if (req.method == 'POST' && req.url.path == '/api/owner/dormitories/42/document') {
+          return _json({'message': 'ส่งเอกสารให้ admin ตรวจแล้ว'}, 201);
         }
         if (req.method == 'GET' && req.url.path == '/api/amenities') {
           return _json({'amenities': [{'id': 1, 'name': 'Wi-Fi'}, {'id': 2, 'name': 'CCTV'}]});
@@ -235,6 +238,7 @@ void main() {
       final c = build(log);
       _fillValid(c);
       c.addPending([_photo()]);
+      c.setDocument(DormDocument(name: 'deed.pdf', sizeBytes: 3, bytes: Uint8List.fromList([1, 2, 3])));
 
       final result = await c.save();
 
@@ -247,6 +251,7 @@ void main() {
       expect(body.containsKey('water_rate'), isFalse, reason: 'ไม่ได้ตั้งอัตราน้ำ');
       expect(log.any((r) => r.method == 'PUT' && r.url.path == '/api/owner/dormitories/42/utilities'), isTrue);
       expect(log.any((r) => r.method == 'POST' && r.url.path == '/api/owner/dormitories/42/images'), isTrue);
+      expect(log.any((r) => r.method == 'POST' && r.url.path == '/api/owner/dormitories/42/document'), isTrue);
       expect(c.saving, isFalse);
     });
 
@@ -260,11 +265,22 @@ void main() {
       });
       _fillValid(c);
       c.addPending([_photo()]);
+      c.setDocument(DormDocument(name: 'deed.pdf', sizeBytes: 3, bytes: Uint8List.fromList([1, 2, 3])));
 
       final result = await c.save();
 
       expect(result?.dormId, 42);
       expect(result?.photoError, contains('Dorm saved, but photos were not uploaded'));
+    });
+
+    test('save หอใหม่ที่ไม่มีเอกสารความเป็นเจ้าของไม่ยิง request', () async {
+      final log = <http.Request>[];
+      final c = build(log);
+      _fillValid(c);
+      c.addPending([_photo()]);
+      expect(await c.save(), isNull);
+      expect(log, isEmpty);
+      expect(c.error, isA<StateError>());
     });
 
     test('save หอที่มีอยู่แล้วใช้ PUT และไม่ต้องมีรูปใหม่', () async {
@@ -290,7 +306,7 @@ void main() {
       final c = build([], handler: (req) => _json({'message': 'DB error'}, 500));
       _fillValid(c);
       c.addPending([_photo()]);
-
+      c.setDocument(DormDocument(name: 'deed.pdf', sizeBytes: 3, bytes: Uint8List.fromList([1, 2, 3])));
       expect(await c.save(), isNull);
       expect(c.error, isA<ApiException>());
       expect(c.saving, isFalse);

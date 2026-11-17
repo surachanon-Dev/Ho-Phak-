@@ -1,6 +1,6 @@
-import '../models/dormitory.dart';
-import '../models/review.dart';
-import 'api_client.dart';
+import '../../../shared/models/dormitory.dart';
+import '../../../shared/models/review.dart';
+import '../../../core/network/api_client.dart';
 
 /// endpoint สาธารณะของนักศึกษา (ไม่ต้อง login ก็เรียกได้)
 class PublicDormitoryService {
