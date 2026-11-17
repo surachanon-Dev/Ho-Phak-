@@ -3,7 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/student/home/student_home_screen.dart';
+import 'package:hopak_frontend/features/student/screens/student_home_screen.dart';
 import 'package:hopak_frontend/shared/models/user.dart';
 
 import '../../../helpers/admin_test_helpers.dart';

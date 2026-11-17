@@ -3,8 +3,8 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/chat/chat_list/chat_list_controller.dart';
-import 'package:hopak_frontend/features/chat/chat_room/chat_room_controller.dart';
+import 'package:hopak_frontend/features/chat/controllers/chat_list_controller.dart';
+import 'package:hopak_frontend/features/chat/controllers/chat_room_controller.dart';
 import 'package:hopak_frontend/shared/models/chat.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:hopak_frontend/features/chat/services/chat_service.dart';

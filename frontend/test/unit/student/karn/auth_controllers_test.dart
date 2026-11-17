@@ -3,8 +3,8 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/auth/login/login_controller.dart';
-import 'package:hopak_frontend/features/auth/register/register_controller.dart';
+import 'package:hopak_frontend/features/auth/controllers/login_controller.dart';
+import 'package:hopak_frontend/features/auth/controllers/register_controller.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:hopak_frontend/features/auth/services/auth_service.dart';
 import 'package:hopak_frontend/core/network/token_store.dart';

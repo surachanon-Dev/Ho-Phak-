@@ -2,9 +2,9 @@
 // ทดสอบหน้า: หน้าต้อนรับ เข้าสู่ระบบ และสมัครสมาชิก (welcome, login, register)
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/auth/login/login_screen.dart';
-import 'package:hopak_frontend/features/auth/register/register_screen.dart';
-import 'package:hopak_frontend/features/auth/welcome/welcome_screen.dart';
+import 'package:hopak_frontend/features/auth/screens/login_screen.dart';
+import 'package:hopak_frontend/features/auth/screens/register_screen.dart';
+import 'package:hopak_frontend/features/auth/screens/welcome_screen.dart';
 
 import '../../../helpers/admin_test_helpers.dart';
 import '../../../helpers/test_services.dart';

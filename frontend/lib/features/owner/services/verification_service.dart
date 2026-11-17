@@ -1,5 +1,5 @@
-import 'package:hopak_frontend/shared/models/verification.dart';
-import 'package:hopak_frontend/core/network/api_client.dart';
+import '../../../shared/models/verification.dart';
+import '../../../core/network/api_client.dart';
 
 class VerificationService {
   VerificationService(this._api);

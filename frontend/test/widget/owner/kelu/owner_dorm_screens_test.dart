@@ -1,10 +1,10 @@
 // เทสต์ widget ของหน้าหอพักฝั่ง owner: Dashboard, Dormitory detail, Dormitory form, Location picker
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/owner/dashboard/dashboard_screen.dart';
-import 'package:hopak_frontend/features/owner/dorm_detail/dormitory_detail_screen.dart';
-import 'package:hopak_frontend/features/owner/dorm_form/dormitory_form_screen.dart';
-import 'package:hopak_frontend/features/owner/dorm_form/location_picker_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/dashboard_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/dormitory_detail_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/dormitory_form_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/location_picker_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'owner_test_helpers.dart';

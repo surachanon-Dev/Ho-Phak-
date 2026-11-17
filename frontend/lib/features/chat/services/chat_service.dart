@@ -1,5 +1,5 @@
-import 'package:hopak_frontend/shared/models/chat.dart';
-import 'package:hopak_frontend/core/network/api_client.dart';
+import '../../../shared/models/chat.dart';
+import '../../../core/network/api_client.dart';
 
 class ChatService {
   ChatService(this._api);

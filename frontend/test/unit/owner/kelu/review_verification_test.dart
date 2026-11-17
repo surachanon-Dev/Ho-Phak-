@@ -10,8 +10,8 @@ import 'package:hopak_frontend/features/owner/services/verification_service.dart
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:hopak_frontend/features/owner/my_reviews/my_reviews_controller.dart';
-import 'package:hopak_frontend/features/owner/verification/verification_screen_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/my_reviews_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/verification_screen_controller.dart';
 
 http.Response _json(Object body, [int status = 200]) => http.Response(
   jsonEncode(body),

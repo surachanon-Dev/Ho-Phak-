@@ -2,7 +2,7 @@
 // ไฟล์นี้เป็นเทสต์ widget ของหน้าที่ระบุในชื่อไฟล์
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/admin/reviews/reviews_tab.dart';
+import 'package:hopak_frontend/features/admin/reviews/admin_reviews_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../helpers/admin_test_helpers.dart';

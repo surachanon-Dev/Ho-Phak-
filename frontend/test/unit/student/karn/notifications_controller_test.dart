@@ -3,7 +3,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/notifications/notifications_controller.dart';
+import 'package:hopak_frontend/features/notifications/controllers/notifications_controller.dart';
 import 'package:hopak_frontend/shared/models/notification.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:hopak_frontend/features/notifications/services/notification_service.dart';

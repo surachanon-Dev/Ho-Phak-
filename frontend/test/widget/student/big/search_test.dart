@@ -2,7 +2,7 @@
 // ทดสอบหน้า: ค้นหาหอพัก (search_screen)
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/student/search/search_screen.dart';
+import 'package:hopak_frontend/features/student/screens/search_screen.dart';
 
 import '../../../helpers/admin_test_helpers.dart';
 import '../../../helpers/test_services.dart';

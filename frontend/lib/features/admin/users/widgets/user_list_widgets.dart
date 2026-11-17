@@ -1,48 +1,75 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_theme.dart';
+import '../../../../shared/widgets/ui/ui.dart';
+
+/// ดรอปดาวน์ตัวกรองแบบกรอบมน
 class FilterDropdown extends StatelessWidget {
   const FilterDropdown({
     super.key,
     required this.value,
     required this.items,
     required this.onChanged,
+    this.icon,
   });
 
   final String value;
   final List<String> items;
   final ValueChanged<String?> onChanged;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 36,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          icon: const Padding(
-            padding: EdgeInsets.only(left: 6),
-            child: Icon(
-              Icons.keyboard_arrow_down,
-              size: 16,
-              color: Color(0xFF475569),
-            ),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 260),
+      child: IntrinsicWidth(
+        child: Container(
+          height: 44,
+          padding: const EdgeInsets.only(left: 12, right: 8),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: AppColors.border),
           ),
-          style: const TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF0F172A),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 17, color: AppColors.textMuted),
+                const SizedBox(width: 6),
+              ],
+              Expanded(
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: value,
+                    isExpanded: true,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    icon: const Padding(
+                      padding: EdgeInsets.only(left: 6),
+                      child: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 18,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.text,
+                    ),
+                    onChanged: onChanged,
+                    items: [
+                      for (final item in items)
+                        DropdownMenuItem(
+                          value: item,
+                          child: Text(item, overflow: TextOverflow.ellipsis),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-          onChanged: onChanged,
-          items: [
-            for (final item in items)
-              DropdownMenuItem(value: item, child: Text(item)),
-          ],
         ),
       ),
     );
@@ -56,30 +83,12 @@ class RolePill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bg;
-    Color fg;
-    if (role == 'Owner') {
-      bg = const Color(0xFFDBEAFE);
-      fg = const Color(0xFF1D4ED8);
-    } else if (role == 'Admin') {
-      bg = const Color(0xFFFEF3C7);
-      fg = const Color(0xFFB45309);
-    } else {
-      bg = const Color(0xFFF1F5F9);
-      fg = const Color(0xFF475569);
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2.5),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        role,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: fg),
-      ),
-    );
+    final (tone, icon) = switch (role) {
+      'Owner' => (Tone.primary, Icons.home_work_outlined),
+      'Admin' => (Tone.warning, Icons.shield_outlined),
+      _ => (Tone.info, Icons.school_outlined),
+    };
+    return ToneBadge(label: role, tone: tone, icon: icon);
   }
 }
 
@@ -90,21 +99,11 @@ class UserStatusPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSuspended = status == 'Suspended';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2.5),
-      decoration: BoxDecoration(
-        color: isSuspended ? const Color(0xFFC92A2A) : const Color(0xFFDCFCE7),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: isSuspended ? Colors.white : const Color(0xFF15803D),
-        ),
-      ),
+    final suspended = status == 'Suspended';
+    return ToneBadge(
+      label: status,
+      tone: suspended ? Tone.danger : Tone.success,
+      solid: suspended,
     );
   }
 }

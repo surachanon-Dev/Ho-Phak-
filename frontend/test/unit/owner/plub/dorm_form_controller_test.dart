@@ -7,7 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/features/owner/services/api_owner_extras.dart';
 import 'package:hopak_frontend/features/owner/services/dormitory_service.dart';
 import 'package:hopak_frontend/features/owner/validation/dormitory_rules.dart';
-import 'package:hopak_frontend/features/owner/dorm_form/owner_dorm_form_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/owner_dorm_form_controller.dart';
 import 'package:hopak_frontend/shared/models/dormitory.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:latlong2/latlong.dart';

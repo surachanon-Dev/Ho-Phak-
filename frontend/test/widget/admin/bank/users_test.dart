@@ -1,7 +1,7 @@
 // ผู้รับผิดชอบ: Bank (แอดมิน)
 // ไฟล์นี้เป็นเทสต์ widget ของหน้าที่ระบุในชื่อไฟล์
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/admin/users/users_tab.dart';
+import 'package:hopak_frontend/features/admin/users/admin_users_tab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../helpers/admin_test_helpers.dart';

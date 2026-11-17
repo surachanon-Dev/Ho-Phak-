@@ -1,7 +1,7 @@
 // ผู้รับผิดชอบ: Plub (เจ้าของหอ)
 // ไฟล์นี้เป็นเทสต์ unit ของ controller ที่ระบุในชื่อ group
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/owner/dorm_form/location_picker_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/location_picker_controller.dart';
 import 'package:hopak_frontend/shared/widgets/dorm_map.dart';
 import 'package:latlong2/latlong.dart';
 

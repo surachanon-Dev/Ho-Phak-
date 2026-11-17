@@ -11,10 +11,10 @@ import 'package:hopak_frontend/core/network/token_store.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:hopak_frontend/features/owner/models/owner_profile.dart';
-import 'package:hopak_frontend/features/owner/profile/owner_profile_controller.dart';
-import 'package:hopak_frontend/features/owner/edit_profile/edit_profile_controller.dart';
-import 'package:hopak_frontend/features/owner/change_password/change_password_controller.dart';
-import 'package:hopak_frontend/features/owner/notification_settings/notification_settings_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/owner_profile_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/edit_profile_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/change_password_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/notification_settings_controller.dart';
 
 http.Response _json(Object body, [int status = 200]) => http.Response(
   jsonEncode(body),

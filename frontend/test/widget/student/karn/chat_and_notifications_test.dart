@@ -2,8 +2,8 @@
 // ทดสอบหน้า: รายการแชท และการแจ้งเตือน (chat_list_screen, notifications_screen)
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/chat/chat_list/chat_list_screen.dart';
-import 'package:hopak_frontend/features/notifications/notifications_screen.dart';
+import 'package:hopak_frontend/features/chat/screens/chat_list_screen.dart';
+import 'package:hopak_frontend/features/notifications/screens/notifications_screen.dart';
 
 import '../../../helpers/admin_test_helpers.dart';
 import '../../../helpers/test_services.dart';

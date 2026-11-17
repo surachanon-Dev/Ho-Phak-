@@ -24,7 +24,8 @@ class DormitoryRules {
   static String? price(String? v) {
     final n = int.tryParse((v ?? '').trim());
     if (n == null) return 'Enter a whole number';
-    if (n < 1 || n > 1000000) return 'Price must be between 1 and 1,000,000 THB';
+    if (n < 1 || n > 1000000)
+      return 'Price must be between 1 and 1,000,000 THB';
     return null;
   }
 

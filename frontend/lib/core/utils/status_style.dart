@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 
-import 'package:hopak_frontend/shared/models/dormitory.dart';
+import '../../shared/models/dormitory.dart';
 
-/// สีของชิปสถานะหอพัก (พื้นสีอ่อน + ตัวอักษรเข้ม ตาม Figma; Suspended เป็นพื้นเข้ม)
+/// สีของชิปสถานะหอพัก (พื้นสีอ่อน + ตัวอักษรเข้ม; Suspended เป็นพื้นเข้ม)
 ({Color bg, Color fg}) statusStyle(String status) => switch (status) {
   DormStatus.published => (
-    bg: const Color(0xFFDDF5E3),
-    fg: const Color(0xFF1B6B33),
+    bg: const Color(0xFFE7F8F1),
+    fg: const Color(0xFF047857),
   ),
   DormStatus.pending => (
-    bg: const Color(0xFFFFF0C2),
-    fg: const Color(0xFF8A5A00),
+    bg: const Color(0xFFFFF6E5),
+    fg: const Color(0xFFB45309),
   ),
   DormStatus.changesPending => (
-    bg: const Color(0xFFE9E1FB),
-    fg: const Color(0xFF5B34B1),
+    bg: const Color(0xFFF1EBFE),
+    fg: const Color(0xFF6D28D9),
   ),
   DormStatus.rejected => (
-    bg: const Color(0xFFFCE0E0),
-    fg: const Color(0xFFB3261E),
+    bg: const Color(0xFFFDECEC),
+    fg: const Color(0xFFB91C1C),
   ),
-  DormStatus.suspended => (bg: const Color(0xFFB3261E), fg: Colors.white),
-  _ => (bg: const Color(0xFFE6E8EC), fg: const Color(0xFF4B5563)), // hidden
+  DormStatus.suspended => (bg: const Color(0xFFDC2626), fg: Colors.white),
+  _ => (bg: const Color(0xFFEFF1F5), fg: const Color(0xFF475569)), // hidden
 };
 
 /// สีเดียวสำหรับข้อความ/ไอคอนที่อิงสถานะ
@@ -36,7 +36,7 @@ class StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = statusStyle(displayStatus);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: style.bg,
         borderRadius: BorderRadius.circular(999),

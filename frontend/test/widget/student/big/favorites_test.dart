@@ -2,7 +2,7 @@
 // ทดสอบหน้า: รายการโปรด (favorites_screen)
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/student/favorites/favorites_screen.dart';
+import 'package:hopak_frontend/features/student/screens/favorites_screen.dart';
 
 import '../../../helpers/admin_test_helpers.dart';
 import '../../../helpers/test_services.dart';

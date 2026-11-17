@@ -4,7 +4,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/admin/user_detail/user_detail_screen.dart';
+import 'package:hopak_frontend/features/admin/user_detail/admin_user_detail_screen.dart';
 import 'package:hopak_frontend/core/app_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

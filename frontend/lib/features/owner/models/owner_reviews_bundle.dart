@@ -1,4 +1,4 @@
-import 'package:hopak_frontend/shared/models/review.dart';
+import '../../../shared/models/review.dart';
 
 /// รีวิวหนึ่งรายการพร้อมชื่อหอ (หน้า My reviews)
 class OwnerReviewEntry {

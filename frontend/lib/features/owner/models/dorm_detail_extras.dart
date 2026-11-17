@@ -1,5 +1,5 @@
-import 'package:hopak_frontend/features/owner/models/amenity.dart';
-import 'package:hopak_frontend/features/owner/models/dorm_utilities.dart';
+import 'amenity.dart';
+import 'dorm_utilities.dart';
 
 /// ข้อมูลเสริมของหน้า detail: amenities ที่หอนี้มี + ค่าน้ำไฟ
 class DormDetailExtras {

@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:hopak_frontend/core/network/api_client.dart';
+import '../../../core/network/api_client.dart';
 
 /// รายการที่รอตรวจจาก GET /api/admin/queue
 /// เก็บเป็น Map ดิบ เพราะ field ของแต่ละรายการยังไม่ได้ทำเป็นโมเดล
@@ -123,8 +123,9 @@ class AdminService {
 
   /// GET /api/admin/verifications?status=pending|approved|rejected → { verifications: [...] }
   Future<List<Map<String, dynamic>>> verifications(String status) async {
-    final data = await _api.get('/api/admin/verifications?status=$status')
-        as Map<String, dynamic>;
+    final data = await _api.get(
+      '/api/admin/verifications?status=$status',
+    ) as Map<String, dynamic>;
     return _list(data['verifications']);
   }
 
@@ -136,8 +137,9 @@ class AdminService {
 
   /// POST /api/admin/amenities { name } → { id }
   Future<int> createAmenity(String name) async {
-    final data = await _api.post('/api/admin/amenities', {'name': name})
-        as Map<String, dynamic>;
+    final data = await _api.post('/api/admin/amenities', {
+      'name': name,
+    }) as Map<String, dynamic>;
     return (data['id'] as num).toInt();
   }
 

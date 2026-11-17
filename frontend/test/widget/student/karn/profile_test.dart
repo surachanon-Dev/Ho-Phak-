@@ -2,7 +2,7 @@
 // ทดสอบหน้า: โปรไฟล์นักศึกษา (student_profile_screen)
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/student/profile/student_profile_screen.dart';
+import 'package:hopak_frontend/features/student/screens/student_profile_screen.dart';
 import 'package:hopak_frontend/shared/models/user.dart';
 
 import '../../../helpers/admin_test_helpers.dart';

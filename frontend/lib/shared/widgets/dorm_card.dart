@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
-import 'package:hopak_frontend/shared/models/dormitory.dart';
-import 'package:hopak_frontend/core/theme/app_theme.dart';
-import 'package:hopak_frontend/core/utils/format.dart';
-import 'package:hopak_frontend/features/student/widgets/student_widgets.dart';
+import '../models/dormitory.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/utils/format.dart';
+import '../../features/owner/widgets/owner_ui.dart' show DormCover;
+import '../../features/student/widgets/student_ui.dart';
+import 'ui/ui.dart';
 
-/// การ์ดหอพักฝั่งนักศึกษา (แนวนอน ตามดีไซน์ของ Frontend-Big):
-/// รูป ชื่อ ราคา โซน · ระยะจากมหาวิทยาลัย ห้องว่าง และคะแนนรีวิว
-/// รายการค้นหาของ backend ยังไม่ส่งรูปมา จึงแสดงกรอบรูปว่างแทน
+/// การ์ดหอพักฝั่งนักศึกษา (ธีมโครงใหม่): รูป ชื่อ โซน · ระยะจากมหาวิทยาลัย
+/// ราคา ป้ายห้องว่าง และคะแนนรีวิว
+/// รายการค้นหาของ backend ยังไม่ส่งรูปมา จึงแสดงกรอบรูปไล่สีแทน
 class DormCard extends StatelessWidget {
   const DormCard({
     super.key,
@@ -25,74 +27,77 @@ class DormCard extends StatelessWidget {
     final d = dorm;
     final full = d.availableRooms <= 0;
     final distance = formatDistance(metersFromMfu(d.latitude, d.longitude));
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              NetImage(d.coverUrl, width: 96, height: 96),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DormCover(url: d.coverUrl, width: 96, height: 96),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            d.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
-                          ),
+                    Expanded(
+                      child: Text(
+                        d.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 15.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.text,
                         ),
-                        if (trailing != null) trailing!,
-                      ],
-                    ),
-                    Text(
-                      formatPrice(d.pricePerMonth),
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${d.zone} · $distance',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textMuted,
-                      ),
+                    ?trailing,
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.place_outlined,
+                      size: 14,
+                      color: AppColors.textFaint,
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        RatingText(rating: d.ratingAvg, count: d.reviewCount),
-                        const Spacer(),
-                        Text(
-                          full ? 'เต็ม' : 'ว่าง ${d.availableRooms} ห้อง',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: full ? AppColors.danger : AppColors.textMuted,
-                          ),
+                    const SizedBox(width: 3),
+                    Expanded(
+                      child: Text(
+                        '${d.zone} · $distance',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          color: AppColors.textMuted,
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                PriceText(d.pricePerMonth),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    ToneBadge(
+                      label: full ? 'เต็ม' : 'ว่าง ${d.availableRooms} ห้อง',
+                      tone: full ? Tone.danger : Tone.success,
+                      icon: full
+                          ? Icons.block_rounded
+                          : Icons.meeting_room_outlined,
+                    ),
+                    const Spacer(),
+                    RatingText(rating: d.ratingAvg, count: d.reviewCount),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

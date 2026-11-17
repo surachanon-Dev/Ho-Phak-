@@ -1,4 +1,4 @@
-import 'package:hopak_frontend/shared/models/dormitory.dart';
+import '../../../shared/models/dormitory.dart';
 
 /// สรุปตัวเลขของหอทั้งหมดที่เจ้าของมี (ใช้บนหน้า My Dorms)
 class DormitorySummary {

@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/features/owner/services/api_owner_extras.dart';
 import 'package:hopak_frontend/features/owner/services/dormitory_service.dart';
-import 'package:hopak_frontend/features/owner/dorm_detail/owner_dorm_detail_controller.dart';
+import 'package:hopak_frontend/features/owner/controllers/owner_dorm_detail_controller.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';

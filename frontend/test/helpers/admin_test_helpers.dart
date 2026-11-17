@@ -143,7 +143,11 @@ http.Response _sampleResponse(http.Request req) {
     'reviews': rows,
     'logs': rows,
     'amenities': rows,
-    'queue': {'new_dormitories': rows, 'revisions': rows, 'verifications': rows},
+    'queue': {
+      'new_dormitories': rows,
+      'revisions': rows,
+      'verifications': rows,
+    },
   });
 }
 

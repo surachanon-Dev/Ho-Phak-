@@ -1,8 +1,8 @@
 // เทสต์ widget ของหน้ารีวิวและหน้ายืนยันตัวตนฝั่ง owner
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/owner/my_reviews/my_reviews_screen.dart';
-import 'package:hopak_frontend/features/owner/verification/verification_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/my_reviews_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/verification_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'owner_test_helpers.dart';
@@ -120,7 +120,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('No document sent yet'), findsOneWidget);
-      expect(find.byIcon(Icons.upload_file), findsOneWidget);
+      // โครงใหม่ (Rework) ใช้ไอคอน cloud_upload ในกล่องเลือกไฟล์
+      expect(find.byIcon(Icons.cloud_upload_outlined), findsOneWidget);
       expect(find.text('Send document'), findsOneWidget);
     });
 

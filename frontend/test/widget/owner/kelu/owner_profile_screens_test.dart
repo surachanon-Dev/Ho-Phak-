@@ -2,9 +2,9 @@
 // ไฟล์นี้เป็นเทสต์ widget ของหน้าที่ระบุในชื่อไฟล์
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/owner/change_password/change_password_screen.dart';
-import 'package:hopak_frontend/features/owner/edit_profile/edit_profile_screen.dart';
-import 'package:hopak_frontend/features/owner/notification_settings/notification_settings_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/change_password_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/edit_profile_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/notification_settings_screen.dart';
 import 'package:hopak_frontend/core/app_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hopak_frontend/features/owner/models/owner_profile.dart';

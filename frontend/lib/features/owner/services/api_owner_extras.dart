@@ -1,11 +1,11 @@
-import 'package:hopak_frontend/core/network/api_client.dart';
-import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
-import 'package:hopak_frontend/features/owner/models/amenity.dart';
-import 'package:hopak_frontend/features/owner/models/dorm_utilities.dart';
-import 'package:hopak_frontend/features/owner/models/dorm_document.dart';
-import 'package:hopak_frontend/features/owner/models/review_report.dart';
-import 'package:hopak_frontend/features/owner/models/owner_profile.dart';
-import 'package:hopak_frontend/features/owner/models/notification_prefs.dart';
+import '../../../core/network/api_client.dart';
+import 'owner_extras.dart';
+import '../models/amenity.dart';
+import '../models/dorm_utilities.dart';
+import '../models/dorm_document.dart';
+import '../models/review_report.dart';
+import '../models/owner_profile.dart';
+import '../models/notification_prefs.dart';
 
 /// ฝั่งเชื่อม backend จริง — endpoint ด้านล่าง "คาดไว้" ยังไม่มีใน backend
 /// และยังไม่เคยทดสอบ (สัญญาเต็มอยู่ใน vault: Spec - Owner extras API)

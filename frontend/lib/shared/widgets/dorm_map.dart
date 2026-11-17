@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import 'package:hopak_frontend/shared/models/dormitory.dart';
-import 'package:hopak_frontend/core/theme/app_theme.dart';
+import '../models/dormitory.dart';
+import '../../core/theme/app_theme.dart';
 
 /// จุดกึ่งกลางมหาวิทยาลัยแม่ฟ้าหลวง ใช้เป็นค่าเริ่มต้นเมื่อไม่มีพิกัดหอ
 const mfuCenter = LatLng(19.8801, 99.8323);

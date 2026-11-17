@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
 
-/// A-2b · ป๊อปอัปกรอกเหตุผลตอน Reject คำขอ
+import '../../../../core/theme/app_theme.dart';
+import '../../../../shared/widgets/ui/ui.dart';
+
+/// เหตุผลสำเร็จรูปให้แอดมินกดเลือกได้เร็ว
+const _quickReasons = [
+  'The document is blurry — please upload a clear photo of your business licence.',
+  'The name on the document does not match your account.',
+  'The document has expired. Please upload a current one.',
+];
+
+/// ป๊อปอัปกรอกเหตุผลตอน Reject คำขอ
 /// คืนค่าเหตุผลที่ยืนยัน หรือ null ถ้ากดยกเลิก
 Future<String?> showRejectRequestDialog(
   BuildContext context, {
   required String applicantName,
 }) {
-  final controller = TextEditingController(
-    text: 'The document is blurry — please upload a clear photo of your business licence.',
-  );
+  final controller = TextEditingController(text: _quickReasons.first);
 
   return showDialog<String>(
     context: context,
-    barrierColor: Colors.black54,
+    barrierColor: const Color(0x8C0F172A),
     builder: (ctx) {
       return StatefulBuilder(
         builder: (ctx, setDialogState) {
@@ -21,135 +29,115 @@ Future<String?> showRejectRequestDialog(
               controller.text.trim().isNotEmpty && currentLength <= 300;
 
           return Dialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Container(
-              width: 420,
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Reject owner request?',
-                    style: TextStyle(
-                      fontSize: 16.5,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF0F172A),
+            insetPadding: const EdgeInsets.all(20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const IconBadge(
+                      icon: Icons.person_off_outlined,
+                      tone: Tone.danger,
+                      size: 44,
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '$applicantName will see this reason in the app and can correct their details and resubmit.',
-                    style: const TextStyle(
-                      fontSize: 12.5,
-                      color: Color(0xFF64748B),
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Reason (required)',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF334155),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: controller,
-                    maxLines: 3,
-                    maxLength: 300,
-                    onChanged: (_) => setDialogState(() {}),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF0F172A),
-                      height: 1.4,
-                    ),
-                    decoration: InputDecoration(
-                      counterText: '',
-                      contentPadding: const EdgeInsets.all(12),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: Color(0xFF0062D6),
-                          width: 1.4,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: Color(0xFF0062D6),
-                          width: 1.6,
-                        ),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'Reject owner request?',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.text,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$currentLength / 300',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF94A3B8),
+                    const SizedBox(height: 6),
+                    Text(
+                      '$applicantName will see this reason in the app and can correct their details and resubmit.',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textMuted,
+                        height: 1.45,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      OutlinedButton(
-                        onPressed: () => Navigator.of(ctx).pop(),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF334155),
-                          side: const BorderSide(color: Color(0xFFCBD5E1)),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
+                    const SizedBox(height: 18),
+                    const Text(
+                      'Quick reasons',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textBody,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        for (final (i, r) in _quickReasons.indexed)
+                          ActionChip(
+                            label: Text(
+                              const ['Blurry', 'Name mismatch', 'Expired'][i],
+                            ),
+                            onPressed: () {
+                              controller.text = r;
+                              setDialogState(() {});
+                            },
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          'Cancel',
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'Reason (required)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textBody,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: controller,
+                      maxLines: 3,
+                      maxLength: 300,
+                      onChanged: (_) => setDialogState(() {}),
+                      style: const TextStyle(fontSize: 13.5, height: 1.4),
+                      decoration: const InputDecoration(counterText: ''),
+                    ),
+                    const SizedBox(height: 4),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        '$currentLength / 300',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textFaint,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: canSubmit
-                            ? () =>
-                                  Navigator.of(ctx).pop(controller.text.trim())
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFC92A2A),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 10,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton(
+                          onPressed: () => Navigator.of(ctx).pop(),
+                          child: const Text('Cancel'),
                         ),
-                        child: const Text(
-                          'Reject',
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        const SizedBox(width: 10),
+                        ElevatedButton(
+                          onPressed: canSubmit
+                              ? () =>
+                                    Navigator.of(ctx)
+                                        .pop(controller.text.trim())
+                              : null,
+                          style: dangerButtonStyle(),
+                          child: const Text('Reject'),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -158,3 +146,31 @@ Future<String?> showRejectRequestDialog(
     },
   );
 }
+
+/// ปุ่มยืนยันสีแดง (ใช้ ElevatedButton เพื่อแยกจากปุ่ม Filled ปกติ)
+ButtonStyle dangerButtonStyle() => ElevatedButton.styleFrom(
+  backgroundColor: AppColors.danger,
+  foregroundColor: Colors.white,
+  disabledBackgroundColor: const Color(0xFFF3C4C4),
+  disabledForegroundColor: Colors.white,
+  elevation: 0,
+  minimumSize: const Size(0, 48),
+  padding: const EdgeInsets.symmetric(horizontal: 20),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(AppRadius.md),
+  ),
+  textStyle: const TextStyle(fontWeight: FontWeight.w700),
+);
+
+/// ปุ่มยืนยันสีหลัก แบบ ElevatedButton
+ButtonStyle primaryElevatedStyle() => ElevatedButton.styleFrom(
+  backgroundColor: AppColors.primary,
+  foregroundColor: Colors.white,
+  elevation: 0,
+  minimumSize: const Size(0, 48),
+  padding: const EdgeInsets.symmetric(horizontal: 20),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(AppRadius.md),
+  ),
+  textStyle: const TextStyle(fontWeight: FontWeight.w700),
+);

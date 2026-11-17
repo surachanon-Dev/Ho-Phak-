@@ -3,10 +3,10 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/student/dorm_detail/dorm_detail_controller.dart';
-import 'package:hopak_frontend/features/student/search/dorm_search_controller.dart';
-import 'package:hopak_frontend/features/student/favorites/favorites_controller.dart';
-import 'package:hopak_frontend/features/student/home/student_home_controller.dart';
+import 'package:hopak_frontend/features/student/controllers/dorm_detail_controller.dart';
+import 'package:hopak_frontend/features/student/controllers/dorm_search_controller.dart';
+import 'package:hopak_frontend/features/student/controllers/favorites_controller.dart';
+import 'package:hopak_frontend/features/student/controllers/student_home_controller.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:hopak_frontend/features/chat/services/chat_service.dart';
 import 'package:hopak_frontend/features/student/services/favorite_service.dart';

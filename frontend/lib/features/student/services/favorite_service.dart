@@ -1,5 +1,5 @@
-import 'package:hopak_frontend/shared/models/favorite.dart';
-import 'package:hopak_frontend/core/network/api_client.dart';
+import '../../../shared/models/favorite.dart';
+import '../../../core/network/api_client.dart';
 
 class FavoriteService {
   FavoriteService(this._api);

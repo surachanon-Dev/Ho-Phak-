@@ -1,8 +1,8 @@
 // เทสต์ widget ของโครงหลัก (OwnerShell) และหน้าโปรไฟล์ฝั่ง owner
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/owner/owner_shell.dart';
-import 'package:hopak_frontend/features/owner/profile/profile_screen.dart';
+import 'package:hopak_frontend/features/owner/screens/owner_shell.dart';
+import 'package:hopak_frontend/features/owner/screens/profile_screen.dart';
 import 'package:hopak_frontend/shared/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

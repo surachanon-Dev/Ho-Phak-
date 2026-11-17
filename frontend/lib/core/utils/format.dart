@@ -1,6 +1,6 @@
 import 'package:latlong2/latlong.dart';
 
-import 'package:hopak_frontend/shared/widgets/dorm_map.dart' show mfuCenter;
+import '../../shared/widgets/dorm_map.dart' show mfuCenter;
 
 /// ระยะจากมหาวิทยาลัยแม่ฟ้าหลวง เป็นกิโลเมตร ทศนิยม 1 ตำแหน่ง (เช่น "1.2")
 String kmFromMfu(double latitude, double longitude) {
@@ -20,7 +20,9 @@ String chatTime(String? raw, {DateTime? now}) {
   final local = t.toLocal();
   final today = now ?? DateTime.now();
   final d0 = DateTime(today.year, today.month, today.day);
-  final days = d0.difference(DateTime(local.year, local.month, local.day)).inDays;
+  final days = d0
+      .difference(DateTime(local.year, local.month, local.day))
+      .inDays;
   if (days <= 0) return hhmm(local);
   if (days == 1) return 'Yesterday';
   if (days < 7) {
@@ -51,7 +53,6 @@ String relativeDay(String raw, {DateTime? now}) {
   if (days < 30) return '${days ~/ 7} weeks ago';
   return '${local.day}/${local.month}/${local.year}';
 }
-
 /// ระยะจากมหาวิทยาลัยแม่ฟ้าหลวงเป็นเมตร
 double metersFromMfu(double latitude, double longitude) =>
     const Distance().distance(mfuCenter, LatLng(latitude, longitude));
