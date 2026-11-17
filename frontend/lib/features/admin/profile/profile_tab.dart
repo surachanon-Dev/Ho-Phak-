@@ -4,7 +4,7 @@ import 'package:hopak_frontend/features/admin/profile/profile_controller.dart';
 import 'package:hopak_frontend/core/app_services.dart';
 import 'package:hopak_frontend/core/theme/app_theme.dart';
 import 'package:hopak_frontend/core/utils/error_handling.dart';
-import 'package:hopak_frontend/features/auth/screens/login_screen.dart';
+import 'package:hopak_frontend/features/auth/login/login_screen.dart';
 
 /// โปรไฟล์แอดมิน: แสดงบัญชีที่ login อยู่ และออกจากระบบ
 class AdminProfileTab extends StatefulWidget {

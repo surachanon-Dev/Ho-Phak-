@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:hopak_frontend/shared/models/user.dart';
 import 'package:hopak_frontend/app/home_router.dart';
-import 'package:hopak_frontend/features/auth/screens/welcome_screen.dart';
+import 'package:hopak_frontend/features/auth/welcome/welcome_screen.dart';
 import 'package:hopak_frontend/core/theme/app_theme.dart';
 import 'package:hopak_frontend/core/app_services.dart';
 

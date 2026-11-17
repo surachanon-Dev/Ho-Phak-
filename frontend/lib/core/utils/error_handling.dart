@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:hopak_frontend/features/auth/screens/login_screen.dart';
+import 'package:hopak_frontend/features/auth/login/login_screen.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:hopak_frontend/core/app_services.dart';
 

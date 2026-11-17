@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/features/admin/profile/profile_tab.dart';
-import 'package:hopak_frontend/features/auth/screens/login_screen.dart';
+import 'package:hopak_frontend/features/auth/login/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../helpers/admin_test_helpers.dart';

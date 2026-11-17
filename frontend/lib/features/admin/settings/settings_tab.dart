@@ -4,7 +4,7 @@ import 'package:hopak_frontend/features/admin/settings/settings_controller.dart'
 import 'package:hopak_frontend/core/app_services.dart';
 import 'package:hopak_frontend/core/theme/app_theme.dart';
 import 'package:hopak_frontend/core/utils/error_handling.dart';
-import 'package:hopak_frontend/features/auth/screens/login_screen.dart';
+import 'package:hopak_frontend/features/auth/login/login_screen.dart';
 
 /// หน้า Settings ของแอดมิน: ข้อมูลบัญชี, เปลี่ยนรหัสผ่าน (ผ่าน /api/me/password), ออกจากระบบ
 class AdminSettingsTab extends StatefulWidget {
