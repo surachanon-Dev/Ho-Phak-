@@ -6,6 +6,7 @@ const { imageUpload, documentUpload, handleUpload } = require('../config/upload'
 const dormitoryController = require('../controllers/dormitoryController');
 const verificationController = require('../controllers/verificationController');
 const imageController = require('../controllers/imageController');
+const dormitoryDocumentController = require('../controllers/dormitoryDocumentController');
 const ownerExtrasController = require('../controllers/ownerExtrasController');
 
 const router = express.Router();
@@ -22,6 +23,10 @@ router.get('/dormitories/:id/reviews', ownerOnly, dormitoryController.reviewsFor
 router.post('/dormitories/:id/images', ownerOnly, requireOwnedDormitory,
     handleUpload(imageUpload.array('images', 5)), imageController.upload);
 router.delete('/dormitories/:id/images/:imageId', ownerOnly, imageController.remove);
+
+// เอกสารความเป็นเจ้าของหอ (ตรวจสิทธิ์ก่อนรับไฟล์เหมือนรูป)
+router.post('/dormitories/:id/document', ownerOnly, requireOwnedDormitory,
+    handleUpload(documentUpload.single('document')), dormitoryDocumentController.upload);
 
 // ยืนยันตัวตน: ยังไม่ต้องยืนยันก่อนจึงไม่ใช้ requireVerifiedOwner
 router.get('/verification', [requireAuth, requireRole('owner')], verificationController.getMine);

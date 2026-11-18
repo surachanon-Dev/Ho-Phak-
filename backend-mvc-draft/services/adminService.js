@@ -8,6 +8,7 @@ const reviewModel = require('../models/reviewModel');
 const adminLogModel = require('../models/adminLogModel');
 const notificationModel = require('../models/notificationModel');
 const verificationService = require('./verificationService');
+const dormitoryDocumentService = require('./dormitoryDocumentService');
 const { withTransaction } = require('../utils/transaction');
 const { fail } = require('../utils/AppError');
 const { toInt, optionalText, parseDormitory } = require('../utils/validators');
@@ -211,6 +212,10 @@ async function verificationDocument(rawId) {
     return verificationService.getDocumentFile(rawId);
 }
 
+async function dormitoryDocument(rawDormitoryId) {
+    return dormitoryDocumentService.getFileForAdmin(rawDormitoryId);
+}
+
 const DORM_STATUSES = ['pending', 'published', 'changes_pending', 'rejected', 'hidden', 'suspended'];
 const USER_ROLES = ['student', 'owner', 'admin'];
 const USER_STATUSES = ['active', 'suspended'];
@@ -288,5 +293,5 @@ module.exports = {
   verifications, listAmenities, createAmenity, renameAmenity, deleteAmenity,
     queue, approveDormitory, rejectDormitory, suspendDormitory, restoreDormitory,
     approveVerification, rejectVerification, suspendUser, restoreUser,
-    listReviews, publishReview, hideReview, logs, listDormitories, listUsers, verificationDocument,
+    listReviews, publishReview, hideReview, logs, listDormitories, listUsers, verificationDocument, dormitoryDocument,
 };
