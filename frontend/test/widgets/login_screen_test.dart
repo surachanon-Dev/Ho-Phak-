@@ -1,14 +1,16 @@
-// Widget Test: Sign In page (lib/screens/login_screen.dart)
+// ผู้รับผิดชอบ: Plub (Tester)
+// ทดสอบหน้า: เข้าสู่ระบบ (login)
+// Widget Test: Sign In page (lib/features/auth/login/login_screen.dart)
 // Uses a fake backend (MockClient), so the real server does not need to run.
 // Run: flutter test test/widgets/login_screen_test.dart
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/controller/auth/login_controller.dart';
-import 'package:hopak_frontend/screens/login_screen.dart';
-import 'package:hopak_frontend/screens/register_screen.dart';
-import 'package:hopak_frontend/screens/student/student_shell.dart';
+import 'package:hopak_frontend/features/auth/login/login_controller.dart';
+import 'package:hopak_frontend/features/auth/login/login_screen.dart';
+import 'package:hopak_frontend/features/auth/register/register_screen.dart';
+import 'package:hopak_frontend/features/student/student_shell.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -92,6 +94,10 @@ void main() {
 
   testWidgets('LOGIN-07 correct login saves the token and opens the student area', (tester) async {
     final services = await openLogin(tester, backend(role: 'student'));
+    // Wider screen: the test font is much wider than real Thai text, and this test is about login,
+    // not the student home layout (that overflow is reported separately as a UI bug)
+    tester.view.physicalSize = const Size(1080, 1400);
+    await tester.pump();
     await signIn(tester, '0812345678', 'Passw0rd!');
     expect(services.tokens.token, 'test-jwt');
     expect(services.to('/api/me').first.headers['Authorization'], 'Bearer test-jwt');

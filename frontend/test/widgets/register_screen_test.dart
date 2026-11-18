@@ -1,10 +1,12 @@
-// Widget Test: Sign Up page (lib/screens/register_screen.dart)
+// ผู้รับผิดชอบ: Plub (Tester)
+// ทดสอบหน้า: สมัครสมาชิก (register)
+// Widget Test: Sign Up page (lib/features/auth/register/register_screen.dart)
 // Uses a fake backend (MockClient), so the real server does not need to run.
 // Run: flutter test test/widgets/register_screen_test.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/controller/auth/register_controller.dart';
-import 'package:hopak_frontend/screens/register_screen.dart';
+import 'package:hopak_frontend/features/auth/register/register_controller.dart';
+import 'package:hopak_frontend/features/auth/register/register_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 

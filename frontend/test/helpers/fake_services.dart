@@ -1,20 +1,22 @@
+// ผู้รับผิดชอบ: Plub (Tester)
+// backend ปลอมสำหรับเทสต์หน้า Sign In / Sign Up: บันทึกทุก request ไว้ตรวจได้
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/controller/owner/dormitory_controller.dart';
-import 'package:hopak_frontend/controller/owner/local_owner_extras.dart';
-import 'package:hopak_frontend/controller/owner/owner_account_controller.dart';
-import 'package:hopak_frontend/controller/owner/owner_extras.dart';
-import 'package:hopak_frontend/controller/owner/verification_controller.dart';
-import 'package:hopak_frontend/services/api_client.dart';
-import 'package:hopak_frontend/services/app_services.dart';
-import 'package:hopak_frontend/services/auth_service.dart';
-import 'package:hopak_frontend/services/chat_service.dart';
-import 'package:hopak_frontend/services/favorite_service.dart';
-import 'package:hopak_frontend/services/notification_service.dart';
-import 'package:hopak_frontend/services/public_dormitory_service.dart';
-import 'package:hopak_frontend/services/token_store.dart';
+import 'package:hopak_frontend/core/app_services.dart';
+import 'package:hopak_frontend/core/network/api_client.dart';
+import 'package:hopak_frontend/core/network/token_store.dart';
+import 'package:hopak_frontend/features/auth/services/auth_service.dart';
+import 'package:hopak_frontend/features/chat/services/chat_service.dart';
+import 'package:hopak_frontend/features/notifications/services/notification_service.dart';
+import 'package:hopak_frontend/features/owner/services/dormitory_service.dart';
+import 'package:hopak_frontend/features/owner/services/local_owner_extras.dart';
+import 'package:hopak_frontend/features/owner/services/owner_account_service.dart';
+import 'package:hopak_frontend/features/owner/services/owner_extras.dart';
+import 'package:hopak_frontend/features/owner/services/verification_service.dart';
+import 'package:hopak_frontend/features/student/services/favorite_service.dart';
+import 'package:hopak_frontend/features/student/services/public_dormitory_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
@@ -34,10 +36,10 @@ class FakeServices implements AppServices {
     api = ApiClient(tokenProvider: () => tokens.token, client: client);
     auth = AuthService(api, tokens);
     extras = LocalOwnerExtras(userId: () => auth.userId);
-    dormitories = DormitoryController(api, extras);
-    account = OwnerAccountController(extras);
+    dormitories = DormitoryService(api, extras);
+    account = OwnerAccountService(extras);
     chats = ChatService(api);
-    verification = VerificationController(api);
+    verification = VerificationService(api);
     notifications = NotificationService(api);
     publicDorms = PublicDormitoryService(api);
     favorites = FavoriteService(api);
@@ -60,13 +62,13 @@ class FakeServices implements AppServices {
   @override
   late final OwnerExtras extras;
   @override
-  late final DormitoryController dormitories;
+  late final DormitoryService dormitories;
   @override
-  late final OwnerAccountController account;
+  late final OwnerAccountService account;
   @override
   late final ChatService chats;
   @override
-  late final VerificationController verification;
+  late final VerificationService verification;
   @override
   late final NotificationService notifications;
   @override
