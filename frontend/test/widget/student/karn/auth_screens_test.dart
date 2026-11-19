@@ -16,7 +16,8 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: WelcomeScreen(services: services)));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Welcome to Ho_Phak'), findsOneWidget);
+    expect(find.text('Ho-Phak'), findsOneWidget);
+    expect(find.textContaining('ยินดีต้อนรับสู่'), findsOneWidget);
   });
 
   testWidgets('เข้าสู่ระบบส่งเบอร์และรหัสผ่านไปที่ /api/login', (tester) async {
@@ -30,19 +31,19 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).at(0), '0812345678');
     await tester.enterText(find.byType(TextFormField).at(1), 'Password-1');
-    await tester.tap(find.widgetWithText(FilledButton, 'Sign In'));
+    await tester.tap(find.widgetWithText(FilledButton, 'เข้าสู่ระบบ'));
     await tester.pumpAndSettle();
 
     expect(bodies, isNotEmpty);
     expect(bodies.first, contains('0812345678'));
   });
 
-  testWidgets('ปุ่ม New here? Sign Up เปิดหน้าสมัครสมาชิก', (tester) async {
+  testWidgets('ปุ่ม สมัครสมาชิก เปิดหน้าสมัครสมาชิก', (tester) async {
     final services = studentServicesWith((req) async => jsonResponse({}));
 
     await tester.pumpWidget(MaterialApp(home: LoginScreen(services: services)));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('New here? Sign Up'));
+    await tester.tap(find.widgetWithText(TextButton, 'สมัครสมาชิก'));
     await tester.pumpAndSettle();
 
     expect(find.byType(RegisterScreen), findsOneWidget);

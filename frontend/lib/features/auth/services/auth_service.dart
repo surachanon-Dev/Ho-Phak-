@@ -11,15 +11,22 @@ class AuthService {
   /// id ผู้ใช้ล่าสุดจาก GET /api/me (ใช้เป็นกุญแจข้อมูลที่เก็บในเครื่อง)
   int? userId;
 
-  /// POST /api/login { phone, password } → { token, user }
+  /// true ถ้าค่าที่กรอกเป็นเบอร์โทร (0xxxxxxxxx หรือ +66xxxxxxxxx เว้นวรรค/ขีดได้)
+  static bool looksLikePhone(String value) =>
+      RegExp(r'^(\+66|0)\d{8,9}$').hasMatch(value.replaceAll(RegExp(r'[\s-]'), ''));
+
+  /// POST /api/login { phone, password } หรือ { username, password } → { token, user }
+  /// ถ้ากรอกเป็นเบอร์จะส่ง phone ถ้าไม่ใช่เบอร์จะส่ง username
   /// แล้วเรียก GET /api/me เพื่อตรวจ role และสถานะ
-  /// คืน null ถ้าเบอร์หรือรหัสผ่านไม่ถูกต้อง (401)
-  /// โยน ApiException ถ้าบัญชีไม่ใช่ owner หรือถูกระงับ
-  Future<CurrentUser?> login(String phone, String password) async {
+  /// คืน null ถ้าชื่อผู้ใช้/เบอร์ หรือรหัสผ่านไม่ถูกต้อง (401)
+  Future<CurrentUser?> login(String phoneOrUsername, String password) async {
     Object? data;
     try {
       data = await _api.post('/api/login', {
-        'phone': phone,
+        if (looksLikePhone(phoneOrUsername))
+          'phone': phoneOrUsername
+        else
+          'username': phoneOrUsername,
         'password': password,
       });
     } on ApiException catch (e) {
@@ -45,21 +52,25 @@ class AuthService {
     return user;
   }
 
-  /// POST /api/auth/register { phone, password, confirmPassword }
-  /// backend สร้างบัญชีเป็น student เสมอ
+  /// POST /api/auth/register { phone, password, confirmPassword, username?, role }
+  /// role: 'student' หรือ 'owner' (backend ต้องรองรับการรับ role ด้วย)
   Future<void> register(
     String phone,
     String password,
     String confirmPassword, {
+    String? username,
     String? firstName,
     String? surname,
+    String? role,
   }) async {
     await _api.post('/api/auth/register', {
       'phone': phone,
       'password': password,
       'confirmPassword': confirmPassword,
+      if (username != null && username.isNotEmpty) 'username': username,
       if (firstName != null && firstName.isNotEmpty) 'first_name': firstName,
       if (surname != null && surname.isNotEmpty) 'surname': surname,
+      if (role != null) 'role': role,
     });
   }
 

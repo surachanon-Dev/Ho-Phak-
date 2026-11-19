@@ -27,11 +27,11 @@ class LoginController extends ChangeNotifier {
   CurrentUser? get user => _user;
 
   static const invalidCredentialsMessage =
-      'เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง';
+      'ชื่อผู้ใช้/เบอร์โทร หรือรหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง';
 
   /// ตรวจเบอร์: ต้องไม่ว่าง
   static String? validatePhone(String? value) =>
-      (value == null || value.trim().isEmpty) ? 'กรุณากรอกเบอร์โทรศัพท์' : null;
+      (value == null || value.trim().isEmpty) ? 'กรุณากรอกชื่อผู้ใช้หรือเบอร์โทร' : null;
 
   /// ตรวจรหัสผ่าน: ต้องไม่ว่าง
   static String? validatePassword(String? value) =>
