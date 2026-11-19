@@ -269,6 +269,52 @@ void main() {
     });
   });
 
+  group('Saving after a partial failure', () {
+    test(
+      '16a. saving again after the extras failed updates the created dorm '
+      'instead of creating a second one',
+      () async {
+        final requests = <http.Request>[];
+        // สร้างหอสำเร็จ แต่ PUT utilities ไม่มี route → ขั้นท้ายล้มเหลว
+        final routes = saveRoutes(id: 5)
+          ..remove('PUT /api/owner/dormitories/5/utilities');
+        final form = filledForm(
+          fakeBackend(routes, requests: requests).dormitories,
+        )..addPending([photo()]);
+        form.setDocument(document());
+
+        expect(await form.save(), isNull);
+        expect(await form.save(), isNull);
+
+        final posts = requests.where(
+          (r) => r.method == 'POST' && r.url.path == '/api/owner/dormitories',
+        );
+        expect(posts, hasLength(1));
+        expect(
+          requests.any(
+            (r) =>
+                r.method == 'PUT' && r.url.path == '/api/owner/dormitories/5',
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test('16b. a contact phone must be a 10-digit Thai mobile number', () {
+      final form = filledForm(fakeBackend(ownerRoutes()).dormitories);
+
+      expect(form.validateContactPhone(), isNull); // เว้นว่างได้
+      form.setContactPhone('12345');
+      expect(form.validateContactPhone(), isNotNull);
+      expect(form.isValid, isFalse);
+      form.setContactPhone('081-234-5678');
+      expect(form.validateContactPhone(), isNull);
+      form.setContactPhone('+66 81 234 5678');
+      expect(form.validateContactPhone(), isNull);
+      expect(form.isValid, isTrue);
+    });
+  });
+
   group('Photos of an existing dorm', () {
     OwnerDormFormController editForm(Map<String, Object> routes) =>
         OwnerDormFormController(
