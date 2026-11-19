@@ -37,7 +37,7 @@ Map<String, dynamic> _dormJson({int id = 1, List<Map<String, dynamic>> images = 
   'water_billing_type': 'per_unit',
   'electricity_rate': null,
   'electricity_billing_type': null,
-  'address': 'ที่อยู่',
+  'address': 'Address',
   'description': 'รายละเอียด',
   'contact_phone': '0855500002',
   'amenity_ids': [1],

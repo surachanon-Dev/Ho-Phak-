@@ -44,7 +44,7 @@ Map<String, dynamic> _dorm({
   'electricity_rate': null,
   'electricity_billing_type': null,
   'description': 'รายละเอียด',
-  'address': 'ที่อยู่',
+  'address': 'Address',
   'contact_phone': '0855500002',
   'rating_avg': '4.5',
   'review_count': 2,
@@ -362,7 +362,7 @@ void main() {
         if (req.method == 'GET' && p == '/api/dormitories/7/reviews') {
           return _json({
             'reviews': [
-              {'id': 1, 'rating': 5, 'body': 'ดีมาก', 'created_at': '2026-11-01'},
+              {'id': 1, 'rating': 5, 'body': 'Very good', 'created_at': '2026-11-01'},
             ],
             'summary': {'review_count': 1, 'rating_avg': '5.00'},
           });

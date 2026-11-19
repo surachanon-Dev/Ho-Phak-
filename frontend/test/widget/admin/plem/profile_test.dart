@@ -29,11 +29,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Test Admin'), findsOneWidget);
-    await tester.tap(find.text('ออกจากระบบ'));
+    await tester.tap(find.text('Log out'));
     await tester.pumpAndSettle();
     expect(writes, isEmpty);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'ออกจากระบบ'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Log out'));
     await tester.pumpAndSettle();
     expect(writes, ['/api/auth/logout']);
     expect(services.tokens.token, isNull);

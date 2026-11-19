@@ -27,7 +27,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.text('รายการโปรด'), findsOneWidget);
+    expect(find.text('Favorites'), findsOneWidget);
     expect(find.text('หอพักโปรด C'), findsOneWidget);
   });
 
@@ -39,7 +39,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.text('ยังไม่มีหอพักในรายการโปรด'), findsOneWidget);
-    expect(find.text('ไปค้นหาหอพัก'), findsOneWidget);
+    expect(find.text('No favorite dorms yet'), findsOneWidget);
+    expect(find.text('Find dorms'), findsOneWidget);
   });
 }

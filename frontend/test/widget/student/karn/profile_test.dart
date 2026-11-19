@@ -19,8 +19,8 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.text('โปรไฟล์'), findsOneWidget);
-    expect(find.text('นักศึกษา'), findsOneWidget);
+    expect(find.text('Profile'), findsOneWidget);
+    expect(find.text('Student'), findsOneWidget);
   });
 
   testWidgets('กดติดต่อแอดมินแล้วแสดงกล่องข้อความ', (tester) async {
@@ -30,9 +30,12 @@ void main() {
       home: StudentProfileScreen(services: services, user: student),
     ));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('ติดต่อแอดมิน'));
+    // หน้าโปรไฟล์ยาวขึ้น (มีเมนูบัญชี/รีวิวของฉัน) ต้องเลื่อนให้เห็นก่อนกด
+    await tester.ensureVisible(find.text('Contact admin'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Contact admin'));
     await tester.pumpAndSettle();
 
-    expect(find.text('เบอร์และอีเมลแอดมินยังไม่ได้กำหนด'), findsOneWidget);
+    expect(find.text('Admin phone and email have not been set yet.'), findsOneWidget);
   });
 }

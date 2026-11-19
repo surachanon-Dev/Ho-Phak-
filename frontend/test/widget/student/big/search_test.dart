@@ -26,7 +26,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: SearchScreen(services: services)));
     await tester.pumpAndSettle();
 
-    expect(find.text('ค้นหาหอพัก'), findsOneWidget);
+    expect(find.text('Search dorms'), findsOneWidget);
     expect(find.text('หอพักค้นหา A'), findsOneWidget);
   });
 
@@ -36,8 +36,8 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: SearchScreen(services: services)));
     await tester.pumpAndSettle();
 
-    expect(find.text('ไม่พบหอพัก'), findsOneWidget);
-    expect(find.text('ล้างตัวกรอง'), findsOneWidget);
+    expect(find.text('No dorms found'), findsOneWidget);
+    expect(find.text('Clear filters'), findsOneWidget);
   });
 
   testWidgets('พิมพ์คำค้นแล้วส่งคำค้นไปที่ API', (tester) async {

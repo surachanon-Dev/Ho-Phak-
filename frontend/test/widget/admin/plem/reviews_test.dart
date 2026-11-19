@@ -35,7 +35,7 @@ void main() {
 
       expect(writes, ['/api/admin/reviews/9/publish']);
       expect(find.text('Hillview Dorm'), findsNothing);
-      expect(find.text('ไม่มีรีวิวในสถานะนี้'), findsOneWidget);
+      expect(find.text('No reviews with this status'), findsOneWidget);
     },
   );
 

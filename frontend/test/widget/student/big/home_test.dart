@@ -37,7 +37,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.text('สวัสดี, ทดสอบ'), findsOneWidget);
+    expect(find.text('Hello, ทดสอบ'), findsOneWidget);
     expect(find.text('หอพักทดสอบ A'), findsOneWidget);
   });
 
@@ -49,7 +49,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.text('ยังไม่มีหอพักที่เผยแพร่'), findsOneWidget);
+    expect(find.text('No published dorms yet'), findsOneWidget);
   });
 
   testWidgets('โหลดไม่สำเร็จแสดงข้อความและปุ่มลองอีกครั้ง', (tester) async {
@@ -60,7 +60,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.text('โหลดหอพักไม่ได้'), findsOneWidget);
-    expect(find.text('ลองอีกครั้ง'), findsOneWidget);
+    expect(find.text('Could not load dorms'), findsOneWidget);
+    expect(find.text('Try again'), findsOneWidget);
   });
 }

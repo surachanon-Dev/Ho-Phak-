@@ -6,6 +6,8 @@ import 'package:hopak_frontend/core/network/token_store.dart';
 import 'package:hopak_frontend/features/auth/services/auth_service.dart';
 import 'package:hopak_frontend/features/chat/services/chat_service.dart';
 import 'package:hopak_frontend/features/notifications/services/notification_service.dart';
+import 'package:hopak_frontend/features/owner/services/api_owner_extras.dart';
+import 'package:hopak_frontend/features/owner/services/owner_account_service.dart';
 import 'package:hopak_frontend/features/student/services/favorite_service.dart';
 import 'package:hopak_frontend/features/student/services/public_dormitory_service.dart';
 import 'package:http/testing.dart';
@@ -18,7 +20,8 @@ class StudentTestServices implements AppServices {
         chats = ChatService(api),
         notifications = NotificationService(api),
         publicDorms = PublicDormitoryService(api),
-        favorites = FavoriteService(api);
+        favorites = FavoriteService(api),
+        account = OwnerAccountService(ApiOwnerExtras(api));
 
   @override
   final ApiClient api;
@@ -40,6 +43,10 @@ class StudentTestServices implements AppServices {
 
   @override
   final FavoriteService favorites;
+
+  /// โปรไฟล์ / รหัสผ่าน / ตั้งค่าแจ้งเตือน (ผ่าน /api/me ใช้ร่วมกับ owner)
+  @override
+  final OwnerAccountService account;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

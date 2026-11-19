@@ -27,9 +27,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('review.hide'), findsOneWidget);
-      await tester.tap(find.byTooltip('รีเฟรช'));
+      await tester.tap(find.byTooltip('Refresh'));
       await tester.pumpAndSettle();
-      expect(find.text('ยังไม่มีประวัติ'), findsOneWidget);
+      expect(find.text('No activity yet'), findsOneWidget);
       expect(reads, 2);
     },
   );

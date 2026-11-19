@@ -115,7 +115,7 @@ void main() {
 
       expect(ok, isFalse);
       expect(c.failure, isA<ApiException>());
-      expect((c.failure as ApiException).message, contains('ถูกระงับ'));
+      expect((c.failure as ApiException).message, contains('suspended'));
       expect(await h.tokens.token, isNull);
     });
 
