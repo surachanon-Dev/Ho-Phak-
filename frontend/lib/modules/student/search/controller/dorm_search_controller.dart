@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/utils/format.dart';
+import '../../../../model/amenity.dart';
 import '../../../../model/dormitory.dart';
 import '../../../../services/public_dormitory_service.dart';
 
@@ -23,6 +24,7 @@ class SearchFilters {
     this.maxPriceText = '',
     this.roomsOnly = false,
     this.sort = 'newest',
+    this.amenityIds = const {},
   });
 
   final String query;
@@ -30,6 +32,9 @@ class SearchFilters {
   final String minPriceText;
   final String maxPriceText;
   final bool roomsOnly;
+
+  /// id สิ่งอำนวยความสะดวกที่เลือก (หอต้องมีครบทุกตัว)
+  final Set<int> amenityIds;
 
   /// newest | price_asc | price_desc (backend เรียงให้) หรือ rating | distance (เรียงในแอป)
   final String sort;
@@ -55,6 +60,7 @@ class SearchFilters {
     String? maxPriceText,
     bool? roomsOnly,
     String? sort,
+    Set<int>? amenityIds,
   }) => SearchFilters(
     query: query ?? this.query,
     zone: clearZone ? null : (zone ?? this.zone),
@@ -62,6 +68,7 @@ class SearchFilters {
     maxPriceText: maxPriceText ?? this.maxPriceText,
     roomsOnly: roomsOnly ?? this.roomsOnly,
     sort: sort ?? this.sort,
+    amenityIds: amenityIds ?? this.amenityIds,
   );
 }
 
@@ -89,12 +96,16 @@ class DormSearchController extends ChangeNotifier {
 
   SearchFilters _filters = const SearchFilters();
   List<Dormitory> _items = const [];
+  List<Amenity> _amenities = const [];
   bool _loading = false;
   Object? _error;
   String? _filterError;
 
   SearchFilters get filters => _filters;
   List<Dormitory> get items => _items;
+
+  /// สิ่งอำนวยความสะดวกทั้งหมดให้เลือกในตัวกรอง (โหลดไม่ได้ = รายการว่าง ซ่อนส่วนนี้)
+  List<Amenity> get amenities => _amenities;
   bool get loading => _loading;
   Object? get error => _error;
 
@@ -107,6 +118,7 @@ class DormSearchController extends ChangeNotifier {
       _filters.minPriceText.trim().isNotEmpty ||
       _filters.maxPriceText.trim().isNotEmpty ||
       _filters.roomsOnly ||
+      _filters.amenityIds.isNotEmpty ||
       _filters.sort != 'newest';
 
   void setQuery(String value) => _update(_filters.copyWith(query: value));
@@ -122,6 +134,20 @@ class DormSearchController extends ChangeNotifier {
       _update(_filters.copyWith(zone: zone, clearZone: zone == null));
 
   void setRoomsOnly(bool value) => _update(_filters.copyWith(roomsOnly: value));
+
+  void setAmenities(Set<int> ids) =>
+      _update(_filters.copyWith(amenityIds: Set.unmodifiable(ids)));
+
+  /// โหลดรายการสิ่งอำนวยความสะดวกครั้งเดียว ถ้าโหลดไม่ได้ก็ไม่แสดงส่วนนี้ (ไม่ถือเป็น error ของหน้า)
+  Future<void> loadAmenities() async {
+    if (_amenities.isNotEmpty) return;
+    try {
+      _amenities = await _dorms.amenities();
+      notifyListeners();
+    } catch (_) {
+      _amenities = const [];
+    }
+  }
 
   void setSort(String sort) {
     if (!allSortLabels.containsKey(sort)) return;
@@ -161,14 +187,26 @@ class DormSearchController extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      _items = await _dorms.search(
-        zone: _filters.zone,
-        query: _filters.query,
-        minPrice: _filters.minPrice,
-        maxPrice: _filters.maxPrice,
-        roomsOnly: _filters.roomsOnly,
-        sort: sortLabels.containsKey(_filters.sort) ? _filters.sort : 'newest',
-      );
+      final sort = sortLabels.containsKey(_filters.sort) ? _filters.sort : 'newest';
+      // ส่ง amenityIds เฉพาะตอนเลือก (รูปแบบการเรียกเดิมไม่เปลี่ยน)
+      _items = _filters.amenityIds.isEmpty
+          ? await _dorms.search(
+              zone: _filters.zone,
+              query: _filters.query,
+              minPrice: _filters.minPrice,
+              maxPrice: _filters.maxPrice,
+              roomsOnly: _filters.roomsOnly,
+              sort: sort,
+            )
+          : await _dorms.search(
+              zone: _filters.zone,
+              query: _filters.query,
+              minPrice: _filters.minPrice,
+              maxPrice: _filters.maxPrice,
+              roomsOnly: _filters.roomsOnly,
+              sort: sort,
+              amenityIds: (_filters.amenityIds.toList()..sort()),
+            );
       _items = sortLocally(_items, _filters.sort);
       return true;
     } catch (e) {

@@ -70,7 +70,7 @@ async function findPublic(id) {
 }
 
 // ค้นหาหอที่เผยแพร่แล้ว orderBy ต้องมาจากค่าที่ service กำหนดเท่านั้น
-async function searchPublic({ zone, minPrice, maxPrice, hasRooms, q, orderBy }) {
+async function searchPublic({ zone, minPrice, maxPrice, hasRooms, q, amenityIds = [], orderBy }) {
     let sql = `SELECT d.id, d.name, d.zone, d.latitude, d.longitude, d.price_per_month,
                       d.total_rooms, d.available_rooms, d.water_rate, d.water_billing_type,
                       d.electricity_rate, d.electricity_billing_type,
@@ -96,6 +96,13 @@ async function searchPublic({ zone, minPrice, maxPrice, hasRooms, q, orderBy }) 
     if (q) {
         sql += ' AND d.name LIKE ?';
         params.push(`%${q}%`);
+    }
+    // ต้องมีสิ่งอำนวยความสะดวกครบทุกตัวที่เลือก
+    if (amenityIds.length > 0) {
+        sql += ` AND d.id IN (SELECT da.dormitory_id FROM dormitory_amenities da
+                 WHERE da.amenity_id IN (?) GROUP BY da.dormitory_id
+                 HAVING COUNT(DISTINCT da.amenity_id) = ?)`;
+        params.push(amenityIds, amenityIds.length);
     }
     const [rows] = await db.query(`${sql} ORDER BY ${orderBy}`, params);
     return rows;

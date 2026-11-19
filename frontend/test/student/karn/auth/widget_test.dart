@@ -1,5 +1,6 @@
 // ผู้รับผิดชอบ: Karn (นักศึกษา)
 // widget test: หน้าต้อนรับ, เข้าสู่ระบบ, สมัครสมาชิก และลืมรหัสผ่าน
+// (ปรับข้อความตามหน้า login/register ดีไซน์ใหม่ภาษาไทย โดย Plub/Tester)
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -27,19 +28,18 @@ Future<void> fillLogin(
 ) async {
   await tester.enterText(find.byType(TextFormField).at(0), phone);
   await tester.enterText(find.byType(TextFormField).at(1), password);
-  await tester.tap(find.widgetWithText(FilledButton, 'Sign In'));
+  await tester.tap(find.widgetWithText(FilledButton, 'เข้าสู่ระบบ'));
   await tester.pumpAndSettle();
 }
 
-/// กรอกฟอร์มสมัคร: ชื่อ, นามสกุล, เบอร์, รหัสผ่าน, ยืนยันรหัสผ่าน
+/// กรอกฟอร์มสมัคร: ชื่อผู้ใช้, เบอร์, รหัสผ่าน, ยืนยันรหัสผ่าน
 Future<void> fillRegister(WidgetTester tester, String confirm) async {
   final fields = find.byType(TextFormField);
-  await tester.enterText(fields.at(0), 'Karn');
-  await tester.enterText(fields.at(1), 'Student');
-  await tester.enterText(fields.at(2), '0812345678');
-  await tester.enterText(fields.at(3), 'secret123');
-  await tester.enterText(fields.at(4), confirm);
-  await tester.tap(find.widgetWithText(FilledButton, 'Sign Up'));
+  await tester.enterText(fields.at(0), 'karn');
+  await tester.enterText(fields.at(1), '0812345678');
+  await tester.enterText(fields.at(2), 'secret123');
+  await tester.enterText(fields.at(3), confirm);
+  await tester.tap(find.widgetWithText(FilledButton, 'สมัครสมาชิก'));
   await tester.pumpAndSettle();
 }
 
@@ -57,7 +57,7 @@ void main() {
     await tester.tap(find.text('Sign in'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Sign in with your phone number'), findsOneWidget);
+    expect(find.text('เข้าสู่ระบบด้วยชื่อผู้ใช้หรือเบอร์โทร'), findsOneWidget);
   });
 
   testWidgets('2. Empty sign-in form shows what is missing', (tester) async {
@@ -66,8 +66,8 @@ void main() {
 
     await fillLogin(tester, '', '');
 
-    expect(find.text('Please enter your phone number'), findsOneWidget);
-    expect(find.text('Please enter your password'), findsOneWidget);
+    expect(find.text('กรุณากรอกชื่อผู้ใช้หรือเบอร์โทร'), findsOneWidget);
+    expect(find.text('กรุณากรอกรหัสผ่าน'), findsOneWidget);
     expect(requests, isEmpty);
   });
 
@@ -86,7 +86,7 @@ void main() {
     await fillLogin(tester, '0812345678', 'wrong');
 
     expect(
-      find.text('Wrong phone number or password. Please try again.'),
+      find.text('ชื่อผู้ใช้/เบอร์โทร หรือรหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง'),
       findsOneWidget,
     );
   });
@@ -127,10 +127,10 @@ void main() {
   testWidgets('5. Sign Up link opens the register page', (tester) async {
     await open(tester, login(fakeBackend({})));
 
-    await tester.tap(find.text('New here? Sign Up'));
+    await tester.tap(find.widgetWithText(TextButton, 'สมัครสมาชิก'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Create a new account'), findsOneWidget);
+    expect(find.text('สร้างบัญชีผู้ใช้'), findsOneWidget);
   });
 
   testWidgets('6. Passwords that do not match are not sent', (tester) async {
@@ -142,7 +142,7 @@ void main() {
 
     await fillRegister(tester, 'different1');
 
-    expect(find.text('Passwords do not match'), findsOneWidget);
+    expect(find.text('รหัสผ่านไม่ตรงกัน'), findsOneWidget);
     expect(requests, isEmpty);
   });
 
@@ -165,16 +165,15 @@ void main() {
       'phone': '0812345678',
       'password': 'secret123',
       'confirmPassword': 'secret123',
-      'first_name': 'Karn',
-      'surname': 'Student',
+      'username': 'karn',
     });
-    expect(find.text('Sign up complete'), findsOneWidget);
+    expect(find.text('สมัครสมาชิกสำเร็จ'), findsOneWidget);
   });
 
   testWidgets('8. Forgot password link explains how to reset', (tester) async {
     await open(tester, login(fakeBackend({})));
 
-    await tester.tap(find.text('Forgot password?'));
+    await tester.tap(find.text('ลืมรหัสผ่าน?'));
     await tester.pumpAndSettle();
 
     expect(find.text('Reset your password'), findsOneWidget);

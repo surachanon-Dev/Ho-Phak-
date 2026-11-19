@@ -23,18 +23,24 @@ class RegisterInput {
   final String password;
   final String confirmPassword;
 
-  /// 'student' หรือ 'owner' (null = ไม่ส่ง ให้ backend ใช้ค่าเริ่มต้น)
+  /// 'owner' = สมัครเป็นเจ้าของหอพัก, อย่างอื่น/null = นักศึกษา
   final String? role;
+
+  bool get isOwner => role == 'owner';
 }
 
 /// หน้าสมัครสมาชิก: ตรวจฟอร์ม ส่งคำขอ และแปลงข้อผิดพลาดเบอร์ซ้ำเป็นข้อความในฟอร์ม
+///
+/// backend สร้างบัญชีเป็นนักศึกษาเสมอ ถ้าเลือก "เจ้าของหอพัก" จะ login ชั่วคราว
+/// แล้วเรียก POST /api/me/become-owner ต่อ จากนั้น logout ให้ผู้ใช้เข้าสู่ระบบเอง
 class RegisterController extends ChangeNotifier {
   RegisterController(this._auth);
 
   final AuthService _auth;
 
-  static const duplicatePhoneMessage = 'This phone number is already in use';
+  static const duplicatePhoneMessage = 'เบอร์โทรนี้ถูกใช้แล้ว';
   static const minPasswordLength = 8;
+  static const maxUsernameLength = 50;
 
   bool _loading = false;
   String? _error;
@@ -57,13 +63,11 @@ class RegisterController extends ChangeNotifier {
 
   static String? validatePassword(String? value) =>
       (value == null || value.length < minPasswordLength)
-      ? 'Password must be at least $minPasswordLength characters'
+      ? 'รหัสผ่านต้องยาวอย่างน้อย $minPasswordLength ตัว'
       : null;
 
   static String? validateConfirm(String? value, String password) =>
-      value != password ? 'Passwords do not match' : null;
-
-  static const maxUsernameLength = 50;
+      value != password ? 'รหัสผ่านไม่ตรงกัน' : null;
 
   /// ชื่อผู้ใช้: ไม่บังคับ แต่ต้องไม่เกิน 50 ตัว
   static String? validateUsername(String? value) =>
@@ -95,16 +99,29 @@ class RegisterController extends ChangeNotifier {
     _failure = null;
     _loading = true;
     notifyListeners();
+    final phone = input.phone.trim();
+    final username = input.username.trim();
     try {
-      await _auth.register(
-        input.phone.trim(),
-        input.password,
-        input.confirmPassword,
-        username: input.username.trim(),
-        firstName: input.firstName.trim(),
-        surname: input.surname.trim(),
-        role: input.role,
-      );
+      // ส่ง username เฉพาะตอนกรอก (รูปแบบการเรียกเดิมไม่เปลี่ยน)
+      if (username.isEmpty) {
+        await _auth.register(
+          phone,
+          input.password,
+          input.confirmPassword,
+          firstName: input.firstName.trim(),
+          surname: input.surname.trim(),
+        );
+      } else {
+        await _auth.register(
+          phone,
+          input.password,
+          input.confirmPassword,
+          username: username,
+          firstName: input.firstName.trim(),
+          surname: input.surname.trim(),
+        );
+      }
+      if (input.isOwner) await _upgradeToOwner(phone, input.password);
       _done = true;
       return true;
     } catch (e) {
@@ -117,6 +134,19 @@ class RegisterController extends ChangeNotifier {
     } finally {
       _loading = false;
       notifyListeners();
+    }
+  }
+
+  /// เปลี่ยนบัญชีที่เพิ่งสมัครเป็นเจ้าของหอ แล้วออกจากระบบเสมอ (ผู้ใช้จะเข้าสู่ระบบเองหลังจากนี้)
+  Future<void> _upgradeToOwner(String phone, String password) async {
+    try {
+      final user = await _auth.login(phone, password);
+      if (user == null) {
+        throw ApiException(401, 'สมัครสำเร็จ แต่เปลี่ยนเป็นเจ้าของหอไม่สำเร็จ กรุณาเข้าสู่ระบบแล้วลองใหม่');
+      }
+      await _auth.becomeOwner();
+    } finally {
+      await _auth.logout();
     }
   }
 }

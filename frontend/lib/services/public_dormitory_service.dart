@@ -1,3 +1,4 @@
+import '../model/amenity.dart';
 import '../model/dormitory.dart';
 import '../model/review.dart';
 import '../core/network/api_client.dart';
@@ -8,8 +9,9 @@ class PublicDormitoryService {
 
   final ApiClient _api;
 
-  /// GET /api/dormitories?zone&minPrice&maxPrice&hasRooms=1&q&sort
+  /// GET /api/dormitories?zone&minPrice&maxPrice&hasRooms=1&q&sort&amenities=1,4
   /// sort: price_asc | price_desc | newest
+  /// amenityIds: หอต้องมีสิ่งอำนวยความสะดวกครบทุกตัวที่เลือก (ว่าง = ไม่กรอง)
   Future<List<Dormitory>> search({
     String? zone,
     int? minPrice,
@@ -17,6 +19,7 @@ class PublicDormitoryService {
     bool roomsOnly = false,
     String? query,
     String sort = 'newest',
+    List<int> amenityIds = const [],
   }) async {
     final params = <String, String>{
       if (zone != null) 'zone': zone,
@@ -24,6 +27,7 @@ class PublicDormitoryService {
       if (maxPrice != null) 'maxPrice': '$maxPrice',
       if (roomsOnly) 'hasRooms': '1',
       if (query != null && query.trim().isNotEmpty) 'q': query.trim(),
+      if (amenityIds.isNotEmpty) 'amenities': amenityIds.join(','),
       'sort': sort,
     };
     final qs = Uri(queryParameters: params).query;
@@ -32,6 +36,14 @@ class PublicDormitoryService {
     ) as Map<String, dynamic>;
     return (data['dormitories'] as List)
         .map((e) => Dormitory.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// GET /api/amenities → { amenities: [{id, name}] } (ต้อง login)
+  Future<List<Amenity>> amenities() async {
+    final data = await _api.get('/api/amenities') as Map<String, dynamic>;
+    return (data['amenities'] as List)
+        .map((e) => Amenity.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 

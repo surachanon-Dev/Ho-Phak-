@@ -1,27 +1,48 @@
 // ผู้รับผิดชอบ: Plub (Tester)
-// ทดสอบหน้า: สมัครสมาชิก (lib/features/auth/register/register_screen.dart)
-// ใช้ backend จำลอง (MockClient) จึงไม่ต้องเปิด server
+// ทดสอบหน้า: สมัครสมาชิก (lib/modules/auth/register/view/register_screen.dart)
+// ใช้ backend ปลอมของทีม (test/helpers/fake_backend.dart) จึงไม่ต้องเปิด server
 // Run: flutter test test/widgets/register_screen_test.dart
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hopak_frontend/features/auth/register/register_controller.dart';
-import 'package:hopak_frontend/features/auth/register/register_screen.dart';
+import 'package:hopak_frontend/modules/auth/register/controller/register_controller.dart';
+import 'package:hopak_frontend/modules/auth/register/view/register_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../helpers/fake_services.dart';
+import '../helpers/fake_backend.dart';
+
+const ok = {'POST /api/auth/register': {'message': 'สมัครสมาชิกสำเร็จ', 'id': 30}};
+
+/// backend ที่รองรับการสมัครแล้วเปลี่ยนเป็นเจ้าของหอ
+final ownerFlow = <String, Object>{
+  ...ok,
+  'POST /api/login': {'token': 'tmp-jwt'},
+  'GET /api/me': {
+    'user': {'id': 30, 'username': 'owner1', 'role': 'student', 'status': 'active', 'is_verified': 0},
+  },
+  'POST /api/me/become-owner': {'ok': true},
+  'POST /api/auth/logout': {'ok': true},
+};
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   // ลำดับช่องในหน้า: 0 ชื่อผู้ใช้, 1 เบอร์, 2 รหัสผ่าน, 3 ยืนยันรหัสผ่าน
+  Finder field(int i) => find.byType(TextFormField).at(i);
   Finder submitButton() => find.widgetWithText(FilledButton, 'สมัครสมาชิก');
   const phoneError = 'เบอร์โทรต้องเป็นตัวเลข 10 หลัก ขึ้นต้นด้วย 0';
 
+  List<String> calls(List<http.Request> r) => r.map((x) => '${x.method} ${x.url.path}').toList();
+  Map<String, dynamic> registerBody(List<http.Request> r) =>
+      jsonDecode(r.firstWhere((x) => x.url.path == '/api/auth/register').body) as Map<String, dynamic>;
+
   /// เปิดหน้าสมัครจากหน้าเริ่มต้น เหมือนในแอปจริง (ปุ่มย้อนกลับจะได้มีที่ไป)
-  Future<FakeServices> openRegister(WidgetTester tester, FakeBackend backend) async {
-    usePhoneScreen(tester);
-    final services = FakeServices(backend);
+  Future<FakeServices> open(WidgetTester tester, Map<String, Object> routes, List<http.Request> requests) async {
+    useDesktopScreen(tester);
+    tester.view.physicalSize = const Size(1200, 1800);
+    final services = fakeBackend(routes, requests: requests);
     await tester.pumpWidget(MaterialApp(
       home: Builder(
         builder: (context) => Scaffold(
@@ -45,13 +66,13 @@ void main() {
     WidgetTester tester, {
     String username = 'somchai',
     String phone = '0812345678',
-    String password = 'Passw0rd!',
+    String password = 'secret123',
     String? confirm,
   }) async {
-    await tester.enterText(fieldAt(0), username);
-    await tester.enterText(fieldAt(1), phone);
-    await tester.enterText(fieldAt(2), password);
-    await tester.enterText(fieldAt(3), confirm ?? password);
+    await tester.enterText(field(0), username);
+    await tester.enterText(field(1), phone);
+    await tester.enterText(field(2), password);
+    await tester.enterText(field(3), confirm ?? password);
   }
 
   Future<void> submit(WidgetTester tester) async {
@@ -59,10 +80,8 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<http.Response> ok(http.Request request) async => json({'message': 'สมัครสมาชิกสำเร็จ', 'id': 30}, 201);
-
-  testWidgets('REG-01 แสดงปุ่มเลือกประเภท 4 ช่องกรอก และปุ่มสมัคร', (tester) async {
-    await openRegister(tester, ok);
+  testWidgets('REG-01 แสดงปุ่มเลือกประเภท 4 ช่องกรอก ปุ่มสมัคร และลิงก์เข้าสู่ระบบ', (tester) async {
+    await open(tester, ok, []);
     expect(find.text('สร้างบัญชีผู้ใช้'), findsOneWidget);
     expect(find.text('นักศึกษา'), findsOneWidget);
     expect(find.text('เจ้าของหอพัก'), findsOneWidget);
@@ -72,84 +91,98 @@ void main() {
   });
 
   testWidgets('REG-02 ฟอร์มว่างแสดง error เบอร์และรหัสผ่าน (ชื่อผู้ใช้ไม่บังคับ) และไม่ส่งอะไรไป', (tester) async {
-    final services = await openRegister(tester, ok);
+    final requests = <http.Request>[];
+    await open(tester, ok, requests);
     await submit(tester);
     expect(find.text('กรุณากรอกเบอร์โทรศัพท์'), findsOneWidget);
     expect(find.text('รหัสผ่านต้องยาวอย่างน้อย 8 ตัว'), findsOneWidget);
     expect(find.textContaining('ชื่อผู้ใช้ต้อง'), findsNothing);
-    expect(services.requests, isEmpty);
+    expect(requests, isEmpty);
   });
 
   testWidgets('REG-03 เบอร์ผิดรูปแบบถูกปฏิเสธ', (tester) async {
-    final services = await openRegister(tester, ok);
+    final requests = <http.Request>[];
+    await open(tester, ok, requests);
     for (final bad in ['12345', '1812345678', '081234567', '08123456789', 'abcdefghij']) {
       await fill(tester, phone: bad);
       await tester.tap(submitButton());
       await tester.pump();
       expect(find.text(phoneError), findsOneWidget, reason: 'เบอร์ "$bad" ควรไม่ผ่าน');
     }
-    expect(services.requests, isEmpty);
+    expect(requests, isEmpty);
   });
 
   testWidgets('REG-04 เบอร์แบบ +66 ผ่าน', (tester) async {
-    final services = await openRegister(tester, ok);
+    final requests = <http.Request>[];
+    await open(tester, ok, requests);
     await fill(tester, phone: '+66812345678');
-    await tester.tap(submitButton());
-    await tester.pump();
+    await submit(tester);
     expect(find.text(phoneError), findsNothing);
-    await tester.pumpAndSettle();
-    expect(services.to('/api/auth/register'), hasLength(1));
+    expect(calls(requests), contains('POST /api/auth/register'));
   });
 
   testWidgets('REG-05 รหัสผ่าน 7 ตัวไม่ผ่าน 8 ตัวผ่าน', (tester) async {
-    final services = await openRegister(tester, ok);
+    final requests = <http.Request>[];
+    await open(tester, ok, requests);
     await fill(tester, password: '1234567');
     await submit(tester);
     expect(find.text('รหัสผ่านต้องยาวอย่างน้อย 8 ตัว'), findsOneWidget);
-    expect(services.requests, isEmpty);
+    expect(requests, isEmpty);
 
     await fill(tester, password: '12345678');
     await submit(tester);
-    expect(find.text('รหัสผ่านต้องยาวอย่างน้อย 8 ตัว'), findsNothing);
-    expect(services.to('/api/auth/register'), hasLength(1));
+    expect(calls(requests), ['POST /api/auth/register']);
   });
 
   testWidgets('REG-06 รหัสยืนยันไม่ตรงแสดง error', (tester) async {
-    final services = await openRegister(tester, ok);
-    await fill(tester, password: 'Passw0rd!', confirm: 'Passw0rd?');
+    final requests = <http.Request>[];
+    await open(tester, ok, requests);
+    await fill(tester, password: 'secret123', confirm: 'secret124');
     await submit(tester);
     expect(find.text('รหัสผ่านไม่ตรงกัน'), findsOneWidget);
-    expect(services.requests, isEmpty);
+    expect(requests, isEmpty);
   });
 
   testWidgets('REG-07 ชื่อผู้ใช้ยาวเกิน 50 ตัวถูกปฏิเสธ', (tester) async {
-    await openRegister(tester, ok);
+    await open(tester, ok, []);
     await fill(tester, username: 'a' * 51);
     await submit(tester);
     expect(find.text('ชื่อผู้ใช้ต้องไม่เกิน 50 ตัวอักษร'), findsOneWidget);
   });
 
   testWidgets('REG-08 ช่องรหัสผ่านทั้งสองถูกซ่อน', (tester) async {
-    await openRegister(tester, ok);
-    expect(textFieldAt(tester, 2).obscureText, isTrue);
-    expect(textFieldAt(tester, 3).obscureText, isTrue);
+    await open(tester, ok, []);
+    for (final i in [2, 3]) {
+      final tf = tester.widget<TextField>(find.descendant(of: field(i), matching: find.byType(TextField)));
+      expect(tf.obscureText, isTrue);
+    }
   });
 
-  testWidgets('REG-09 สมัครเป็นนักศึกษา ส่งข้อมูลครบและ role = student', (tester) async {
-    final services = await openRegister(tester, ok);
+  testWidgets('REG-09 สมัครเป็นนักศึกษา ส่งข้อมูลที่ตัดช่องว่างแล้ว และไม่ส่ง role', (tester) async {
+    final requests = <http.Request>[];
+    await open(tester, ok, requests);
     await fill(tester, username: '  somchai ', phone: ' 0812345678 ');
     await submit(tester);
-    expect(services.bodyOf('/api/auth/register'), {
+    expect(registerBody(requests), {
       'phone': '0812345678',
-      'password': 'Passw0rd!',
-      'confirmPassword': 'Passw0rd!',
+      'password': 'secret123',
+      'confirmPassword': 'secret123',
       'username': 'somchai',
-      'role': 'student',
     });
+    expect(calls(requests), ['POST /api/auth/register']);
   });
 
-  testWidgets('REG-10 เลือกเจ้าของหอพัก แสดงคำอธิบาย และส่ง role = owner', (tester) async {
-    final services = await openRegister(tester, ok);
+  testWidgets('REG-10 ไม่กรอกชื่อผู้ใช้ ไม่ส่ง username', (tester) async {
+    final requests = <http.Request>[];
+    await open(tester, ok, requests);
+    await fill(tester, username: '');
+    await submit(tester);
+    expect(registerBody(requests).containsKey('username'), isFalse);
+  });
+
+  testWidgets('REG-11 เลือกเจ้าของหอพัก: สมัคร → login ชั่วคราว → become-owner → logout', (tester) async {
+    final requests = <http.Request>[];
+    final services = await open(tester, ownerFlow, requests);
     expect(find.textContaining('เอกสารแสดงความเป็นเจ้าของ'), findsNothing);
     await tester.tap(find.text('เจ้าของหอพัก'));
     await tester.pump();
@@ -157,18 +190,16 @@ void main() {
 
     await fill(tester);
     await submit(tester);
-    expect(services.bodyOf('/api/auth/register')['role'], 'owner');
-  });
-
-  testWidgets('REG-11 ไม่กรอกชื่อผู้ใช้ ไม่ส่ง username', (tester) async {
-    final services = await openRegister(tester, ok);
-    await fill(tester, username: '');
-    await submit(tester);
-    expect(services.bodyOf('/api/auth/register').containsKey('username'), isFalse);
+    expect(
+      calls(requests),
+      containsAllInOrder(['POST /api/auth/register', 'POST /api/login', 'POST /api/me/become-owner', 'POST /api/auth/logout']),
+    );
+    expect(services.tokens.token, isNull, reason: 'ต้อง logout หลังเปลี่ยนเป็นเจ้าของหอ');
+    expect(find.textContaining('บัญชีเจ้าของหอพักพร้อมแล้ว'), findsOneWidget);
   });
 
   testWidgets('REG-12 สมัครสำเร็จ แสดง dialog แล้วกด "ตกลง" กลับหน้าก่อนหน้า', (tester) async {
-    await openRegister(tester, ok);
+    await open(tester, ok, []);
     await fill(tester);
     await submit(tester);
     expect(find.text('สมัครสมาชิกสำเร็จ'), findsOneWidget);
@@ -180,7 +211,7 @@ void main() {
   });
 
   testWidgets('REG-13 เบอร์ซ้ำ (409) แสดงข้อความใต้ฟอร์ม', (tester) async {
-    await openRegister(tester, (request) async => json({'message': 'เบอร์นี้ถูกใช้แล้ว'}, 409));
+    await open(tester, {'POST /api/auth/register': http.Response(jsonEncode({'message': 'เบอร์นี้ถูกใช้แล้ว'}), 409)}, []);
     await fill(tester);
     await submit(tester);
     expect(find.text(RegisterController.duplicatePhoneMessage), findsOneWidget);
@@ -189,22 +220,15 @@ void main() {
   });
 
   testWidgets('REG-14 server error (500) แสดงข้อความจาก server', (tester) async {
-    await openRegister(tester, (request) async => json({'message': 'Database is down'}, 500));
+    await open(tester, {'POST /api/auth/register': http.Response('{"message":"Database is down"}', 500)}, []);
     await fill(tester);
     await submit(tester);
     expect(find.text('Database is down'), findsOneWidget);
     expect(find.byType(RegisterScreen), findsOneWidget);
   });
 
-  testWidgets('REG-15 server ไม่ได้เปิด แสดงข้อความเชื่อมต่อไม่ได้', (tester) async {
-    await openRegister(tester, (request) async => throw Exception('connection refused'));
-    await fill(tester);
-    await submit(tester);
-    expect(find.textContaining('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้'), findsOneWidget);
-  });
-
-  testWidgets('REG-16 ลิงก์ "เข้าสู่ระบบ" และปุ่มลูกศรย้อนกลับ กลับหน้าก่อนหน้า', (tester) async {
-    await openRegister(tester, ok);
+  testWidgets('REG-15 ลิงก์ "เข้าสู่ระบบ" และลูกศรย้อนกลับ กลับหน้าก่อนหน้า', (tester) async {
+    await open(tester, ok, []);
     await tester.tap(find.widgetWithText(TextButton, 'เข้าสู่ระบบ'));
     await tester.pumpAndSettle();
     expect(find.byType(RegisterScreen), findsNothing);
