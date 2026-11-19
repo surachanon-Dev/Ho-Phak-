@@ -165,6 +165,23 @@ const paths = {
             errors: [403, 404],
         }),
     },
+
+    '/api/owner/dormitories/{id}/document': {
+        get: op({
+            tag: TAG,
+            summary: 'ดูข้อมูลเอกสารความเป็นเจ้าของหอล่าสุด',
+            description: VERIFIED_NOTE,
+            secure: true,
+            parameters: [pathParam('id', 'id ของหอพัก')],
+            responses: {
+                200: ok('ข้อมูลเอกสารล่าสุด (หรือ null ถ้ายังไม่เคยส่ง)', {
+                    type: 'object',
+                    properties: { document: { type: 'object', nullable: true } },
+                }),
+            },
+            errors: [403, 404],
+        }),
+    },
 };
 
 module.exports = { paths, TAG };

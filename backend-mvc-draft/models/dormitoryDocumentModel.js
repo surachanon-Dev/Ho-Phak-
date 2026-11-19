@@ -11,7 +11,7 @@ async function insert(dormitoryId, documentUrl, originalName) {
 // เอกสารล่าสุดของหอ (เจ้าของส่งใหม่ได้ ฉบับล่าสุดเป็นฉบับที่ admin เห็น)
 async function latestForDormitory(dormitoryId) {
     const [rows] = await db.query(
-        'SELECT id, dormitory_id, document_url, original_name FROM dormitory_documents WHERE dormitory_id = ? ORDER BY id DESC LIMIT 1',
+        'SELECT id, dormitory_id, document_url, original_name, uploaded_at FROM dormitory_documents WHERE dormitory_id = ? ORDER BY id DESC LIMIT 1',
         [dormitoryId]);
     return rows[0];
 }

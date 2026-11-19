@@ -4,7 +4,7 @@ import '../controller/admin_profile_controller.dart';
 import '../../../../core/app_services.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../app/session.dart';
-import '../../../auth/login/view/login_screen.dart';
+import '../../../auth/welcome/view/welcome_screen.dart';
 import '../../../../widgets/ui/ui.dart';
 import '../../widgets/admin_page.dart';
 
@@ -51,12 +51,14 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
           size: 44,
         ),
         title: const Text('Log out?'),
+        content: const Text('You will need to sign in again to continue.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Cancel'),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Log out'),
           ),
@@ -67,7 +69,9 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
     await _c.logout();
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => LoginScreen(services: widget.services)),
+      MaterialPageRoute(
+        builder: (_) => WelcomeScreen(services: widget.services),
+      ),
       (route) => false,
     );
   }

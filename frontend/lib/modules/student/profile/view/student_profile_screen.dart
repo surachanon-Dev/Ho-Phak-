@@ -40,6 +40,7 @@ class StudentProfileScreen extends StatefulWidget {
 class _StudentProfileScreenState extends State<StudentProfileScreen> {
   late final OwnerProfileController _c;
   bool _busy = false;
+  String? _adminPhone;
 
   AppServices get services => widget.services;
 
@@ -53,6 +54,12 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
     );
     _c.addListener(_onChanged);
     _c.load();
+    _loadAdminPhone();
+  }
+
+  Future<void> _loadAdminPhone() async {
+    final phone = await services.auth.supportContactPhone();
+    if (mounted) setState(() => _adminPhone = phone);
   }
 
   void _onChanged() {
@@ -121,8 +128,13 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   void _contactAdmin() => showDialog<void>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('Contact admin'),
-      content: const Text('Admin phone and email have not been set yet.'),
+      icon: const IconBadge(icon: Icons.support_agent_rounded, size: 48),
+      title: const Text('Contact admin', textAlign: TextAlign.center),
+      content: Text(
+        _adminPhone != null
+            ? 'For help with your account or dorm listings, please call the admin at $_adminPhone.'
+            : 'Admin contact details have not been set yet.',
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(),
@@ -301,7 +313,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                       Tone.neutral,
                       'Contact admin',
                       _contactAdmin,
-                      subtitle: 'Contact details are not set yet',
+                      subtitle: _adminPhone ?? 'Get help from Ho-Phak admin',
                     ),
                   ],
                 ),

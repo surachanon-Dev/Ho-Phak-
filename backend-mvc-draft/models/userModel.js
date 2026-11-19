@@ -72,4 +72,11 @@ async function listForAdmin({ role, status } = {}) {
     return rows;
 }
 
-module.exports = { findAuthState, findByPhone, insertStudent, findForUpdate, promoteToOwner, updatePasswordHash, setVerified, suspend, restore, listForAdmin };
+async function findAdminContactPhone() {
+    const [rows] = await db.query(
+        "SELECT phone FROM users WHERE role = 'admin' AND status = 'active' AND phone IS NOT NULL AND TRIM(phone) <> '' ORDER BY id ASC LIMIT 1"
+    );
+    return rows[0]?.phone ?? null;
+}
+
+module.exports = { findAuthState, findByPhone, insertStudent, findForUpdate, promoteToOwner, updatePasswordHash, setVerified, suspend, restore, listForAdmin, findAdminContactPhone };

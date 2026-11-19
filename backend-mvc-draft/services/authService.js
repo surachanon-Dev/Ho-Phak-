@@ -46,4 +46,9 @@ async function login({ phone, password }) {
     return { token, user: { id: user.id, role: user.role, is_verified: user.is_verified } };
 }
 
-module.exports = { register, login };
+async function supportContact() {
+    const phone = await userModel.findAdminContactPhone();
+    return { phone };
+}
+
+module.exports = { register, login, supportContact };

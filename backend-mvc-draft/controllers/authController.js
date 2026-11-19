@@ -19,4 +19,9 @@ function me(req, res) {
     res.json({ user: req.user });
 }
 
-module.exports = { register, login, logout, me };
+async function supportContact(req, res) {
+    const contact = await authService.supportContact();
+    res.json(contact);
+}
+
+module.exports = { register, login, logout, me, supportContact };

@@ -25,6 +25,8 @@ router.post('/dormitories/:id/images', ownerOnly, requireOwnedDormitory,
 router.delete('/dormitories/:id/images/:imageId', ownerOnly, imageController.remove);
 
 // เอกสารความเป็นเจ้าของหอ (ตรวจสิทธิ์ก่อนรับไฟล์เหมือนรูป)
+router.get('/dormitories/:id/document', ownerOnly, requireOwnedDormitory,
+    dormitoryDocumentController.getMine);
 router.post('/dormitories/:id/document', ownerOnly, requireOwnedDormitory,
     handleUpload(documentUpload.single('document')), dormitoryDocumentController.upload);
 

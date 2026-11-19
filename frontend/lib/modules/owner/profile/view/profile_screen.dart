@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../model/user.dart';
 import '../../../../core/app_services.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../auth/login/view/login_screen.dart';
+import '../../../auth/welcome/view/welcome_screen.dart';
 import '../../change_password/view/change_password_screen.dart';
 import 'edit_profile_screen.dart';
 import '../../my_reviews/view/my_reviews_screen.dart';
@@ -29,6 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   AppServices get services => widget.services;
   CurrentUser get user => widget.user;
   late final OwnerProfileController _c;
+  String? _adminPhone;
 
   @override
   void initState() {
@@ -42,6 +43,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) setState(() {});
     });
     _c.load();
+    _loadAdminPhone();
+  }
+
+  Future<void> _loadAdminPhone() async {
+    final phone = await services.auth.supportContactPhone();
+    if (mounted) setState(() => _adminPhone = phone);
   }
 
   @override
@@ -69,15 +76,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           tone: Tone.danger,
           size: 48,
         ),
-        title: const Text('Sign out?', textAlign: TextAlign.center),
+        title: const Text('Log out?', textAlign: TextAlign.center),
+        content: const Text('You will need to sign in again to continue.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Cancel'),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Sign out'),
+            child: const Text('Log out'),
           ),
         ],
       ),
@@ -86,7 +95,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await _c.logout();
     if (!context.mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => LoginScreen(services: services)),
+      MaterialPageRoute(builder: (_) => WelcomeScreen(services: services)),
       (route) => false,
     );
   }
@@ -263,11 +272,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               'Help / Contact admin',
                               textAlign: TextAlign.center,
                             ),
-                            content: const Text(
-                              'If your dorm is rejected or suspended, or you have '
-                              'a problem with your account, please contact the '
-                              'admin. The admin phone number has not been set yet '
-                              '(to be confirmed).',
+                            content: Text(
+                              _adminPhone != null
+                                  ? 'If your dorm is rejected or suspended, or you have '
+                                        'a problem with your account, please call the admin at $_adminPhone.'
+                                  : 'If your dorm is rejected or suspended, or you have '
+                                        'a problem with your account, please contact the '
+                                        'admin. The admin phone number has not been set yet.',
                             ),
                             actions: [
                               TextButton(
@@ -285,7 +296,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       _Row(
                         icon: Icons.logout,
-                        label: 'Sign out',
+                        label: 'Log out',
                         tone: Tone.danger,
                         danger: true,
                         showChevron: false,

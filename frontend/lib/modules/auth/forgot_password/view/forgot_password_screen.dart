@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/app_services.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../widgets/ui/ui.dart';
 
 /// ลืมรหัสผ่าน: ระบบยังไม่มีอีเมล/SMS ส่งรหัส จึงให้ติดต่อแอดมิน
 /// แอดมินรีเซ็ตได้ในหน้ารายละเอียดผู้ใช้ (ได้รหัสชั่วคราวไปแจ้งผู้ใช้)
-class ForgotPasswordScreen extends StatelessWidget {
-  const ForgotPasswordScreen({super.key});
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key, this.services});
 
+  final AppServices? services;
+
+  @override
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+}
+
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   static const _steps = [
     (
       Icons.support_agent_rounded,
@@ -25,6 +33,24 @@ class ForgotPasswordScreen extends StatelessWidget {
       'Sign in with the temporary password, then change it in Profile → Change password.',
     ),
   ];
+
+  String? _adminPhone;
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadContact();
+  }
+
+  Future<void> _loadContact() async {
+    final phone = await widget.services?.auth.supportContactPhone();
+    if (!mounted) return;
+    setState(() {
+      _adminPhone = phone;
+      _loaded = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,12 +114,20 @@ class ForgotPasswordScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const NoticeBanner(
-                    tone: Tone.warning,
-                    message:
-                        'Admin contact details have not been set yet. '
-                        'Please ask your dorm or university staff.',
-                  ),
+                  if (_adminPhone != null)
+                    NoticeBanner(
+                      tone: Tone.info,
+                      icon: Icons.phone_outlined,
+                      title: 'Admin contact phone',
+                      message: 'Call $_adminPhone for password reset assistance.',
+                    )
+                  else if (_loaded)
+                    const NoticeBanner(
+                      tone: Tone.warning,
+                      message:
+                          'Admin contact details have not been set yet. '
+                          'Please ask your dorm or university staff.',
+                    ),
                   const SizedBox(height: 20),
                   FilledButton(
                     onPressed: () => Navigator.of(context).pop(),

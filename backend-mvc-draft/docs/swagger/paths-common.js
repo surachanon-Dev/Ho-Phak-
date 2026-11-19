@@ -55,6 +55,20 @@ const paths = {
         }),
     },
 
+    '/api/support-contact': {
+        get: op({
+            tag: TAG_PUBLIC,
+            summary: 'เบอร์ติดต่อแอดมิน',
+            description: 'คืนเบอร์โทรของแอดมินที่ใช้งานอยู่ สำหรับหน้า Forgot password และ Contact admin',
+            responses: {
+                200: ok('เบอร์ติดต่อแอดมิน', {
+                    type: 'object',
+                    properties: { phone: { type: 'string', nullable: true } },
+                }),
+            },
+        }),
+    },
+
     '/api/dormitories': {
         get: op({
             tag: TAG_PUBLIC,

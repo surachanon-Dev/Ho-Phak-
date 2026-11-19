@@ -19,6 +19,17 @@ async function addForDormitory(dormitoryId, file) {
     }
 }
 
+// คืนข้อมูลเอกสารล่าสุดของหอสำหรับเจ้าของ (ไม่เปิด path จริงในเครื่อง)
+async function getMetadataForOwner(dormitoryId) {
+    const document = await dormitoryDocumentModel.latestForDormitory(dormitoryId);
+    if (!document) return null;
+    return {
+        id: document.id,
+        original_name: document.original_name,
+        uploaded_at: document.uploaded_at,
+    };
+}
+
 // คืน path ของไฟล์เอกสารฉบับล่าสุดของหอ สำหรับ admin เท่านั้น
 async function getFileForAdmin(rawDormitoryId) {
     const id = toInt(rawDormitoryId);
@@ -27,4 +38,4 @@ async function getFileForAdmin(rawDormitoryId) {
     return path.join(ROOT, document.document_url);
 }
 
-module.exports = { addForDormitory, getFileForAdmin };
+module.exports = { addForDormitory, getMetadataForOwner, getFileForAdmin };

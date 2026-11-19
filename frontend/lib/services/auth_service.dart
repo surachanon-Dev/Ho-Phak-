@@ -73,6 +73,17 @@ class AuthService {
     });
   }
 
+  /// GET /api/support-contact → { phone }
+  Future<String?> supportContactPhone() async {
+    try {
+      final data = await _api.get('/api/support-contact') as Map<String, dynamic>;
+      final phone = (data['phone'] as String?)?.trim();
+      return (phone == null || phone.isEmpty) ? null : phone;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// POST /api/auth/logout แล้วลบ token ฝั่ง client เสมอ
   Future<void> logout() async {
     try {

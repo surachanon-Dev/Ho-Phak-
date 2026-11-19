@@ -40,7 +40,15 @@ async function checkAmenities(ids) {
 }
 
 // ---- สาธารณะ ----
-async function search({ zone, minPrice, maxPrice, hasRooms, sort, q }) {
+// รายการ id คั่นด้วย , เช่น "1,4,6" → [1, 4, 6] (ค่าว่าง = ไม่กรอง)
+function parseIdList(raw, field) {
+    if (raw === undefined || raw === '') return [];
+    const ids = String(raw).split(',').map((s) => toInt(s.trim()));
+    if (ids.some((n) => n === null || n <= 0)) fail(400, `${field} ต้องเป็นรายการ id ตัวเลขคั่นด้วย ,`);
+    return [...new Set(ids)];
+}
+
+async function search({ zone, minPrice, maxPrice, hasRooms, sort, q, amenities }) {
     if (zone !== undefined && !ZONES.includes(zone)) fail(400, 'zone ไม่ถูกต้อง');
     const min = minPrice === undefined ? undefined : toInt(minPrice);
     if (minPrice !== undefined && min === null) fail(400, 'minPrice ต้องเป็นตัวเลข');
@@ -55,6 +63,7 @@ async function search({ zone, minPrice, maxPrice, hasRooms, sort, q }) {
         maxPrice: max,
         hasRooms: hasRooms === '1',
         q: keyword || undefined,
+        amenityIds: parseIdList(amenities, 'amenities'),
         orderBy,
     });
 }

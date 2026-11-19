@@ -941,7 +941,9 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                                             ),
                                           ),
                                           Text(
-                                            '${(_c.document!.sizeBytes / (1024 * 1024)).toStringAsFixed(1)} MB',
+                                            _c.document!.sizeBytes > 0
+                                                ? '${(_c.document!.sizeBytes / (1024 * 1024)).toStringAsFixed(1)} MB'
+                                                : 'Uploaded document',
                                             style: const TextStyle(
                                               fontSize: 12,
                                               color: AppColors.textMuted,

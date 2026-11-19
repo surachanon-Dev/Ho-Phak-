@@ -52,8 +52,18 @@ async function summary(dormitoryId) {
 
 async function listByStatus(status) {
     const [rows] = await db.query(
-        `SELECT r.id, r.dormitory_id, r.user_id, r.rating, r.body, r.status, r.created_at, d.name AS dormitory_name
-         FROM reviews r JOIN dormitories d ON d.id = r.dormitory_id WHERE r.status = ? ORDER BY r.id`, [status]);
+        `SELECT r.id, r.dormitory_id, r.user_id, r.rating, r.body, r.status, r.created_at,
+                d.name AS dormitory_name,
+                COALESCE(NULLIF(TRIM(CONCAT_WS(' ', u.first_name, u.surname)), ''), u.username, 'Anonymous') AS author,
+                rr.reason AS report_reason,
+                COALESCE(NULLIF(TRIM(CONCAT_WS(' ', rep.first_name, rep.surname)), ''), rep.username) AS reporter_name
+         FROM reviews r
+         JOIN dormitories d ON d.id = r.dormitory_id
+         LEFT JOIN users u ON u.id = r.user_id
+         LEFT JOIN review_reports rr ON rr.review_id = r.id AND rr.status = 'open'
+         LEFT JOIN users rep ON rep.id = rr.owner_id
+         WHERE r.status = ?
+         ORDER BY r.id DESC`, [status]);
     return rows;
 }
 

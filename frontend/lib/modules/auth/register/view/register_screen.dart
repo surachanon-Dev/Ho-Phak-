@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../controller/register_controller.dart';
+import '../../login/view/login_screen.dart';
 import '../../../../core/app_services.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../app/session.dart';
@@ -145,9 +146,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     decoration: const InputDecoration(
                       hintText: '+66 000-0000000',
                     ),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Please enter your phone number'
-                        : null,
+                    validator: (v) {
+                      final raw = (v ?? '').trim();
+                      if (raw.isEmpty) return 'Please enter your phone number';
+                      var normalized = raw.replaceAll(RegExp(r'[\s-]'), '');
+                      if (normalized.startsWith('+66')) {
+                        normalized = '0${normalized.substring(3)}';
+                      }
+                      if (!RegExp(r'^0\d{9}$').hasMatch(normalized)) {
+                        return 'Please enter a valid 10-digit phone number';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 12),
                   _label('Password'),
@@ -197,7 +207,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 12),
                   Center(
                     child: TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => LoginScreen(services: widget.services),
+                        ),
+                      ),
                       child: const Text('Already have an account? Sign In'),
                     ),
                   ),

@@ -85,7 +85,7 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
 
     final tabs = RequestTabBar(
       children: [
-        for (final (i, label) in const ['Open', 'Kept', 'Hidden'].indexed)
+        for (final (i, label) in const ['Pending', 'Published', 'Hidden'].indexed)
           RequestTabButton(
             label: label,
             count: _c.status.index == i ? _c.reviews.length : null,
@@ -104,8 +104,8 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
     );
 
     return AdminPage(
-      title: 'Reported reviews',
-      subtitle: 'Decide whether reported reviews stay on the dorm page',
+      title: 'Review moderation',
+      subtitle: 'Approve pending student reviews or hide inappropriate ones',
       actions: [
         HeaderIconButton(
           tooltip: 'Refresh',
@@ -164,8 +164,8 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
   Widget _buildInfoBanner() {
     final text = switch (_currentStatus) {
       'pending' =>
-        'Reviews go live as soon as students post them. Visible until hidden.',
-      'kept' => 'Kept = report closed, review stays on the dorm page.',
+        'New and edited student reviews wait here until an admin publishes or hides them.',
+      'kept' => 'Published reviews are visible on the dorm page.',
       _ => 'Hidden reviews are removed from the dorm page.',
     };
     return NoticeBanner(tone: Tone.info, message: text);
@@ -178,8 +178,8 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
     final String author = r['author']?.toString() ?? 'Anonymous';
     final String date = r['created_at']?.toString() ?? 'posted recently';
     final String reporter = r['reporter_name']?.toString() ?? 'Owner';
-    final String reportReason =
-        r['report_reason']?.toString() ?? 'No reason provided';
+    final String? reportReason = r['report_reason']?.toString().trim();
+    final bool hasReport = reportReason != null && reportReason.isNotEmpty;
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -241,15 +241,16 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
                 ),
               ),
             ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
-            child: NoticeBanner(
-              tone: Tone.warning,
-              icon: Icons.flag_outlined,
-              title: 'Reported by $reporter',
-              message: '"$reportReason"',
+          if (hasReport)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+              child: NoticeBanner(
+                tone: Tone.warning,
+                icon: Icons.flag_outlined,
+                title: 'Reported by $reporter',
+                message: '"$reportReason"',
+              ),
             ),
-          ),
           const SizedBox(height: 16),
           const Divider(),
           Padding(
@@ -279,12 +280,12 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
   Widget _buildStatusBadge() {
     return switch (_currentStatus) {
       'pending' => const ToneBadge(
-        label: 'Open report',
+        label: 'Pending review',
         tone: Tone.warning,
-        icon: Icons.flag_outlined,
+        icon: Icons.hourglass_top_rounded,
       ),
       'kept' => const ToneBadge(
-        label: 'Kept',
+        label: 'Published',
         tone: Tone.success,
         icon: Icons.check_rounded,
       ),
@@ -298,7 +299,7 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
 
   String _getActionText() {
     if (_currentStatus == 'pending') {
-      return 'Keep closes the report. Hide removes the review.';
+      return 'Publish shows the review on the dorm page. Hide removes it.';
     } else if (_currentStatus == 'kept') {
       return 'Review is visible on the dorm page.';
     } else {
@@ -325,7 +326,7 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
           OutlinedButton(
             onPressed: () => _publish(id),
             style: _compact,
-            child: const Text('Keep review'),
+            child: const Text('Publish review'),
           ),
           FilledButton(
             onPressed: () => _hide(id),

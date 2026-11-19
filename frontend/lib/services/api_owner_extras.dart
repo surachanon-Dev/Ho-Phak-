@@ -64,9 +64,19 @@ class ApiOwnerExtras implements OwnerExtras {
   Future<void> deleteDorm(int dormId) =>
       _api.delete('$_owner/dormitories/$dormId');
 
+  // GET /api/owner/dormitories/:id/document → { document: { id, original_name, uploaded_at } | null }
   // POST /api/owner/dormitories/:id/document (multipart, ช่อง "document") อัปโหลดเมื่อมีไฟล์ใหม่
   @override
-  Future<DormDocument?> dormDocument(int dormId) async => null;
+  Future<DormDocument?> dormDocument(int dormId) async {
+    final data =
+        await _api.get('$_owner/dormitories/$dormId/document')
+            as Map<String, dynamic>;
+    final doc = data['document'] as Map<String, dynamic>?;
+    if (doc == null) return null;
+    final name = (doc['original_name'] as String?)?.trim();
+    if (name == null || name.isEmpty) return null;
+    return DormDocument(name: name, sizeBytes: 0);
+  }
 
   @override
   Future<void> saveDormDocument(int dormId, DormDocument? doc) async {

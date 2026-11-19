@@ -1,10 +1,10 @@
 -- ฟีเจอร์ฝั่ง owner ที่แอปเรียกผ่าน ApiOwnerExtras: ชื่อ-นามสกุล, การตั้งค่าแจ้งเตือน,
 -- วิธีระบุค่าน้ำ/ค่าไฟ (set_price / included / not_specified), การ report รีวิว, amenities ตั้งต้น
--- รันหลัง 003_reviews_pending.sql
+-- รันครั้งเดียวหลัง 003_reviews_pending.sql (ใช้ standard SQL ให้รันได้ทั้ง MySQL 8 และ MariaDB)
 
 ALTER TABLE users
-  ADD COLUMN IF NOT EXISTS first_name VARCHAR(50) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS surname VARCHAR(50) DEFAULT NULL;
+  ADD COLUMN first_name VARCHAR(50) DEFAULT NULL,
+  ADD COLUMN surname VARCHAR(50) DEFAULT NULL;
 
 CREATE TABLE IF NOT EXISTS notification_preferences (
   user_id INT UNSIGNED NOT NULL,
@@ -17,8 +17,8 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE dormitories
-  ADD COLUMN IF NOT EXISTS water_utility_mode ENUM('set_price','included','not_specified') NOT NULL DEFAULT 'not_specified',
-  ADD COLUMN IF NOT EXISTS electricity_utility_mode ENUM('set_price','included','not_specified') NOT NULL DEFAULT 'not_specified';
+  ADD COLUMN water_utility_mode ENUM('set_price','included','not_specified') NOT NULL DEFAULT 'not_specified',
+  ADD COLUMN electricity_utility_mode ENUM('set_price','included','not_specified') NOT NULL DEFAULT 'not_specified';
 
 UPDATE dormitories SET water_utility_mode = 'set_price' WHERE water_rate IS NOT NULL;
 UPDATE dormitories SET electricity_utility_mode = 'set_price' WHERE electricity_rate IS NOT NULL;
