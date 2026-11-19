@@ -63,7 +63,34 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Admin phone and email have not been set yet.'),
+      find.text('Admin contact details have not been set yet.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('2b. Contact admin shows the admin phone when it is set', (
+    tester,
+  ) async {
+    await openProfile(
+      tester,
+      fakeBackend({
+        'GET /api/me/profile': {
+          'profile': {
+            'first_name': 'Karn',
+            'surname': 'Student',
+            'phone': '0812345678',
+          },
+        },
+        'GET /api/support-contact': {'phone': '0899999999'},
+      }),
+    );
+
+    await tester.tap(find.text('Contact admin'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('0899999999'), findsWidgets);
+    expect(
+      find.textContaining('call the admin at 0899999999'),
       findsOneWidget,
     );
   });

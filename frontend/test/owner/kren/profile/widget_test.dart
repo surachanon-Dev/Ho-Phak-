@@ -43,26 +43,26 @@ void main() {
       'My reviews',
       'Notification settings',
       'Help / Contact admin',
-      'Sign out',
+      'Log out',
     ]) {
       expect(find.text(label), findsOneWidget, reason: label);
     }
   });
 
-  testWidgets('2. Sign out asks for confirmation and can be cancelled', (
+  testWidgets('2. Log out asks for confirmation and can be cancelled', (
     tester,
   ) async {
     await openProfile(tester);
 
-    final signOut = find.text('Sign out');
+    final signOut = find.text('Log out');
     await tester.ensureVisible(signOut);
     await tester.tap(signOut);
     await tester.pumpAndSettle();
-    expect(find.text('Sign out?'), findsOneWidget);
+    expect(find.text('Log out?'), findsOneWidget);
 
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
-    expect(find.text('Sign out?'), findsNothing);
+    expect(find.text('Log out?'), findsNothing);
     expect(find.byType(ProfileScreen), findsOneWidget);
   });
 
