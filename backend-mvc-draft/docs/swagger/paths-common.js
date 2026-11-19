@@ -80,6 +80,7 @@ const paths = {
                 queryParam('hasRooms', 'ส่ง 1 เพื่อดูเฉพาะหอที่ยังมีห้องว่าง', { type: 'string', enum: ['1'] }),
                 queryParam('sort', 'เรียงลำดับ', { type: 'string', enum: ['newest', 'price_asc', 'price_desc'] }),
                 queryParam('q', 'คำค้นหาชื่อหอ'),
+                queryParam('amenities', 'id สิ่งอำนวยความสะดวกคั่นด้วย , เช่น 1,4 — หอต้องมีครบทุกตัว (ว่าง = ไม่กรอง)', { type: 'string', example: '1,4' }),
             ],
             responses: {
                 200: ok('รายการหอ', {

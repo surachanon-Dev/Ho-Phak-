@@ -9,16 +9,14 @@ async function findOwn(id, userId) {
 // ถ้านักศึกษาเคยรีวิวหอนี้แล้ว จะเกิด ER_DUP_ENTRY ให้ service แปลงเป็น 409
 async function insert(dormitoryId, userId, rating, body) {
     const [result] = await db.query(
-        "INSERT INTO reviews (dormitory_id, user_id, rating, body, status) VALUES (?, ?, ?, ?, 'pending')",
+        "INSERT INTO reviews (dormitory_id, user_id, rating, body, status) VALUES (?, ?, ?, ?, 'published')",
         [dormitoryId, userId, rating, body]);
     return result.insertId;
 }
 
-// แก้ไขแล้วต้องรอตรวจใหม่และล้างข้อมูลการตรวจเดิม
+// แก้ไขแล้วแสดงทันทีเหมือนเดิม — คง status เดิมไว้ (รีวิวที่ admin ซ่อนแล้วแก้เองไม่ทำให้กลับมาแสดง)
 async function updateOwn(id, rating, body) {
-    await db.query(
-        `UPDATE reviews SET rating = ?, body = ?, status = 'pending', moderation_reason = NULL,
-         moderated_by = NULL, moderated_at = NULL WHERE id = ?`, [rating, body, id]);
+    await db.query('UPDATE reviews SET rating = ?, body = ? WHERE id = ?', [rating, body, id]);
 }
 
 async function deleteOwn(id, userId) {
@@ -50,7 +48,16 @@ async function summary(dormitoryId) {
     return row;
 }
 
+// รายการให้ admin ตรวจ (เฉพาะรีวิวที่ owner รายงาน — รีวิวใหม่ขึ้นทันทีไม่ต้องรอตรวจ)
+//  open   = แสดงอยู่ + มีรายงานที่ยังไม่ตัดสิน
+//  kept   = แสดงอยู่ + admin ตัดสินให้คงไว้แล้ว
+//  hidden = ถูกซ่อน
 async function listByStatus(status) {
+    const where = {
+        open: "r.status = 'published' AND rr.status = 'open'",
+        kept: "r.status = 'published' AND rr.status = 'resolved'",
+        hidden: "r.status = 'hidden'",
+    }[status];
     const [rows] = await db.query(
         `SELECT r.id, r.dormitory_id, r.user_id, r.rating, r.body, r.status, r.created_at,
                 d.name AS dormitory_name,
@@ -60,10 +67,10 @@ async function listByStatus(status) {
          FROM reviews r
          JOIN dormitories d ON d.id = r.dormitory_id
          LEFT JOIN users u ON u.id = r.user_id
-         LEFT JOIN review_reports rr ON rr.review_id = r.id AND rr.status = 'open'
+         LEFT JOIN review_reports rr ON rr.review_id = r.id
          LEFT JOIN users rep ON rep.id = rr.owner_id
-         WHERE r.status = ?
-         ORDER BY r.id DESC`, [status]);
+         WHERE ${where}
+         ORDER BY r.id DESC`);
     return rows;
 }
 

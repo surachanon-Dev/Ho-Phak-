@@ -9,12 +9,12 @@ const paths = {
         post: op({
             tag: TAG,
             summary: 'เขียนรีวิวหอพัก',
-            description: 'ส่งแล้วต้องรอ admin ตรวจก่อนแสดง และรีวิวได้เพียงครั้งเดียวต่อหอ',
+            description: 'รีวิวขึ้นทันที (admin ตรวจเฉพาะรีวิวที่ owner รายงาน) และรีวิวได้เพียงครั้งเดียวต่อหอ',
             secure: true,
             parameters: [pathParam('id', 'id ของหอพัก')],
             body: { schema: ref('ReviewInput') },
             responses: {
-                201: ok('ส่งรีวิวแล้ว รอตรวจสอบ', { type: 'object', properties: { message: { type: 'string' }, id: { type: 'integer' } } }),
+                201: ok('ส่งรีวิวแล้ว', { type: 'object', properties: { message: { type: 'string' }, id: { type: 'integer' } } }),
             },
             errors: [400, 404, 409],
         }),
@@ -24,7 +24,7 @@ const paths = {
         put: op({
             tag: TAG,
             summary: 'แก้ไขรีวิวของตัวเอง',
-            description: 'แก้แล้วกลับไปรอ admin ตรวจอีกครั้ง',
+            description: 'แก้แล้วแสดงทันที (รีวิวที่ admin ซ่อนไว้ยังคงซ่อน)',
             secure: true,
             parameters: [pathParam('id', 'id ของรีวิว')],
             body: { schema: ref('ReviewInput') },

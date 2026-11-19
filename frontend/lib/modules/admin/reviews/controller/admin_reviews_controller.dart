@@ -4,7 +4,7 @@ import '../../../../services/admin_service.dart';
 import '../../../../core/network/api_client.dart';
 
 enum AdminReviewStatus {
-  open('pending'),
+  open('open'),
   kept('published'),
   hidden('hidden');
 

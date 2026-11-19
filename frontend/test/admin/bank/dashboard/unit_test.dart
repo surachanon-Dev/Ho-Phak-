@@ -30,7 +30,7 @@ void main() {
         verifications: rows(ownerRequests),
       ),
     );
-    when(() => service.reviews('pending'))
+    when(() => service.reviews('open'))
         .thenAnswer((_) async => rows(pendingReviews));
     when(() => service.allDormitories(status: 'suspended'))
         .thenAnswer((_) async => rows(suspendedDorms));

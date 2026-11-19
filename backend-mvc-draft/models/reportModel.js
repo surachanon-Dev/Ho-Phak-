@@ -27,4 +27,9 @@ async function insert(reviewId, ownerId, reason) {
     }
 }
 
-module.exports = { findOwnedReview, listByOwner, insert };
+// admin ตัดสินแล้ว (Keep หรือ Hide) → ปิดรายงานที่ยังเปิดอยู่ของรีวิวนี้
+async function resolveForReview(reviewId, conn = db) {
+    await conn.query("UPDATE review_reports SET status = 'resolved' WHERE review_id = ? AND status = 'open'", [reviewId]);
+}
+
+module.exports = { findOwnedReview, listByOwner, insert, resolveForReview };

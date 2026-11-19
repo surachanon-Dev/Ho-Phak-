@@ -23,9 +23,9 @@ class AdminReviewsTab extends StatefulWidget {
 class _AdminReviewsTabState extends State<AdminReviewsTab> {
   late final AdminReviewsController _c;
 
-  /// สถานะของแท็บตามที่หน้าจอใช้: pending | kept | hidden
+  /// สถานะของแท็บตามที่หน้าจอใช้: open | kept | hidden
   String get _currentStatus => switch (_c.status) {
-    AdminReviewStatus.open => 'pending',
+    AdminReviewStatus.open => 'open',
     AdminReviewStatus.kept => 'kept',
     AdminReviewStatus.hidden => 'hidden',
   };
@@ -85,7 +85,7 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
 
     final tabs = RequestTabBar(
       children: [
-        for (final (i, label) in const ['Pending', 'Published', 'Hidden'].indexed)
+        for (final (i, label) in const ['Open', 'Kept', 'Hidden'].indexed)
           RequestTabButton(
             label: label,
             count: _c.status.index == i ? _c.reviews.length : null,
@@ -104,8 +104,8 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
     );
 
     return AdminPage(
-      title: 'Review moderation',
-      subtitle: 'Approve pending student reviews or hide inappropriate ones',
+      title: 'Reported reviews',
+      subtitle: 'Decide whether reported reviews stay on the dorm page',
       actions: [
         HeaderIconButton(
           tooltip: 'Refresh',
@@ -163,9 +163,9 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
 
   Widget _buildInfoBanner() {
     final text = switch (_currentStatus) {
-      'pending' =>
-        'New and edited student reviews wait here until an admin publishes or hides them.',
-      'kept' => 'Published reviews are visible on the dorm page.',
+      'open' =>
+        'Student reviews go live right away. Reported ones wait here for your decision.',
+      'kept' => 'Kept = report closed, review stays on the dorm page.',
       _ => 'Hidden reviews are removed from the dorm page.',
     };
     return NoticeBanner(tone: Tone.info, message: text);
@@ -279,13 +279,13 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
 
   Widget _buildStatusBadge() {
     return switch (_currentStatus) {
-      'pending' => const ToneBadge(
-        label: 'Pending review',
+      'open' => const ToneBadge(
+        label: 'Open report',
         tone: Tone.warning,
-        icon: Icons.hourglass_top_rounded,
+        icon: Icons.flag_outlined,
       ),
       'kept' => const ToneBadge(
-        label: 'Published',
+        label: 'Kept',
         tone: Tone.success,
         icon: Icons.check_rounded,
       ),
@@ -298,8 +298,8 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
   }
 
   String _getActionText() {
-    if (_currentStatus == 'pending') {
-      return 'Publish shows the review on the dorm page. Hide removes it.';
+    if (_currentStatus == 'open') {
+      return 'Keep closes the report. Hide removes the review.';
     } else if (_currentStatus == 'kept') {
       return 'Review is visible on the dorm page.';
     } else {
@@ -318,7 +318,7 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
   );
 
   Widget _buildActionButtons(int id) {
-    if (_currentStatus == 'pending') {
+    if (_currentStatus == 'open') {
       return Wrap(
         spacing: 8,
         runSpacing: 8,
@@ -326,7 +326,7 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
           OutlinedButton(
             onPressed: () => _publish(id),
             style: _compact,
-            child: const Text('Publish review'),
+            child: const Text('Keep review'),
           ),
           FilledButton(
             onPressed: () => _hide(id),

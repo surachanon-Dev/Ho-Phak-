@@ -41,7 +41,7 @@ class MyReview {
   final int rating;
   final String? body;
 
-  /// pending | published | hidden
+  /// published | hidden
   final String status;
 
   /// เหตุผลจากแอดมินเมื่อถูกซ่อน
@@ -57,7 +57,7 @@ class MyReview {
     dormitoryName: json['dormitory_name']?.toString() ?? '',
     rating: _toInt(json['rating']),
     body: json['body'] as String?,
-    status: json['status']?.toString() ?? 'pending',
+    status: json['status']?.toString() ?? 'published',
     moderationReason: json['moderation_reason'] as String?,
     createdAt: json['created_at']?.toString() ?? '',
   );

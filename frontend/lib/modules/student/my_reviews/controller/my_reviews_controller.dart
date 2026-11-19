@@ -4,7 +4,7 @@ import '../../../../model/review.dart';
 import '../../../../services/public_dormitory_service.dart';
 
 /// หน้า "My reviews" ของนักศึกษา: โหลดรีวิวของฉัน แก้ไข และลบ
-/// แก้ไขแล้วรีวิวจะกลับไปรอแอดมินตรวจ (status = pending)
+/// รีวิวขึ้นทันที แก้ไขแล้วยังแสดงอยู่ (admin ซ่อนได้เมื่อ owner รายงาน)
 class MyReviewsController extends ChangeNotifier {
   MyReviewsController(this._dorms);
 

@@ -50,7 +50,7 @@ Map<String, dynamic> favoriteJson({
 Map<String, dynamic> myReviewJson({
   int id = 1,
   String dorm = 'Sunrise Dorm',
-  String status = 'pending',
+  String status = 'published',
   String? reason,
 }) => {
   'id': id,

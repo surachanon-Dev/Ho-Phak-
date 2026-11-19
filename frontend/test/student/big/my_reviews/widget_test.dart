@@ -36,7 +36,6 @@ void main() {
       fakeBackend({
         'GET /api/reviews/me': {
           'reviews': [
-            myReviewJson(id: 1, dorm: 'Waiting Dorm'),
             myReviewJson(id: 2, dorm: 'Shown Dorm', status: 'published'),
             myReviewJson(
               id: 3,
@@ -50,7 +49,7 @@ void main() {
     );
 
     expect(find.text('My reviews'), findsOneWidget);
-    expect(find.text('Waiting for admin'), findsOneWidget);
+    expect(find.text('Waiting for admin'), findsNothing);
     expect(find.text('Published'), findsOneWidget);
     expect(find.text('Hidden by admin'), findsOneWidget);
     expect(find.textContaining('Contains a phone number'), findsOneWidget);

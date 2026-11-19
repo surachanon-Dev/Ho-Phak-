@@ -189,10 +189,11 @@ const paths = {
     '/api/admin/reviews': {
         get: op({
             tag: TAG,
-            summary: 'รายการรีวิวตามสถานะ',
+            summary: 'รายการรีวิวที่ owner รายงาน ตามสถานะ',
+            description: 'รีวิวใหม่ขึ้นทันที admin ตรวจเฉพาะรีวิวที่ถูกรายงาน: open = รอตัดสิน, kept = ตัดสินให้คงไว้, hidden = ซ่อนแล้ว (pending/published ใช้แทน open/kept ได้)',
             secure: true,
             parameters: [
-                queryParam('status', 'ค่าเริ่มต้นคือ pending', { type: 'string', enum: ['pending', 'published', 'hidden'] }),
+                queryParam('status', 'ค่าเริ่มต้นคือ open', { type: 'string', enum: ['open', 'kept', 'hidden'] }),
             ],
             responses: {
                 200: ok('รายการรีวิว', {
@@ -206,7 +207,7 @@ const paths = {
     '/api/admin/reviews/{id}/publish': {
         post: op({
             tag: TAG,
-            summary: 'เผยแพร่รีวิว',
+            summary: 'Keep รีวิว (คงแสดง ปิดรายงาน) หรือคืนรีวิวที่ซ่อน',
             secure: true,
             parameters: [pathParam('id', 'id ของรีวิว')],
             responses: { 200: ok('เผยแพร่แล้ว', ref('Message')) },
@@ -217,7 +218,7 @@ const paths = {
     '/api/admin/reviews/{id}/hide': {
         post: op({
             tag: TAG,
-            summary: 'ซ่อนรีวิว',
+            summary: 'ซ่อนรีวิว (ปิดรายงาน)',
             secure: true,
             parameters: [pathParam('id', 'id ของรีวิว')],
             body: { schema: ref('ReasonInput') },

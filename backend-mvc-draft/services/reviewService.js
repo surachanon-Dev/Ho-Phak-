@@ -1,4 +1,4 @@
-// service ของรีวิว (นักศึกษาเป็นคนเขียน ต้องผ่านการตรวจก่อนแสดง)
+// service ของรีวิว (นักศึกษาเป็นคนเขียน ขึ้นทันที — admin ตรวจเฉพาะรีวิวที่ owner รายงาน)
 const reviewModel = require('../models/reviewModel');
 const dormitoryService = require('./dormitoryService');
 const { fail } = require('../utils/AppError');

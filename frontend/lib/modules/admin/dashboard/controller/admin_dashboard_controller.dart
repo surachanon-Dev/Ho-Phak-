@@ -22,7 +22,7 @@ class AdminDashboardController extends ChangeNotifier {
   /// คำขอยืนยันตัวตนของเจ้าของที่รอตรวจ
   int get ownerRequestsCount => _ownerRequests;
 
-  /// รีวิวที่รอการตรวจ (สถานะ pending)
+  /// รีวิวที่ owner รายงานและรอ admin ตัดสิน (สถานะ open)
   int get reportedReviewsCount => _reportedReviews;
 
   /// หอที่ถูกระงับ
@@ -52,7 +52,7 @@ class AdminDashboardController extends ChangeNotifier {
     try {
       final results = await Future.wait<Object>([
         _service.queue(),
-        _service.reviews('pending'),
+        _service.reviews('open'),
         _service.allDormitories(status: 'suspended'),
         _service.allUsers(status: 'suspended'),
       ]);

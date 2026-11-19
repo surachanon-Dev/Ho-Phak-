@@ -7,6 +7,7 @@ const amenityModel = require('../models/amenityModel');
 const verificationModel = require('../models/verificationModel');
 const userModel = require('../models/userModel');
 const reviewModel = require('../models/reviewModel');
+const reportModel = require('../models/reportModel');
 const adminLogModel = require('../models/adminLogModel');
 const notificationModel = require('../models/notificationModel');
 const verificationService = require('./verificationService');
@@ -207,8 +208,10 @@ async function restoreUser(rawId, admin) {
 }
 
 async function listReviews(status) {
-    const filter = ['pending', 'published', 'hidden'].includes(status) ? status : 'pending';
-    return reviewModel.listByStatus(filter);
+    // pending/published เป็นชื่อเก่าของ open/kept (ก่อนเปลี่ยนให้รีวิวขึ้นทันที)
+    const alias = { pending: 'open', published: 'kept' };
+    const wanted = alias[status] ?? status;
+    return reviewModel.listByStatus(['open', 'kept', 'hidden'].includes(wanted) ? wanted : 'open');
 }
 
 async function publishReview(rawId, admin) {
@@ -217,6 +220,7 @@ async function publishReview(rawId, admin) {
         const review = id === null ? undefined : await reviewModel.findForUpdate(id, conn);
         if (!review) fail(404, 'ไม่พบรีวิว');
         await reviewModel.setModeration(id, { status: 'published', reviewerId: admin.id }, conn);
+        await reportModel.resolveForReview(id, conn);
         await adminLogModel.insert(admin, 'review.publish', 'review', id, null, conn);
     });
 }
@@ -228,6 +232,7 @@ async function hideReview(rawId, admin, rawReason) {
         const review = id === null ? undefined : await reviewModel.findForUpdate(id, conn);
         if (!review) fail(404, 'ไม่พบรีวิว');
         await reviewModel.setModeration(id, { status: 'hidden', reason, reviewerId: admin.id }, conn);
+        await reportModel.resolveForReview(id, conn);
         await adminLogModel.insert(admin, 'review.hide', 'review', id, { reason }, conn);
     });
 }

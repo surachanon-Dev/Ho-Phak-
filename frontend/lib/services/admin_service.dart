@@ -53,7 +53,7 @@ class AdminService {
   Future<void> rejectVerification(int id, String reason) =>
       _api.post('/api/admin/verifications/$id/reject', {'reason': reason});
 
-  /// GET /api/admin/reviews?status=pending|published|hidden
+  /// GET /api/admin/reviews?status=open|kept|hidden (รีวิวที่ owner รายงาน)
   Future<List<Map<String, dynamic>>> reviews(String status) async {
     final data = await _api.get(
       '/api/admin/reviews?status=$status',

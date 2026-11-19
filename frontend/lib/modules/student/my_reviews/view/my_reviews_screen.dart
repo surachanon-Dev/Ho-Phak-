@@ -183,13 +183,13 @@ class _ReviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final r = review;
     final (label, tone, icon) = switch (r.status) {
-      'published' => ('Published', Tone.success, Icons.check_circle_outline),
       'hidden' => (
         'Hidden by admin',
         Tone.danger,
         Icons.visibility_off_outlined,
       ),
-      _ => ('Waiting for admin', Tone.warning, Icons.hourglass_top_rounded),
+      // รีวิวขึ้นทันที จึงมีแค่ published กับ hidden (ค่าอื่นถือว่าแสดงอยู่)
+      _ => ('Published', Tone.success, Icons.check_circle_outline),
     };
     return AppCard(
       onTap: onOpen,
