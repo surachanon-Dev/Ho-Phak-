@@ -82,7 +82,7 @@ void main() {
     expect(find.text('Send document'), findsOneWidget);
   });
 
-  testWidgets('5. Gate mode explains why and offers Sign out', (tester) async {
+  testWidgets('5. Gate mode explains why and offers Log out', (tester) async {
     await openVerification(tester, fakeBackend(ownerRoutes()), gate: true);
 
     expect(
@@ -91,6 +91,6 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(find.text('Sign out'), findsOneWidget);
+    expect(find.text('Log out'), findsOneWidget);
   });
 }
