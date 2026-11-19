@@ -26,6 +26,16 @@ async function deleteOwn(id, userId) {
     return result.affectedRows;
 }
 
+// รีวิวทั้งหมดของนักศึกษาคนนี้ (ทุกสถานะ) พร้อมชื่อหอ ใช้ในหน้า "My reviews"
+async function listByUser(userId) {
+    const [rows] = await db.query(
+        `SELECT r.id, r.dormitory_id, d.name AS dormitory_name, r.rating, r.body, r.status,
+                r.moderation_reason, r.created_at
+         FROM reviews r JOIN dormitories d ON d.id = r.dormitory_id
+         WHERE r.user_id = ? ORDER BY r.created_at DESC, r.id DESC`, [userId]);
+    return rows;
+}
+
 async function listPublishedForDormitory(dormitoryId) {
     const [rows] = await db.query(
         `SELECT id, rating, body, created_at FROM reviews
@@ -60,5 +70,5 @@ async function setModeration(id, { status, reason = null, reviewerId }, conn = d
 }
 
 module.exports = {
-    findOwn, insert, updateOwn, deleteOwn, listPublishedForDormitory, summary, listByStatus, findForUpdate, setModeration,
+    findOwn, insert, updateOwn, deleteOwn, listByUser, listPublishedForDormitory, summary, listByStatus, findForUpdate, setModeration,
 };

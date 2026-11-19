@@ -1,0 +1,197 @@
+<title>Ho-Phak Test Presentation</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a run-order sheet on top, then one block per role with a per-person function table */
+:root{
+  --bg:#f6f7f5; --surface:#ffffff; --fg:#1c2421; --muted:#5d6b66; --line:#dde3df;
+  --accent:#1f7a5c; --accent-soft:#e3f1eb;
+  --student:#2f6fb0; --student-soft:#e5eef8;
+  --owner:#b06a1f; --owner-soft:#f7ecdf;
+  --admin:#7a3fa8; --admin-soft:#f0e7f7;
+  --ok:#1f7a5c; --bad:#b3362f; --bad-soft:#f8e4e2;
+  --f-display:"Anuphan","IBM Plex Sans Thai",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Thai",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1a211e; --fg:#e4ebe7; --muted:#97a6a0; --line:#2c3632;
+  --accent:#5cc49c; --accent-soft:#1d3229;
+  --student:#7fb2e6; --student-soft:#1b2a3a;
+  --owner:#e0a764; --owner-soft:#33271a;
+  --admin:#c49be6; --admin-soft:#2c2136;
+  --ok:#5cc49c; --bad:#f08a82; --bad-soft:#3a201e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1a211e; --fg:#e4ebe7; --muted:#97a6a0; --line:#2c3632;
+  --accent:#5cc49c; --accent-soft:#1d3229;
+  --student:#7fb2e6; --student-soft:#1b2a3a;
+  --owner:#e0a764; --owner-soft:#33271a;
+  --admin:#c49be6; --admin-soft:#2c2136;
+  --ok:#5cc49c; --bad:#f08a82; --bad-soft:#3a201e; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:1120px;margin:0 auto;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:40px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.25}
+h1{font-size:clamp(26px,4vw,36px)}
+h2{font-size:22px}
+h3{font-size:17px}
+p{margin:0}
+.muted{color:var(--muted)}
+header{display:grid;gap:12px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.stats{display:flex;flex-wrap:wrap;gap:24px;margin-top:8px}
+.stat{display:grid}
+.stat b{font-family:var(--f-display);font-size:24px;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+section{display:grid;gap:16px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th,td{text-align:left;vertical-align:top;padding:10px 14px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--bg)}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+code{font-family:var(--f-mono);font-size:12.5px;background:var(--bg);border:1px solid var(--line);padding:1px 6px;border-radius:5px;word-break:break-all}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:2px 10px;border-radius:999px;white-space:nowrap}
+.r-student{color:var(--student);background:var(--student-soft)}
+.r-owner{color:var(--owner);background:var(--owner-soft)}
+.r-admin{color:var(--admin);background:var(--admin-soft)}
+.ok{color:var(--ok);font-weight:600;white-space:nowrap}
+.bad{color:var(--bad);background:var(--bad-soft);font-weight:600;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.role-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px}
+.role-head .bar{width:10px;height:22px;border-radius:3px;align-self:center}
+.people{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:16px}
+.person{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:grid;gap:12px;align-content:start;min-width:0}
+.person-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.person ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.fn{display:grid;gap:10px}
+.fn-row{display:grid;grid-template-columns:150px 1fr;gap:10px;border-top:1px solid var(--line);padding-top:10px}
+.fn-row:first-child{border-top:0;padding-top:0}
+.fn-name{font-weight:600}
+.fn-row .detail{min-width:0;display:grid;gap:4px}
+.label{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.demo{background:var(--accent-soft);border-radius:8px;padding:10px 12px;display:grid;gap:4px}
+.note{border-left:3px solid var(--bad);background:var(--surface);padding:12px 16px;border-radius:0 8px 8px 0}
+@media (max-width:560px){.fn-row{grid-template-columns:1fr;gap:4px}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Ho-Phak · Flutter test presentation</div>
+  <h1>ตารางแบ่งงานพรีเซนต์ Test</h1>
+  <p class="muted">3 role × 2 คน แต่ละคนพรีเซนต์ test ของฟังก์ชันใน role ตัวเอง ทั้ง unit test (controller) และ widget test (หน้าจอ) ไฟล์อยู่ที่ <code>frontend/test/&lt;role&gt;/&lt;ชื่อ&gt;/&lt;ฟังก์ชัน&gt;/</code> แต่ละโฟลเดอร์มี <code>unit_test.dart</code> และ <code>widget_test.dart</code> ผลรันล่าสุด 19 พ.ย. 2026</p>
+  <div class="stats">
+    <div class="stat"><b>321</b><span>test ทั้งหมด</span></div>
+    <div class="stat"><b>315</b><span>ผ่าน</span></div>
+    <div class="stat"><b>6</b><span>ไม่ผ่าน (Plem widget)</span></div>
+    <div class="stat"><b>~35 นาที</b><span>เวลารวม</span></div>
+  </div>
+</header>
+
+<section>
+  <h2>ลำดับการพรีเซนต์</h2>
+  <p class="muted">เรียงตาม flow ของแอป: นักศึกษาเข้าสู่ระบบ → เจ้าของหอลงประกาศ → แอดมินตรวจสอบ คนละประมาณ 5 นาที (โชว์โค้ด 1 test + รันสด + อธิบายผล)</p>
+  <div class="scroll"><table>
+    <thead><tr><th>#</th><th>เวลา</th><th>Role</th><th>ผู้พรีเซนต์</th><th>ฟังก์ชันที่ทดสอบ</th><th>จำนวน test</th><th>คำสั่งรันสด</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td class="num">0:00–5:00</td><td><span class="pill r-student">Student</span></td><td><b>Karn</b></td><td>Login / Register / ลืมรหัสผ่าน, แชท, การแจ้งเตือน, โปรไฟล์</td><td class="num">49</td><td><code>flutter test test/student/karn</code></td></tr>
+      <tr><td class="num">2</td><td class="num">5:00–10:00</td><td><span class="pill r-student">Student</span></td><td><b>Big</b></td><td>หน้าหลัก, ค้นหา/ตัวกรอง, รายละเอียดหอ, รายการโปรด, รีวิวของฉัน</td><td class="num">46</td><td><code>flutter test test/student/big</code></td></tr>
+      <tr><td class="num">3</td><td class="num">10:00–15:00</td><td><span class="pill r-owner">Owner</span></td><td><b>Kren</b></td><td>ยืนยันตัวตน, Owner shell, โปรไฟล์/รหัสผ่าน/แจ้งเตือน, รีวิวหอของฉัน</td><td class="num">49</td><td><code>flutter test test/owner/kren</code></td></tr>
+      <tr><td class="num">4</td><td class="num">15:00–20:00</td><td><span class="pill r-owner">Owner</span></td><td><b>Plub</b></td><td>Dashboard, ฟอร์มเพิ่ม/แก้หอ, รายละเอียดหอ, เลือกตำแหน่ง, กติกาฟอร์ม</td><td class="num">71</td><td><code>flutter test test/owner/plub</code></td></tr>
+      <tr><td class="num">5</td><td class="num">20:00–25:00</td><td><span class="pill r-admin">Admin</span></td><td><b>Bank</b></td><td>Dashboard, คำขอเป็นเจ้าของ, จัดการหอ, ผู้ใช้, รายละเอียดผู้ใช้</td><td class="num">49</td><td><code>flutter test test/admin/bank</code></td></tr>
+      <tr><td class="num">6</td><td class="num">25:00–30:00</td><td><span class="pill r-admin">Admin</span></td><td><b>Plem</b></td><td>รีวิว, Activity log, Amenities, Settings, Profile</td><td class="num">38</td><td><code>flutter test test/admin/plem</code></td></tr>
+      <tr><td class="num">7</td><td class="num">30:00–35:00</td><td><span class="pill r-admin">ทุกคน</span></td><td><b>Bank (ปิดท้าย)</b></td><td>รันทั้งชุดให้เห็นผลรวม + ส่วนกลาง (api_client, format, responsive) + ถามตอบ</td><td class="num">19 + ทั้งหมด</td><td><code>flutter test</code></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- STUDENT -->
+<section>
+  <div class="role-head"><span class="bar" style="background:var(--student)"></span><h2>Role นักศึกษา (Student)</h2><span class="muted">Big · Karn</span></div>
+  <div class="people">
+    <article class="person">
+      <div class="person-top"><h3>Karn</h3><span class="muted">38 unit · 7 widget = <b>49</b> · <span class="ok">ผ่านทั้งหมด</span></span></div>
+      <div class="fn">
+        <div class="fn-row"><div class="fn-name">เข้าสู่ระบบ</div><div class="detail"><span>ตรวจเบอร์/รหัสว่าง, login สำเร็จเก็บ token, รหัสผิด 401, บัญชีถูกระงับ 403, เชื่อมต่อไม่ได้</span><code>test/student/karn/auth/</code></div></div>
+        <div class="fn-row"><div class="fn-name">สมัครสมาชิก</div><div class="detail"><span>รหัสต้องยาว ≥ 8, ยืนยันรหัสต้องตรง, เบอร์ซ้ำ 409, server error</span><code>test/student/karn/auth/</code></div></div>
+        <div class="fn-row"><div class="fn-name">ลืมรหัสผ่าน</div><div class="detail"><span>ลิงก์ Forgot password? บนหน้า login เปิดหน้าวิธีรีเซ็ต</span><code>test/student/karn/auth/</code></div></div>
+        <div class="fn-row"><div class="fn-name">แชท</div><div class="detail"><span>รายการแชท + กรองตามหอ, ลบห้อง, ส่งข้อความ (ตัดช่องว่าง, ห้ามว่าง, ไม่เกิน 2000 ตัว, ห้อง read-only), สถานะ Read</span><code>test/student/karn/chat/</code></div></div>
+        <div class="fn-row"><div class="fn-name">การแจ้งเตือน</div><div class="detail"><span>นับที่ยังไม่อ่าน, กดเปิดแล้ว PATCH read, อ่านแล้วไม่ยิงซ้ำ</span><code>test/student/karn/notifications/</code><code>test/student/karn/chat/</code></div></div>
+        <div class="fn-row"><div class="fn-name">โปรไฟล์ / badge</div><div class="detail"><span>แสดงบทบาทนักศึกษา, ติดต่อแอดมิน, นับ badge แชท/แจ้งเตือน, ขอเป็นเจ้าของหอ (become-owner)</span><code>test/student/karn/profile/</code></div></div>
+      </div>
+      <div class="demo"><span class="label">เคสที่แนะนำให้โชว์</span><ul><li>รหัสผิด (401) แสดงข้อความในฟอร์ม ไม่ถือเป็น failure</li><li>ข้อความยาวเกิน 2000 ตัวให้ validationError และไม่ยิง request</li></ul></div>
+    </article>
+
+    <article class="person">
+      <div class="person-top"><h3>Big</h3><span class="muted">31 unit · 9 widget = <b>46</b> · <span class="ok">ผ่านทั้งหมด</span></span></div>
+      <div class="fn">
+        <div class="fn-row"><div class="fn-name">หน้าหลัก</div><div class="detail"><span>แสดงชื่อผู้ใช้ + หอที่เผยแพร่, รายการว่าง, โหลดไม่สำเร็จมีปุ่มลองใหม่, full loader เฉพาะโหลดครั้งแรก</span><code>test/student/big/dorm_detail/</code><code>test/student/big/favorites/</code><code>test/student/big/home/</code><code>test/student/big/search/</code></div></div>
+        <div class="fn-row"><div class="fn-name">ค้นหา / ตัวกรอง</div><div class="detail"><span>ส่ง query ตามตัวกรอง, ช่วงราคาผิดไม่ยิง request, โซน, การเรียงลำดับ 3 แบบ, reset ตัวกรอง</span><code>test/student/big/dorm_detail/</code><code>test/student/big/favorites/</code><code>test/student/big/home/</code><code>test/student/big/search/</code></div></div>
+        <div class="fn-row"><div class="fn-name">รายละเอียดหอ</div><div class="detail"><span>รวมข้อมูลหอ + รีวิว + สถานะโปรด, เปิดแชทกับเจ้าของ, ส่งรีวิว (ตรวจ rating)</span><code>test/student/big/dorm_detail/</code><code>test/student/big/favorites/</code><code>test/student/big/home/</code><code>test/student/big/search/</code></div></div>
+        <div class="fn-row"><div class="fn-name">รายการโปรด</div><div class="detail"><span>แยกหอพร้อม/ไม่พร้อมให้บริการ, ลบสำเร็จ/ล้มเหลว, toggle favorite</span><code>test/student/big/dorm_detail/</code><code>test/student/big/favorites/</code><code>test/student/big/home/</code><code>test/student/big/search/</code></div></div>
+        <div class="fn-row"><div class="fn-name">รีวิวของฉัน</div><div class="detail"><span>แสดงรีวิวทุกสถานะ + เหตุผลที่ถูกซ่อน, แก้ไข (PUT), ลบ, รูปปก และชื่อโซน</span><code>test/student/big/common/</code><code>test/student/big/my_reviews/</code></div></div>
+      </div>
+      <div class="demo"><span class="label">เคสที่แนะนำให้โชว์</span><ul><li>ช่วงราคาผิด ไม่ยิง request และตั้ง filterError</li><li>toggleFavorite ล้มเหลวคงสถานะเดิม</li></ul></div>
+    </article>
+  </div>
+</section>
+
+<!-- OWNER -->
+<section>
+  <div class="role-head"><span class="bar" style="background:var(--owner)"></span><h2>Role เจ้าของหอ (Owner)</h2><span class="muted">Plub · Kren</span></div>
+  <div class="people">
+    <article class="person">
+      <div class="person-top"><h3>Kren</h3><span class="muted">33 unit · 16 widget = <b>49</b> · <span class="ok">ผ่านทั้งหมด</span></span></div>
+      <p class="muted">ไฟล์อยู่ใน <code>test/owner/kren/</code></p>
+      <div class="fn">
+        <div class="fn-row"><div class="fn-name">ยืนยันตัวตน</div><div class="detail"><span>รับเฉพาะ pdf/jpg/png ≤ 10 MB, สถานะ pending ส่งซ้ำไม่ได้, rejected ส่งใหม่ได้, gate บังคับยืนยันก่อนใช้งาน</span><code>test/owner/kren/my_reviews/</code><code>test/owner/kren/verification/</code></div></div>
+        <div class="fn-row"><div class="fn-name">Owner shell</div><div class="detail"><span>เจ้าของที่ยืนยันแล้วเห็น 3 แท็บ, ยังไม่ยืนยันถูกส่งไป gate, ออกจากระบบต้องยืนยัน</span><code>test/owner/kren/profile/</code><code>test/owner/kren/shell/</code></div></div>
+        <div class="fn-row"><div class="fn-name">โปรไฟล์ / แก้ไข</div><div class="detail"><span>บันทึกได้เมื่อมีการเปลี่ยน, ชื่อห้ามว่าง, เปลี่ยนเบอร์ต้องใส่รหัส, ลบรูป</span><code>test/owner/kren/change_password/</code><code>test/owner/kren/notification_settings/</code><code>test/owner/kren/profile/</code></div></div>
+        <div class="fn-row"><div class="fn-name">เปลี่ยนรหัสผ่าน</div><div class="detail"><span>ตรวจตามลำดับ: ว่าง → สั้นเกิน → ซ้ำรหัสเดิม → ไม่ตรงกัน, รหัสปัจจุบันผิด 403</span><code>test/owner/kren/change_password/</code><code>test/owner/kren/notification_settings/</code><code>test/owner/kren/profile/</code></div></div>
+        <div class="fn-row"><div class="fn-name">ตั้งค่าแจ้งเตือน</div><div class="detail"><span>สลับค่าแล้วบันทึก, บันทึกไม่สำเร็จย้อนกลับค่าเดิม</span><code>test/owner/kren/change_password/</code><code>test/owner/kren/notification_settings/</code><code>test/owner/kren/profile/</code></div></div>
+        <div class="fn-row"><div class="fn-name">รีวิวหอของฉัน</div><div class="detail"><span>รวมรีวิวทุกหอ, ค่าเฉลี่ยตามตัวกรอง, report รีวิว (ต้องมีเหตุผล ≤ 300 ตัว, ซ้ำ 409)</span><code>test/owner/kren/my_reviews/</code><code>test/owner/kren/verification/</code></div></div>
+      </div>
+      <div class="demo"><span class="label">เคสที่แนะนำให้โชว์</span><ul><li>ปฏิเสธไฟล์เกิน 10 MB และยอมรับพอดี 10 MB</li><li>rejected shows the reason and allows sending again</li></ul></div>
+    </article>
+
+    <article class="person">
+      <div class="person-top"><h3>Plub</h3><span class="muted">62 unit · 9 widget = <b>71</b> · <span class="ok">ผ่านทั้งหมด</span></span></div>
+      <p class="muted">ไฟล์อยู่ใน <code>test/owner/plub/</code></p>
+      <div class="fn">
+        <div class="fn-row"><div class="fn-name">Dashboard หอของฉัน</div><div class="detail"><span>แสดงหอพร้อมโซนและราคา, สรุปตามสถานะ, ยังไม่มีหอ</span><code>test/owner/plub/dashboard/</code><code>test/owner/plub/dorm_detail/</code><code>test/owner/plub/dorm_form/</code><code>test/owner/plub/location_picker/</code></div></div>
+        <div class="fn-row"><div class="fn-name">ฟอร์มเพิ่ม/แก้หอ</div><div class="detail"><span>ราคา 1–1,000,000, ห้องว่าง ≤ ห้องทั้งหมด, ค่าน้ำไฟ, บันทึก POST/PUT + อัปโหลดรูป, ต้องมีเอกสารเจ้าของ, รูป ≤ 5 ต่อครั้ง / 10 ต่อหอ</span><code>test/owner/plub/dorm_form/</code><code>test/owner/plub/common/</code></div></div>
+        <div class="fn-row"><div class="fn-name">รายละเอียดหอ</div><div class="detail"><span>โหลดหอ + รีวิว + amenities + ค่าน้ำไฟ, คะแนนเฉลี่ย, ซ่อน/แสดงหอ, ลบหอ</span><code>test/owner/plub/dorm_detail/</code></div></div>
+        <div class="fn-row"><div class="fn-name">เลือกตำแหน่ง</div><div class="detail"><span>เริ่มที่ MFU, ลากหมุดคำนวณระยะ, ใช้ตำแหน่งปัจจุบัน, ไม่ได้สิทธิ์ GPS</span><code>test/owner/plub/location_picker/</code></div></div>
+        <div class="fn-row"><div class="fn-name">ข้อมูลในเครื่อง / UI</div><div class="detail"><span>amenities ต่อหอ, ค่าน้ำไฟ round trip, formatBaht, StatusChip</span><code>test/owner/plub/common/</code></div></div>
+      </div>
+      <div class="demo"><span class="label">เคสที่แนะนำให้โชว์</span><ul><li>save หอใหม่สำเร็จ: POST หอ, PUT utilities แล้วอัปโหลดรูป</li><li>ห้องว่างเกินห้องทั้งหมดไม่ผ่าน</li></ul></div>
+    </article>
+  </div>
+</section>
+
+<!-- ADMIN -->
+<section>
+  <div class="role-head"><span class="bar" style="background:var(--admin)"></span><h2>Role แอดมิน (Admin)</h2><span class="muted">Bank · Plem · ตามที่แบ่งไว้ใน VS Code</span></div>
+  <div class="people">
+    <article class="person">
+      <div class="person-top"><h3>Bank</h3><span class="muted">38 unit · 11 widget = <b>49</b> · <span class="ok">ผ่านทั้งหมด</span></span></div>
+      <div class="fn">
+        <div class="fn-row"><div class="fn-name">Dashboard</div><div class="detail"><span>สรุปจำนวนผู้ใช้/หอ/คำขอ</span><code>test/admin/bank/dashboard/</code></div></div>
+        <div class="fn-row"><div class="fn-name">คำขอเป็นเจ้าของ</div><div class="detail"><span>อนุมัติ / ปฏิเสธคำขอ owner</span><code>test/admin/bank/owner_requests/</code></div></div>
+        <div class="fn-row"><div class="fn-name">จัดการหอ</div><div class="detail"><span>รายการหอ, เปลี่ยนสถานะ, ดาวน์โหลดเอกสารหอ</span><code>test/admin/bank/dorms/</code></div></div>
+        <div class="fn-row"><div class="fn-name">ผู้ใช้ / รายละเอียด</div><div class="detail"><span>ค้นหาผู้ใช้, ระงับ/ปลดระงับ, รีเซ็ตรหัสผ่านแล้วเห็นรหัสชั่วคราว</span><code>test/admin/bank/users/</code><code>test/admin/bank/user_detail/</code></div></div>
+      </div>
+      <div class="demo"><span class="label">ปิดท้ายการพรีเซนต์</span><span>รัน <code>flutter test</code> ทั้งชุดให้เห็นผลรวม และเล่าส่วนกลาง (api_client, format, responsive layout)</span></div>
+    </article>
+
+    <article class="person">
+      <div class="person-top"><h3>Plem</h3><span class="muted">21 unit · 17 widget = <b>38</b> · <span class="bad">ไม่ผ่าน 6</span></span></div>
+      <div class="fn">
+        <div class="fn-row"><div class="fn-name">รีวิว</div><div class="detail"><span>ตรวจรีวิวรอดำเนินการ, Keep / ซ่อน, แท็บตามสถานะ</span><code>test/admin/plem/reviews/</code></div></div>
+        <div class="fn-row"><div class="fn-name">Activity log</div><div class="detail"><span>โหลดประวัติ, รีเฟรช, รีเฟรชล้มเหลวคงรายการเดิม</span><code>test/admin/plem/activity_log/</code></div></div>
+        <div class="fn-row"><div class="fn-name">Amenities</div><div class="detail"><span>เพิ่ม, ชื่อซ้ำ, ลบ</span><code>test/admin/plem/amenities/</code></div></div>
+        <div class="fn-row"><div class="fn-name">Settings / Profile</div><div class="detail"><span>เปลี่ยนรหัสผ่านแอดมิน, รหัสไม่ตรงกัน, ออกจากระบบ</span><code>test/admin/plem/settings/</code><code>test/admin/plem/profile/</code></div></div>
+      </div>
+      <div class="note"><b>ก่อนวันพรีเซนต์:</b> widget test ใหม่ 6 เคสของ Plem (จาก commit ล่าสุด) ยังหาข้อความภาษาไทยและปุ่มตาม UI เวอร์ชันเก่า เช่น <code>รีเฟรช</code>, <code>Kept</code>, <code>+ Add amenity</code> จึงไม่ผ่าน ต้องให้ Plem แก้ให้ตรงกับ UI ปัจจุบันก่อนรันสด</div>
+    </article>
+  </div>
+</section>
+</div>

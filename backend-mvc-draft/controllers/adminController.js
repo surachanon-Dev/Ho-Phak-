@@ -40,6 +40,11 @@ async function suspendUser(req, res) {
     res.json({ message: 'ระงับบัญชีแล้ว' });
 }
 
+async function resetUserPassword(req, res) {
+    const temporaryPassword = await adminService.resetUserPassword(req.params.id, req.user);
+    res.json({ message: 'Password reset', temporary_password: temporaryPassword });
+}
+
 async function restoreUser(req, res) {
     await adminService.restoreUser(req.params.id, req.user);
     res.json({ message: 'คืนสถานะบัญชีแล้ว' });
@@ -111,6 +116,6 @@ async function deleteAmenity(req, res) {
 module.exports = {
   verifications, listAmenities, createAmenity, renameAmenity, deleteAmenity,
     queue, approveDormitory, rejectDormitory, suspendDormitory, restoreDormitory,
-    approveVerification, rejectVerification, suspendUser, restoreUser,
+    approveVerification, rejectVerification, suspendUser, restoreUser, resetUserPassword,
     listReviews, publishReview, hideReview, logs, listDormitories, listUsers, verificationDocument, dormitoryDocument,
 };

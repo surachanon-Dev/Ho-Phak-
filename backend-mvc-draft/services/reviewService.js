@@ -38,4 +38,8 @@ async function remove(rawReviewId, userId) {
     if (affected === 0) fail(404, 'ไม่พบรีวิว');
 }
 
-module.exports = { create, update, remove };
+async function listMine(userId) {
+    return reviewModel.listByUser(userId);
+}
+
+module.exports = { create, update, remove, listMine };

@@ -1,0 +1,20 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "student-preview",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": ["run", "-d", "web-server", "--web-port", "8090", "-t", "dev/preview_main.dart"],
+      "cwd": "frontend",
+      "port": 8090
+    },
+    {
+      "name": "student-preview-8092",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": ["run", "-d", "web-server", "--web-port", "8092", "-t", "dev/preview_main.dart"],
+      "cwd": "frontend",
+      "port": 8092,
+      "autoPort": false
+    }
+  ]
+}

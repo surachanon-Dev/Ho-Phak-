@@ -75,7 +75,8 @@ async function searchPublic({ zone, minPrice, maxPrice, hasRooms, q, orderBy }) 
                       d.total_rooms, d.available_rooms, d.water_rate, d.water_billing_type,
                       d.electricity_rate, d.electricity_billing_type,
                       (SELECT ROUND(AVG(r.rating), 2) FROM reviews r WHERE r.dormitory_id = d.id AND r.status = 'published') AS rating_avg,
-                      (SELECT COUNT(*) FROM reviews r WHERE r.dormitory_id = d.id AND r.status = 'published') AS review_count
+                      (SELECT COUNT(*) FROM reviews r WHERE r.dormitory_id = d.id AND r.status = 'published') AS review_count,
+                      (SELECT di.file_path FROM dormitory_images di WHERE di.dormitory_id = d.id ORDER BY di.sort_order, di.id LIMIT 1) AS cover_image
                FROM dormitories d JOIN users u ON u.id = d.owner_id
                WHERE d.status = 'published' AND u.status = 'active'`;
     const params = [];

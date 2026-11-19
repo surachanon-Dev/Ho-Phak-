@@ -1,6 +1,6 @@
 import 'package:latlong2/latlong.dart';
 
-import 'package:hopak_frontend/shared/widgets/dorm_map.dart' show mfuCenter;
+import '../../widgets/dorm_map.dart' show mfuCenter;
 
 /// ระยะจากมหาวิทยาลัยแม่ฟ้าหลวง เป็นกิโลเมตร ทศนิยม 1 ตำแหน่ง (เช่น "1.2")
 String kmFromMfu(double latitude, double longitude) {
@@ -20,7 +20,9 @@ String chatTime(String? raw, {DateTime? now}) {
   final local = t.toLocal();
   final today = now ?? DateTime.now();
   final d0 = DateTime(today.year, today.month, today.day);
-  final days = d0.difference(DateTime(local.year, local.month, local.day)).inDays;
+  final days = d0
+      .difference(DateTime(local.year, local.month, local.day))
+      .inDays;
   if (days <= 0) return hhmm(local);
   if (days == 1) return 'Yesterday';
   if (days < 7) {
@@ -58,8 +60,8 @@ double metersFromMfu(double latitude, double longitude) =>
 
 /// ข้อความระยะทาง เช่น "850 ม." หรือ "1.2 กม."
 String formatDistance(double meters) => meters < 1000
-    ? '${meters.round()} ม.'
-    : '${(meters / 1000).toStringAsFixed(1)} กม.';
+    ? '${meters.round()} m'
+    : '${(meters / 1000).toStringAsFixed(1)} km';
 
 /// ใส่ comma คั่นหลักพัน เช่น 3500 → "3,500"
 String withCommas(int value) {
@@ -73,7 +75,8 @@ String withCommas(int value) {
 }
 
 /// ราคาต่อเดือน เช่น "3,500 บาท/เดือน"
-String formatPrice(int pricePerMonth) => '${withCommas(pricePerMonth)} บาท/เดือน';
+String formatPrice(int pricePerMonth) =>
+    '${withCommas(pricePerMonth)} baht/month';
 
 /// วันที่จาก API เป็น "วัน/เดือน/ปี" ถ้าอ่านไม่ได้คืนข้อความเดิม
 String formatDate(String raw) {

@@ -8,6 +8,7 @@ const router = express.Router();
 router.get('/profile', requireAuth, meController.getProfile);
 router.put('/profile', requireAuth, meController.updateProfile);
 router.put('/password', requireAuth, meController.changePassword);
+router.post('/become-owner', requireAuth, meController.becomeOwner);
 router.get('/notification-settings', requireAuth, meController.getNotificationSettings);
 router.put('/notification-settings', requireAuth, meController.updateNotificationSettings);
 

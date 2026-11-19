@@ -5,7 +5,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
-import 'package:hopak_frontend/core/config/api_config.dart';
+import '../config/api_config.dart';
 
 /// ข้อผิดพลาดจาก API ที่แสดงให้ผู้ใช้เห็นได้โดยตรง
 class ApiException implements Exception {
@@ -129,7 +129,7 @@ class ApiClient {
     }
     if (res.statusCode >= 200 && res.statusCode < 300) return res.bodyBytes;
     _decode(res); // จะโยน ApiException พร้อมข้อความจาก server
-    throw ApiException(res.statusCode, 'ดาวน์โหลดไม่สำเร็จ');
+    throw ApiException(res.statusCode, 'Download failed');
   }
 
   Future<dynamic> _send(Future<http.Response> Function() call) async {
@@ -144,7 +144,7 @@ class ApiClient {
 
   ApiException _networkError() => ApiException(
     0,
-    'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบว่า backend รันอยู่ที่ ${ApiConfig.baseUrl}',
+    'Cannot reach the server. Check that the backend is running at ${ApiConfig.baseUrl}',
   );
 
   dynamic _decode(http.Response res) {
@@ -163,7 +163,7 @@ class ApiClient {
       return data;
     }
 
-    var message = 'เกิดข้อผิดพลาด (รหัส ${res.statusCode})';
+    var message = 'Something went wrong (code ${res.statusCode})';
     if (data is Map && data['message'] is String) {
       message = data['message'] as String;
     } else if (data is String && data.trim().isNotEmpty) {

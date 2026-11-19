@@ -11,7 +11,11 @@ bool isWideLayout(BuildContext context) =>
 /// ให้เนื้อหาไม่ถูกบีบเกินความกว้างขั้นต่ำ ถ้าพื้นที่แคบกว่าจะเลื่อนแนวนอนได้
 /// (ใช้กับตารางที่มีหลายคอลัมน์ ไม่ให้ข้อความหักทีละตัวอักษรหรือ overflow)
 class MinWidthScroll extends StatelessWidget {
-  const MinWidthScroll({super.key, required this.minWidth, required this.child});
+  const MinWidthScroll({
+    super.key,
+    required this.minWidth,
+    required this.child,
+  });
 
   final double minWidth;
   final Widget child;
@@ -53,7 +57,9 @@ class StackOnNarrow extends StatelessWidget {
             for (final child in row.children)
               if (child is Expanded)
                 child.child
-              else if (child is SizedBox && child.width != null && child.height == null)
+              else if (child is SizedBox &&
+                  child.width != null &&
+                  child.height == null)
                 SizedBox(height: child.width)
               else
                 child,

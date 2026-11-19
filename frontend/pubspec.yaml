@@ -39,9 +39,9 @@ dependencies:
   shared_preferences: ^2.5.6
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
-  file_picker: ^13.3.2
+  file_picker: ^13.4.0
   image_picker: ^1.2.4
-  geolocator: ^14.0.1
+  geolocator: ^14.1.2
   url_launcher: ^6.3.3
 
 dev_dependencies:
@@ -54,6 +54,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  mocktail: ^1.0.5
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

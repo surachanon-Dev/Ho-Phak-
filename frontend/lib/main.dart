@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 
-import 'package:hopak_frontend/shared/models/user.dart';
-import 'package:hopak_frontend/app/home_router.dart';
-import 'package:hopak_frontend/features/auth/welcome/welcome_screen.dart';
-import 'package:hopak_frontend/core/theme/app_theme.dart';
-import 'package:hopak_frontend/core/app_services.dart';
+import 'app/home_router.dart';
+import 'core/app_services.dart';
+import 'core/theme/app_theme.dart';
+import 'modules/auth/welcome/view/welcome_screen.dart';
+import 'model/user.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final services = AppServices();
   await services.tokens.load();
-  runApp(HopakOwnerApp(services: services));
+  runApp(HopakApp(services: services));
 }
 
-class HopakOwnerApp extends StatelessWidget {
-  const HopakOwnerApp({super.key, required this.services});
+class HopakApp extends StatelessWidget {
+  const HopakApp({super.key, required this.services});
 
   final AppServices services;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Hopak Owner',
+      title: 'Ho-Phak',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       home: _BootScreen(services: services),
@@ -30,7 +30,7 @@ class HopakOwnerApp extends StatelessWidget {
 }
 
 /// ถ้ามี token เก็บไว้ ให้เรียก /api/me ตรวจสิทธิ์ก่อนเข้าแอป
-/// ถ้าไม่มี token หรือ token ใช้ไม่ได้ ให้ไปหน้า login
+/// ถ้าไม่มี token หรือ token ใช้ไม่ได้ ให้ไปหน้า welcome
 class _BootScreen extends StatefulWidget {
   const _BootScreen({required this.services});
 
@@ -44,7 +44,7 @@ class _BootScreenState extends State<_BootScreen> {
   @override
   void initState() {
     super.initState();
-    // ต้องรอให้ frame แรกสร้างเสร็จก่อน ไม่งั้น pushReplacement จะเรียกระหว่าง build
+    // รอ frame แรกก่อน ไม่งั้น pushReplacement จะเรียกระหว่าง build
     WidgetsBinding.instance.addPostFrameCallback((_) => _boot());
   }
 
@@ -58,8 +58,7 @@ class _BootScreenState extends State<_BootScreen> {
           user = null;
         }
       } catch (_) {
-        // token หมดอายุหรือ server ไม่พร้อม ให้ login ใหม่
-        user = null;
+        user = null; // token หมดอายุหรือ server ไม่พร้อม ให้ login ใหม่
       }
     }
     if (!mounted) return;

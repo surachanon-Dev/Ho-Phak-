@@ -2,6 +2,7 @@
 // หมายเหตุ: ยังไม่รองรับรูปโปรไฟล์ และการเปลี่ยนเบอร์ยังไม่ต้องรอแอดมินอนุมัติ (pending_phone เป็น null เสมอ)
 const argon2 = require('@node-rs/argon2');
 const profileModel = require('../models/profileModel');
+const userModel = require('../models/userModel');
 const { fail } = require('../utils/AppError');
 const { normalizePhone, checkPassword } = require('../utils/validators');
 
@@ -68,4 +69,11 @@ async function changePassword(userId, { current_password: current, new_password:
     await profileModel.updatePasswordHash(userId, argon2.hashSync(next));
 }
 
-module.exports = { getProfile, updateProfile, changePassword };
+// นักศึกษาสมัครเป็นเจ้าของหอ หลังจากนี้ต้องส่งเอกสารยืนยันตัวตนก่อนจัดการหอได้
+async function becomeOwner(user) {
+    if (user.role !== 'student') fail(409, 'Only student accounts can apply to become an owner');
+    const affected = await userModel.promoteToOwner(user.id);
+    if (affected === 0) fail(409, 'Only student accounts can apply to become an owner');
+}
+
+module.exports = { getProfile, updateProfile, changePassword, becomeOwner };

@@ -23,6 +23,12 @@ async function updateNotificationSettings(req, res) {
     res.json(await notificationPrefService.update(req.user.id, req.body || {}));
 }
 
+async function becomeOwner(req, res) {
+    await profileService.becomeOwner(req.user);
+    res.json({ message: 'You are now an owner. Please verify your identity.' });
+}
+
 module.exports = {
+    becomeOwner,
     getProfile, updateProfile, changePassword, getNotificationSettings, updateNotificationSettings,
 };
