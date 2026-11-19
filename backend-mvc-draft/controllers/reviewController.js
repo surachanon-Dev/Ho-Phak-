@@ -2,12 +2,12 @@ const reviewService = require('../services/reviewService');
 
 async function create(req, res) {
     const id = await reviewService.create(req.params.id, req.user.id, req.body);
-    res.status(201).json({ message: 'ส่งรีวิวแล้ว รอตรวจสอบก่อนแสดง', id });
+    res.status(201).json({ message: 'ส่งรีวิวแล้ว', id });
 }
 
 async function update(req, res) {
     await reviewService.update(req.params.id, req.user.id, req.body);
-    res.json({ message: 'แก้ไขรีวิวแล้ว รอตรวจสอบอีกครั้ง' });
+    res.json({ message: 'แก้ไขรีวิวแล้ว' });
 }
 
 async function remove(req, res) {
