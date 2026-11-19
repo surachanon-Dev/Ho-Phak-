@@ -6,7 +6,7 @@ import '../../../../core/network/api_client.dart';
 import '../../../../services/verification_service.dart';
 import '../../../../core/app_services.dart';
 import '../../../../app/session.dart';
-import '../../../auth/login/view/login_screen.dart';
+import '../../../auth/welcome/view/welcome_screen.dart';
 import '../controller/verification_screen_controller.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../widgets/ui/ui.dart';
@@ -323,18 +323,51 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         const SizedBox(height: 20),
                         OutlinedButton.icon(
                           onPressed: () async {
+                            final ok = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                icon: const IconBadge(
+                                  icon: Icons.logout_rounded,
+                                  tone: Tone.danger,
+                                  size: 48,
+                                ),
+                                title: const Text(
+                                  'Log out?',
+                                  textAlign: TextAlign.center,
+                                ),
+                                content: const Text(
+                                  'You will need to sign in again to continue.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(ctx).pop(false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  FilledButton(
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: AppColors.danger,
+                                    ),
+                                    onPressed: () =>
+                                        Navigator.of(ctx).pop(true),
+                                    child: const Text('Log out'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (ok != true) return;
                             await widget.services.auth.logout();
                             if (!context.mounted) return;
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(
                                 builder: (_) =>
-                                    LoginScreen(services: widget.services),
+                                    WelcomeScreen(services: widget.services),
                               ),
                               (route) => false,
                             );
                           },
                           icon: const Icon(Icons.logout),
-                          label: const Text('Sign out'),
+                          label: const Text('Log out'),
                         ),
                       ],
                     ],
