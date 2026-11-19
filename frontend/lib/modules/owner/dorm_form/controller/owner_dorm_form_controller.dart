@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../../shared/models/dormitory.dart';
-import '../../../core/network/api_client.dart';
-import '../services/dormitory_service.dart';
-import '../validation/dormitory_rules.dart';
-import '../models/amenity.dart';
-import '../models/dorm_utilities.dart';
-import '../models/dorm_document.dart';
+import '../../../../model/dormitory.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../services/dormitory_service.dart';
+import '../../validation/dormitory_rules.dart';
+import '../../../../model/amenity.dart';
+import '../../../../model/dorm_utilities.dart';
+import '../../../../model/dorm_document.dart';
 
 /// ผลการบันทึกฟอร์มหอ
 class DormSaveResult {

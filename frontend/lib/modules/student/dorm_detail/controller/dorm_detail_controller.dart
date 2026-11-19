@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../shared/models/dormitory.dart';
-import '../../../shared/models/favorite.dart';
-import '../../../shared/models/review.dart';
-import '../../chat/services/chat_service.dart';
-import '../services/favorite_service.dart';
-import '../services/public_dormitory_service.dart';
+import '../../../../model/dormitory.dart';
+import '../../../../model/favorite.dart';
+import '../../../../model/review.dart';
+import '../../../../services/chat_service.dart';
+import '../../../../services/favorite_service.dart';
+import '../../../../services/public_dormitory_service.dart';
 
 /// รายละเอียดหอพักฝั่งนักศึกษา: ข้อมูลหอ รีวิว สถานะรายการโปรด
 /// การเปิดแชท และการส่งรีวิว
@@ -114,7 +114,7 @@ class DormDetailController extends ChangeNotifier {
   /// ส่งรีวิว (rating ต้องอยู่ 1–5) รอแอดมินตรวจก่อนแสดง คืน true เมื่อสำเร็จ
   Future<bool> submitReview({required int rating, String? body}) async {
     if (rating < 1 || rating > 5) {
-      _error = ArgumentError.value(rating, 'rating', 'ต้องอยู่ระหว่าง 1–5');
+      _error = ArgumentError.value(rating, 'rating', 'must be 1–5');
       notifyListeners();
       return false;
     }

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../app/session.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../widgets/owner_ui.dart';
-import '../../../core/utils/format.dart';
-import '../models/owner_reviews_bundle.dart';
-import '../controllers/my_reviews_controller.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../app/session.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../widgets/owner_ui.dart';
+import '../../../../core/utils/format.dart';
+import '../../../../model/owner_reviews_bundle.dart';
+import '../controller/my_reviews_controller.dart';
 
 /// รีวิวของหอพักทั้งหมดของเจ้าของ (อ่านอย่างเดียว) พร้อมตัวกรองตามหอพัก
 class MyReviewsScreen extends StatefulWidget {

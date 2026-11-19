@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-import 'admin_user_detail_controller.dart';
-import '../users/admin_users_controller.dart';
-import '../services/admin_service.dart';
-import '../../../core/app_services.dart';
-import '../../../app/session.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/responsive.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../widgets/admin_page.dart';
+import '../controller/admin_user_detail_controller.dart';
+import '../../users/controller/admin_users_controller.dart';
+import '../../../../services/admin_service.dart';
+import '../../../../core/app_services.dart';
+import '../../../../app/session.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../widgets/admin_page.dart';
 
 /// รายละเอียดผู้ใช้ 1 คน (เมนู Users → View): ข้อมูลบัญชี หอของเจ้าของ และการระงับ/ยกเลิกการระงับ
 /// ไม่มี Scaffold เพราะแสดงอยู่ในพื้นที่เนื้อหาของหน้าแอดมิน
@@ -206,6 +207,10 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
               ],
               const SizedBox(height: 16),
               _actionBar(wide),
+              if (!_c.isAdmin) ...[
+                const SizedBox(height: 16),
+                _resetPasswordCard(),
+              ],
             ],
           ),
         ),
@@ -372,6 +377,142 @@ class _AdminUserDetailScreenState extends State<AdminUserDetailScreen> {
                 ),
               ),
             ],
+        ],
+      ),
+    );
+  }
+
+  /// ผู้ใช้ลืมรหัสผ่าน: สร้างรหัสชั่วคราวให้แอดมินแจ้งผู้ใช้
+  Widget _resetPasswordCard() {
+    const info = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        IconBadge(icon: Icons.key_rounded, tone: Tone.violet),
+        SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Forgot password',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.text,
+                ),
+              ),
+              SizedBox(height: 2),
+              Text(
+                'Create a temporary password and give it to the user. '
+                'They should change it after signing in.',
+                style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+    final button = OutlinedButton.icon(
+      onPressed: _c.busy ? null : _resetPassword,
+      icon: const Icon(Icons.lock_reset_rounded, size: 18),
+      label: const Text('Reset password'),
+    );
+    return AppCard(
+      padding: const EdgeInsets.all(18),
+      child: LayoutBuilder(
+        // จอแคบ: ปุ่มอยู่ใต้ข้อความ จอกว้าง: ปุ่มอยู่ด้านขวา
+        builder: (context, c) => c.maxWidth < 520
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [info, const SizedBox(height: 14), button],
+              )
+            : Row(
+                children: [
+                  const Expanded(child: info),
+                  const SizedBox(width: 12),
+                  button,
+                ],
+              ),
+      ),
+    );
+  }
+
+  Future<void> _resetPassword() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reset password?'),
+        content: Text(
+          'The current password of ${_c.displayName} will stop working. '
+          'You will get a temporary password to give them.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    final temporary = await _c.resetPassword();
+    if (!mounted) return;
+    if (temporary == null) {
+      _report();
+      return;
+    }
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: const IconBadge(
+          icon: Icons.check_rounded,
+          tone: Tone.success,
+          size: 48,
+        ),
+        title: const Text('Temporary password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Give this password to the user. It is shown only once.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.primarySoft,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: SelectableText(
+                temporary,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.5,
+                  color: AppColors.primaryDark,
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton.icon(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: temporary));
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(const SnackBar(content: Text('Copied')));
+            },
+            icon: const Icon(Icons.copy_rounded, size: 18),
+            label: const Text('Copy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Done'),
+          ),
         ],
       ),
     );

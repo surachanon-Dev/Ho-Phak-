@@ -2,18 +2,18 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import '../../../app/session.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/responsive.dart';
-import '../../../core/utils/status_style.dart';
-import '../../../shared/widgets/document_viewer.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../owner_requests/widgets/owner_request_widgets.dart';
-import '../services/admin_service.dart';
-import '../widgets/admin_page.dart';
-import '../widgets/reason_dialog.dart';
-import 'admin_dorms_controller.dart';
+import '../../../../app/session.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
+import '../../../../core/utils/status_style.dart';
+import '../../../../widgets/document_viewer.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../owner_requests/view/widgets/owner_request_widgets.dart';
+import '../../../../services/admin_service.dart';
+import '../../widgets/admin_page.dart';
+import '../../widgets/reason_dialog.dart';
+import '../controller/admin_dorms_controller.dart';
 
 /// หน้า Dorms ของแอดมิน (เมนู Dorms)
 /// - Awaiting review: หอใหม่และฉบับแก้ไขที่รอตรวจ อนุมัติ/ปฏิเสธ

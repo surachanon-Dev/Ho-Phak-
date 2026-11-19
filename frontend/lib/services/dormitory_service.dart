@@ -1,13 +1,13 @@
-import '../../../core/network/api_client.dart';
-import '../../../shared/models/dormitory.dart';
-import '../../../shared/models/review.dart';
-import '../models/dorm_detail_extras.dart';
-import '../models/dorm_form_extras.dart';
-import '../models/owner_reviews_bundle.dart';
+import '../core/network/api_client.dart';
+import '../model/dormitory.dart';
+import '../model/review.dart';
+import '../modules/owner/dorm_detail/model/dorm_detail_extras.dart';
+import '../modules/owner/dorm_form/model/dorm_form_extras.dart';
+import '../model/owner_reviews_bundle.dart';
 import 'owner_extras.dart';
-import '../models/dorm_utilities.dart';
-import '../models/dorm_document.dart';
-import '../models/review_report.dart';
+import '../model/dorm_utilities.dart';
+import '../model/dorm_document.dart';
+import '../model/review_report.dart';
 
 class DormitoryService {
   DormitoryService(this._api, [this._extras]);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_theme.dart';
-import '../../../../shared/widgets/ui/ui.dart';
+import '../../../../../core/theme/app_theme.dart';
+import '../../../../../widgets/ui/ui.dart';
 
 /// เหตุผลสำเร็จรูปให้แอดมินกดเลือกได้เร็ว
 const _quickReasons = [

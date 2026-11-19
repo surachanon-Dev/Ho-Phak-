@@ -1,37 +1,49 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/responsive.dart';
-import '../../../shared/models/user.dart';
-import '../../chat/screens/chat_list_screen.dart';
-import '../../notifications/screens/notifications_screen.dart';
-import 'favorites_screen.dart';
-import 'search_screen.dart';
-import 'student_home_screen.dart';
-import 'student_map_screen.dart';
-import 'student_profile_screen.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
+import '../../../../model/user.dart';
+import '../../../chat/chat_list/view/chat_list_screen.dart';
+import '../../../notifications/view/notifications_screen.dart';
+import '../../profile/controller/student_badges_controller.dart';
+import '../../favorites/view/favorites_screen.dart';
+import '../../search/view/search_screen.dart';
+import '../../home/view/student_home_screen.dart';
+import '../../map/view/student_map_screen.dart';
+import '../../profile/view/student_profile_screen.dart';
 
-/// ปุ่มลัดเปิดแชทและการแจ้งเตือน ส่งให้ทุกแท็บของนักศึกษา
+/// ปุ่มลัดเปิดแชทและการแจ้งเตือน (พร้อมจำนวนที่ยังไม่อ่าน) ส่งให้ทุกแท็บของนักศึกษา
 class StudentShortcuts {
   const StudentShortcuts({
     required this.openChats,
     required this.openNotifications,
+    this.unreadMessages = 0,
+    this.unreadNotifications = 0,
   });
 
   final VoidCallback openChats;
   final VoidCallback openNotifications;
+  final int unreadMessages;
+  final int unreadNotifications;
+
+  /// ไอคอนพร้อมตัวเลขที่ยังไม่อ่าน (เกิน 99 แสดง 99+)
+  static Widget badged(IconData icon, int count) => Badge(
+    isLabelVisible: count > 0,
+    label: Text(count > 99 ? '99+' : '$count'),
+    child: Icon(icon),
+  );
 
   /// ปุ่มบน app bar
   List<Widget> appBarActions() => [
     IconButton(
-      tooltip: 'ข้อความ',
-      icon: const Icon(Icons.chat_bubble_outline_rounded),
+      tooltip: 'Messages',
+      icon: badged(Icons.chat_bubble_outline_rounded, unreadMessages),
       onPressed: openChats,
     ),
     IconButton(
-      tooltip: 'การแจ้งเตือน',
-      icon: const Icon(Icons.notifications_none_rounded),
+      tooltip: 'Notifications',
+      icon: badged(Icons.notifications_none_rounded, unreadNotifications),
       onPressed: openNotifications,
     ),
     const SizedBox(width: 8),
@@ -55,23 +67,49 @@ class _StudentShellState extends State<StudentShell> {
   static const _favTab = 3;
 
   static const _destinations = [
-    (Icons.home_outlined, Icons.home_rounded, 'หน้าหลัก'),
-    (Icons.search_rounded, Icons.search_rounded, 'ค้นหา'),
-    (Icons.map_outlined, Icons.map_rounded, 'แผนที่'),
-    (Icons.favorite_border_rounded, Icons.favorite_rounded, 'รายการโปรด'),
-    (Icons.person_outline_rounded, Icons.person_rounded, 'โปรไฟล์'),
+    (Icons.home_outlined, Icons.home_rounded, 'Home'),
+    (Icons.search_rounded, Icons.search_rounded, 'Search'),
+    (Icons.map_outlined, Icons.map_rounded, 'Map'),
+    (Icons.favorite_border_rounded, Icons.favorite_rounded, 'Favorites'),
+    (Icons.person_outline_rounded, Icons.person_rounded, 'Profile'),
   ];
 
   int _index = 0;
   final _searchKey = GlobalKey<SearchScreenState>();
+  late final StudentBadgesController _badges;
+
+  @override
+  void initState() {
+    super.initState();
+    _badges = StudentBadgesController(
+      chats: widget.services.chats,
+      notifications: widget.services.notifications,
+    );
+    _badges.addListener(_onBadges);
+    _badges.refresh();
+  }
+
+  void _onBadges() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _badges.removeListener(_onBadges);
+    _badges.dispose();
+    super.dispose();
+  }
 
   // เพิ่มค่าทุกครั้งที่เปิดแท็บรายการโปรด เพื่อให้โหลดใหม่ (แท็บอยู่ใน IndexedStack จึงไม่โหลดซ้ำเอง)
   int _favEpoch = 0;
 
-  void _select(int i) => setState(() {
-    _index = i;
-    if (i == _favTab) _favEpoch++;
-  });
+  void _select(int i) {
+    setState(() {
+      _index = i;
+      if (i == _favTab) _favEpoch++;
+    });
+    _badges.refresh();
+  }
 
   /// จากหน้าแรก: สลับไปแท็บค้นหาแล้วตั้งตัวกรองตามที่กด
   void _openSearch({String? zone, String? sort}) {
@@ -81,8 +119,11 @@ class _StudentShellState extends State<StudentShell> {
     );
   }
 
-  void _push(Widget page) =>
-      Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+  /// เปิดหน้าแชท/แจ้งเตือน แล้วนับที่ยังไม่อ่านใหม่เมื่อกลับมา
+  Future<void> _push(Widget page) async {
+    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+    _badges.refresh();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +133,8 @@ class _StudentShellState extends State<StudentShell> {
       openChats: () =>
           _push(ChatListScreen(services: s, myUserId: u.id, asStudent: true)),
       openNotifications: () => _push(NotificationsScreen(services: s)),
+      unreadMessages: _badges.messages,
+      unreadNotifications: _badges.notifications,
     );
     final actions = shortcuts.appBarActions();
 

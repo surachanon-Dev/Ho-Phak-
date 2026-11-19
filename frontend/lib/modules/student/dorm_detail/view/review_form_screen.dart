@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_theme.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../widgets/student_ui.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../widgets/student_ui.dart';
 
 /// หน้าเขียนรีวิว: ให้ดาว 1–5 และความคิดเห็น (ไม่บังคับ)
 /// ส่งผ่าน [onSubmit] ซึ่งคืน true เมื่อสำเร็จ แล้วหน้าจะปิดพร้อมคืนค่า true
@@ -12,20 +12,28 @@ class ReviewFormScreen extends StatefulWidget {
     super.key,
     required this.dormName,
     required this.onSubmit,
+    this.initialRating = 0,
+    this.initialBody,
   });
 
   final String dormName;
   final Future<bool> Function(int rating, String? body) onSubmit;
+
+  /// ค่าเดิมเมื่อแก้ไขรีวิว (0 = เขียนใหม่)
+  final int initialRating;
+  final String? initialBody;
+
+  bool get isEdit => initialRating > 0;
 
   @override
   State<ReviewFormScreen> createState() => _ReviewFormScreenState();
 }
 
 class _ReviewFormScreenState extends State<ReviewFormScreen> {
-  static const _labels = ['', 'แย่มาก', 'พอใช้', 'ดี', 'ดีมาก', 'ยอดเยี่ยม'];
+  static const _labels = ['', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
 
-  int _rating = 0;
-  final _body = TextEditingController();
+  late int _rating = widget.initialRating;
+  late final _body = TextEditingController(text: widget.initialBody ?? '');
   bool _busy = false;
 
   @override
@@ -36,8 +44,9 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
 
   Future<void> _submit() async {
     if (_rating < 1) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('กรุณาให้คะแนน 1-5 ดาว')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please give a rating from 1 to 5 stars')),
+      );
       return;
     }
     setState(() => _busy = true);
@@ -51,7 +60,9 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('เขียนรีวิว')),
+      appBar: AppBar(
+        title: Text(widget.isEdit ? 'Edit review' : 'Write a review'),
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
@@ -78,7 +89,7 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
                       ),
                       const SizedBox(height: 4),
                       const Text(
-                        'ให้คะแนนหอพักนี้',
+                        'Rate this dorm',
                         style: TextStyle(color: AppColors.textMuted),
                       ),
                       const SizedBox(height: 8),
@@ -89,7 +100,7 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
                             IconButton(
                               key: Key('star_$i'),
                               iconSize: 40,
-                              tooltip: '$i ดาว',
+                              tooltip: i == 1 ? '1 star' : '$i stars',
                               onPressed: () => setState(() => _rating = i),
                               icon: Icon(
                                 i <= _rating
@@ -118,13 +129,16 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
                   maxLines: 5,
                   maxLength: 1000,
                   decoration: const InputDecoration(
-                    labelText: 'ความคิดเห็น (ไม่บังคับ)',
-                    hintText: 'เล่าประสบการณ์ของคุณ เช่น ความสะอาด ความปลอดภัย',
+                    labelText: 'Comment (optional)',
+                    hintText:
+                        'Share your experience, e.g. cleanliness or safety',
                     alignLabelWithHint: true,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const NoticeBanner(message: 'รีวิวจะแสดงหลังแอดมินตรวจสอบ'),
+                const NoticeBanner(
+                  message: 'Your review will appear after an admin checks it.',
+                ),
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: _busy ? null : _submit,
@@ -134,7 +148,7 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
                           height: 20,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('ส่งรีวิว'),
+                      : Text(widget.isEdit ? 'Save changes' : 'Submit review'),
                 ),
               ],
             ),

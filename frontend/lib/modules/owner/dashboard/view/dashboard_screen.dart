@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/models/dormitory.dart';
-import '../controllers/owner_dashboard_controller.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../app/session.dart';
-import '../../../core/utils/status_style.dart';
-import 'dormitory_detail_screen.dart';
-import 'dormitory_form_screen.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../widgets/owner_ui.dart';
+import '../../../../model/dormitory.dart';
+import '../controller/owner_dashboard_controller.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../app/session.dart';
+import '../../../../core/utils/status_style.dart';
+import '../../dorm_detail/view/dormitory_detail_screen.dart';
+import '../../dorm_form/view/dormitory_form_screen.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../widgets/owner_ui.dart';
 
 /// หน้า My Dorms ของเจ้าของ: สรุปจำนวน, แบนเนอร์หอที่ต้องดู และรายการหอ
 class DashboardScreen extends StatefulWidget {
@@ -369,7 +369,7 @@ class _DormCard extends StatelessWidget {
                     const SizedBox(width: 3),
                     Expanded(
                       child: Text(
-                        '${dorm.zone} · ${formatBaht(dorm.pricePerMonth)} THB/month',
+                        '${zoneLabel(dorm.zone)} · ${formatBaht(dorm.pricePerMonth)} THB/month',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_theme.dart';
-import '../../../../core/utils/responsive.dart';
-import '../../../../shared/widgets/ui/ui.dart';
-import '../../widgets/admin_page.dart';
-import '../owner_request_item.dart';
+import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/utils/responsive.dart';
+import '../../../../../widgets/ui/ui.dart';
+import '../../../widgets/admin_page.dart';
+import '../../model/owner_request_item.dart';
 import 'owner_request_widgets.dart';
 import 'reject_request_dialog.dart';
 

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'admin_profile_controller.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../app/session.dart';
-import '../../auth/screens/login_screen.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../widgets/admin_page.dart';
+import '../controller/admin_profile_controller.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../app/session.dart';
+import '../../../auth/login/view/login_screen.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../widgets/admin_page.dart';
 
 /// โปรไฟล์แอดมิน: แสดงบัญชีที่ login อยู่ และออกจากระบบ
 class AdminProfileTab extends StatefulWidget {
@@ -50,15 +50,15 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
           tone: Tone.danger,
           size: 44,
         ),
-        title: const Text('ออกจากระบบ?'),
+        title: const Text('Log out?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('ยกเลิก'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('ออกจากระบบ'),
+            child: const Text('Log out'),
           ),
         ],
       ),
@@ -77,8 +77,8 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
     final u = _c.user;
     final pad = adminPagePadding(context);
     return AdminPage(
-      title: 'โปรไฟล์',
-      subtitle: 'บัญชีผู้ดูแลระบบที่เข้าสู่ระบบอยู่',
+      title: 'Profile',
+      subtitle: 'The admin account you are signed in with',
       child: _c.loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -118,7 +118,7 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    u?.username ?? 'แอดมิน',
+                                    u?.username ?? 'Admin',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 19,
@@ -127,7 +127,7 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'บทบาท: ${u?.role ?? '-'} · ID ${u?.id ?? '-'}',
+                                    'Role: ${u?.role ?? '-'} · ID ${u?.id ?? '-'}',
                                     style: const TextStyle(
                                       color: Color(0xE6FFFFFF),
                                       fontSize: 13,
@@ -153,7 +153,7 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
                                 icon: Icons.refresh,
                                 size: 36,
                               ),
-                              title: const Text('โหลดข้อมูลบัญชีใหม่'),
+                              title: const Text('Reload account'),
                               trailing: const Icon(Icons.chevron_right),
                               onTap: _c.load,
                             ),
@@ -169,7 +169,7 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
                                 size: 36,
                               ),
                               title: const Text(
-                                'ออกจากระบบ',
+                                'Log out',
                                 style: TextStyle(color: AppColors.danger),
                               ),
                               onTap: _logout,

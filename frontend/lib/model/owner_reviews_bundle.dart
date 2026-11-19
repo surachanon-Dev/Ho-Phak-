@@ -1,4 +1,4 @@
-import '../../../shared/models/review.dart';
+import 'review.dart';
 
 /// รีวิวหนึ่งรายการพร้อมชื่อหอ (หน้า My reviews)
 class OwnerReviewEntry {

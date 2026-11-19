@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/session.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../shared/models/favorite.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../../owner/widgets/owner_ui.dart' show DormCover;
-import '../controllers/favorites_controller.dart';
-import '../widgets/student_ui.dart';
-import 'student_dorm_detail_screen.dart';
+import '../../../../app/session.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../model/dormitory.dart' show zoneLabel;
+import '../../../../model/favorite.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../../owner/widgets/owner_ui.dart' show DormCover;
+import '../controller/favorites_controller.dart';
+import '../../widgets/student_ui.dart';
+import '../../dorm_detail/view/student_dorm_detail_screen.dart';
 
 /// รายการโปรด: หอที่ถูกซ่อนหรือระงับจะแสดงเป็น "ไม่พร้อมให้บริการ" และกดเข้าดูไม่ได้
 class FavoritesScreen extends StatefulWidget {
@@ -61,7 +62,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     if (ok) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('นำออกจากรายการโปรดแล้ว')));
+      ).showSnackBar(const SnackBar(content: Text('Removed from favorites')));
     } else if (_c.error != null) {
       showApiError(context, widget.services, _c.error!);
     }
@@ -80,7 +81,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('รายการโปรด'), actions: widget.actions),
+      appBar: AppBar(
+        // อยู่ในแท็บของ StudentShell (มี actions) ไม่ต้องมีปุ่มย้อนกลับ
+        automaticallyImplyLeading: widget.actions == null,
+        title: const Text('Favorites'),
+        actions: widget.actions,
+      ),
       body: RefreshIndicator(
         onRefresh: _c.load,
         child: _c.showFullLoader
@@ -93,12 +99,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   EmptyState(
                     icon: Icons.favorite_border_rounded,
                     tone: Tone.danger,
-                    title: 'ยังไม่มีหอพักในรายการโปรด',
-                    message: 'กดรูปหัวใจในหน้ารายละเอียดหอพักเพื่อบันทึกไว้',
+                    title: 'No favorite dorms yet',
+                    message: 'Tap the heart on a dorm page to save it here.',
                     action: FilledButton.icon(
                       onPressed: widget.onExplore,
                       icon: const Icon(Icons.search_rounded, size: 18),
-                      label: const Text('ไปค้นหาหอพัก'),
+                      label: const Text('Find dorms'),
                     ),
                   ),
                 ],
@@ -112,9 +118,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         SectionTitle(
-                          'หอพักที่บันทึกไว้',
+                          'Saved dorms',
                           subtitle:
-                              'พร้อมให้บริการ ${_c.availableCount} จาก ${_c.items.length} แห่ง',
+                              '${_c.availableCount} of ${_c.items.length} available',
                         ),
                         const SizedBox(height: 12),
                         for (final f in _c.items) ...[
@@ -157,7 +163,7 @@ class _FavoriteCard extends StatelessWidget {
         children: [
           Opacity(
             opacity: available ? 1 : 0.45,
-            child: const DormCover(url: null, width: 76, height: 76),
+            child: DormCover(url: f.coverUrl, width: 76, height: 76),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -179,13 +185,13 @@ class _FavoriteCard extends StatelessWidget {
                   PriceText(f.pricePerMonth, size: 14),
                   const SizedBox(height: 6),
                   ToneBadge(
-                    label: f.zone,
+                    label: zoneLabel(f.zone),
                     tone: Tone.primary,
                     icon: Icons.place_outlined,
                   ),
                 ] else
                   const ToneBadge(
-                    label: 'ไม่พร้อมให้บริการ',
+                    label: 'Unavailable',
                     tone: Tone.danger,
                     icon: Icons.block_rounded,
                   ),
@@ -193,7 +199,7 @@ class _FavoriteCard extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: 'นำออก',
+            tooltip: 'Remove',
             icon: const Icon(Icons.favorite_rounded, color: AppColors.danger),
             onPressed: onRemove,
           ),

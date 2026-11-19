@@ -1,7 +1,15 @@
-import '../../core/config/api_config.dart';
+import '../core/config/api_config.dart';
 
 /// zone ที่ backend รองรับ
 const List<String> dormZones = ['หน้ามอ', 'หลังมอ', 'คชพลแลนด์'];
+
+/// ชื่อโซนที่แสดงในแอป (ค่าที่ส่ง/รับกับ backend ยังเป็นภาษาไทยตาม [dormZones])
+String zoneLabel(String zone) => switch (zone) {
+  'หน้ามอ' => 'Front gate',
+  'หลังมอ' => 'Back gate',
+  'คชพลแลนด์' => 'Kotchapol Land',
+  _ => zone,
+};
 
 /// รูปแบบการคิดค่าน้ำ/ค่าไฟ
 class BillingType {
@@ -12,9 +20,9 @@ class BillingType {
   static const all = [perUnit, perPersonMonth, perRoomMonth];
 
   static String label(String type) => switch (type) {
-    BillingType.perUnit => 'ตามหน่วยที่ใช้',
-    BillingType.perPersonMonth => 'ต่อคนต่อเดือน',
-    BillingType.perRoomMonth => 'ต่อห้องต่อเดือน',
+    BillingType.perUnit => 'per unit used',
+    BillingType.perPersonMonth => 'per person / month',
+    BillingType.perRoomMonth => 'per room / month',
     _ => type,
   };
 
@@ -99,6 +107,7 @@ class Dormitory {
     this.amenityIds = const [],
     this.amenityNames = const [],
     this.images = const [],
+    this.coverImage,
   });
 
   final int id;
@@ -130,8 +139,15 @@ class Dormitory {
   final List<String> amenityNames;
   final List<DormImage> images;
 
-  /// รูปแรกของหอ (null ถ้าไม่มีรูป เช่น รายการค้นหาที่ backend ไม่ส่งรูปมา)
-  String? get coverUrl => images.isEmpty ? null : images.first.fullUrl;
+  /// path รูปแรกของหอ ที่ backend ส่งมาในรายการค้นหา (cover_image)
+  final String? coverImage;
+
+  /// รูปปกของหอ: รูปแรกใน images ถ้ามี ไม่งั้นใช้ cover_image (null = ไม่มีรูป)
+  String? get coverUrl => images.isNotEmpty
+      ? images.first.fullUrl
+      : (coverImage == null || coverImage!.isEmpty
+            ? null
+            : ApiConfig.resolve(coverImage!));
 
   /// เปิด/ปิดการแสดงผลได้เฉพาะ published และ hidden (backend ตอบ 409 กรณีอื่น)
   bool get canToggleVisibility =>
@@ -171,6 +187,7 @@ class Dormitory {
         .map((a) => a['name']?.toString() ?? '')
         .where((n) => n.isNotEmpty)
         .toList(),
+    coverImage: _toStr(json['cover_image']),
     images: ((json['images'] as List?) ?? const [])
         .map((e) => DormImage.fromJson(e as Map<String, dynamic>))
         .toList(),

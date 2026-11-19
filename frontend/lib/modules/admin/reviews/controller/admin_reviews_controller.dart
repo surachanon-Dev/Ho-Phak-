@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../services/admin_service.dart';
-import '../../../core/network/api_client.dart';
+import '../../../../services/admin_service.dart';
+import '../../../../core/network/api_client.dart';
 
 enum AdminReviewStatus {
   open('pending'),
@@ -73,7 +73,7 @@ class AdminReviewsController extends ChangeNotifier {
   Future<bool> hideReview(int id, String reason) => _submit(() async {
     final trimmed = reason.trim();
     if (trimmed.isEmpty) {
-      throw ApiException(400, 'ต้องระบุเหตุผลการซ่อนรีวิว');
+      throw ApiException(400, 'Please enter a reason for hiding the review');
     }
     await _service.hideReview(id, trimmed);
   });

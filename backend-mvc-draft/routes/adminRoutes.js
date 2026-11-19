@@ -29,6 +29,7 @@ router.post('/verifications/:id/reject', adminController.rejectVerification);
 
 router.post('/users/:id/suspend', adminController.suspendUser);
 router.post('/users/:id/restore', adminController.restoreUser);
+router.post('/users/:id/reset-password', adminController.resetUserPassword);
 
 router.get('/reviews', adminController.listReviews);
 router.post('/reviews/:id/publish', adminController.publishReview);

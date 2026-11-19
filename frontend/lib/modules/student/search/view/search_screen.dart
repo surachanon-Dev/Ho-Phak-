@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/session.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../shared/models/dormitory.dart';
-import '../../../shared/widgets/dorm_card.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../controllers/dorm_search_controller.dart';
-import '../widgets/student_ui.dart';
-import 'student_dorm_detail_screen.dart';
+import '../../../../app/session.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../model/dormitory.dart';
+import '../../../../widgets/dorm_card.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../controller/dorm_search_controller.dart';
+import '../../widgets/student_ui.dart';
+import '../../dorm_detail/view/student_dorm_detail_screen.dart';
 
 /// ค้นหาและกรองหอพัก (ธีมโครงใหม่): ช่องค้นหา + ปุ่มตัวกรอง (ราคา, ห้องว่าง),
 /// ชิปเรียงลำดับ, ชิปโซน และจำนวนผลลัพธ์ ตรรกะทั้งหมดอยู่ใน [DormSearchController]
@@ -111,11 +111,11 @@ class SearchScreenState extends State<SearchScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'ตัวกรอง',
+                  'Filters',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 12),
-                const Text('ค่าเช่าต่อเดือน (บาท)'),
+                const Text('Monthly rent (baht)'),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -123,7 +123,7 @@ class SearchScreenState extends State<SearchScreen> {
                       child: TextField(
                         controller: minC,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(hintText: 'ต่ำสุด'),
+                        decoration: const InputDecoration(hintText: 'Min'),
                       ),
                     ),
                     const Padding(
@@ -134,7 +134,7 @@ class SearchScreenState extends State<SearchScreen> {
                       child: TextField(
                         controller: maxC,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(hintText: 'สูงสุด'),
+                        decoration: const InputDecoration(hintText: 'Max'),
                       ),
                     ),
                   ],
@@ -142,7 +142,7 @@ class SearchScreenState extends State<SearchScreen> {
                 const SizedBox(height: 8),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('แสดงเฉพาะหอที่มีห้องว่าง'),
+                  title: const Text('Only dorms with free rooms'),
                   value: roomsOnly,
                   onChanged: (v) => setSheet(() => roomsOnly = v),
                 ),
@@ -157,14 +157,14 @@ class SearchScreenState extends State<SearchScreen> {
                           roomsOnly = false;
                           Navigator.of(ctx).pop(true);
                         },
-                        child: const Text('ล้างค่า'),
+                        child: const Text('Reset'),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: FilledButton(
                         onPressed: () => Navigator.of(ctx).pop(true),
-                        child: const Text('ใช้ตัวกรอง'),
+                        child: const Text('Apply'),
                       ),
                     ),
                   ],
@@ -195,7 +195,13 @@ class SearchScreenState extends State<SearchScreen> {
             : 0) +
         (f.roomsOnly ? 1 : 0);
     return Scaffold(
-      appBar: AppBar(title: const Text('ค้นหาหอพัก'), actions: widget.actions),
+      appBar: AppBar(
+        // อยู่ในแท็บของ StudentShell (มี actions) ไม่ต้องมีปุ่มย้อนกลับ
+        automaticallyImplyLeading: widget.actions == null,
+
+        title: const Text('Search dorms'),
+        actions: widget.actions,
+      ),
       body: Column(
         children: [
           StudentBody(
@@ -209,10 +215,10 @@ class SearchScreenState extends State<SearchScreen> {
                     onChanged: _c.setQuery,
                     onSubmitted: (_) => _search(),
                     decoration: InputDecoration(
-                      hintText: 'ค้นหาชื่อหอพัก...',
+                      hintText: 'Search by dorm name...',
                       prefixIcon: const Icon(Icons.search),
                       suffixIcon: IconButton(
-                        tooltip: 'ตัวกรอง',
+                        tooltip: 'Filters',
                         icon: Badge(
                           isLabelVisible: activeFilters > 0,
                           label: Text('$activeFilters'),
@@ -231,7 +237,7 @@ class SearchScreenState extends State<SearchScreen> {
                     children: [
                       PopupMenuButton<String>(
                         initialValue: f.sort,
-                        tooltip: 'เรียงลำดับ',
+                        tooltip: 'Sort',
                         onSelected: (s) {
                           _c.setSort(s);
                           _search();
@@ -251,13 +257,13 @@ class SearchScreenState extends State<SearchScreen> {
                           ),
                           label: Text(
                             DormSearchController.allSortLabels[f.sort] ??
-                                'เรียง',
+                                'Sort',
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       ChoiceChip(
-                        label: const Text('ทุกโซน'),
+                        label: const Text('All zones'),
                         selected: f.zone == null,
                         onSelected: (_) {
                           _c.setZone(null);
@@ -267,7 +273,7 @@ class SearchScreenState extends State<SearchScreen> {
                       for (final z in dormZones) ...[
                         const SizedBox(width: 8),
                         ChoiceChip(
-                          label: Text(z),
+                          label: Text(zoneLabel(z)),
                           selected: f.zone == z,
                           onSelected: (_) {
                             _c.setZone(z);
@@ -297,7 +303,7 @@ class SearchScreenState extends State<SearchScreen> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: ToneBadge(
-                      label: 'พบ ${_c.items.length} หอพัก',
+                      label: '${_c.items.length} dorms found',
                       tone: Tone.primary,
                       icon: Icons.apartment_rounded,
                     ),
@@ -314,11 +320,11 @@ class SearchScreenState extends State<SearchScreen> {
                 : _c.items.isEmpty
                 ? EmptyState(
                     icon: Icons.search_off_rounded,
-                    title: 'ไม่พบหอพัก',
-                    message: 'ลองเปลี่ยนคำค้นหาหรือเงื่อนไขการกรอง',
+                    title: 'No dorms found',
+                    message: 'Try a different search or change the filters.',
                     action: OutlinedButton(
                       onPressed: _reset,
-                      child: const Text('ล้างตัวกรอง'),
+                      child: const Text('Clear filters'),
                     ),
                   )
                 : RefreshIndicator(

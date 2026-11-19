@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../services/admin_service.dart';
-import '../../../core/network/api_client.dart';
-import '../users/admin_users_controller.dart';
+import '../../../../services/admin_service.dart';
+import '../../../../core/network/api_client.dart';
+import '../../users/controller/admin_users_controller.dart';
 
 /// หน้ารายละเอียดผู้ใช้ของแอดมิน: โหลดผู้ใช้ 1 คนพร้อมหอของเจ้าของ และระงับ/ยกเลิกการระงับ
 class AdminUserDetailController extends ChangeNotifier {
@@ -110,6 +110,23 @@ class AdminUserDetailController extends ChangeNotifier {
 
   /// ยกเลิกการระงับ คืน true เมื่อสำเร็จ
   Future<bool> restore() => _act(() => _service.restoreUser(userId));
+
+  /// รีเซ็ตรหัสผ่าน (ไม่ใช้กับบัญชีแอดมิน) คืนรหัสชั่วคราว หรือ null เมื่อผิดพลาด
+  Future<String?> resetPassword() async {
+    if (_busy || isAdmin) return null;
+    _busy = true;
+    _error = null;
+    notifyListeners();
+    try {
+      return await _service.resetUserPassword(userId);
+    } catch (e) {
+      _error = e;
+      return null;
+    } finally {
+      _busy = false;
+      notifyListeners();
+    }
+  }
 
   Future<bool> _act(Future<void> Function() action) async {
     if (_busy) return false;

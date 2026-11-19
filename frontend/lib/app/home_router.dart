@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../core/app_services.dart';
-import '../features/admin/admin_home_screen.dart';
-import '../features/owner/screens/owner_shell.dart';
-import '../features/student/screens/student_shell.dart';
-import '../shared/models/user.dart';
+import '../modules/admin/admin_home_screen.dart';
+import '../modules/owner/shell/view/owner_shell.dart';
+import '../modules/student/shell/view/student_shell.dart';
+import '../model/user.dart';
 
 /// เลือกหน้าหลักตาม role
 Widget homeFor(AppServices services, CurrentUser user) {

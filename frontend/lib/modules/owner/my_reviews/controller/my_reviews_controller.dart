@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../services/dormitory_service.dart';
-import '../models/review_report.dart';
-import '../models/owner_reviews_bundle.dart';
+import '../../../../services/dormitory_service.dart';
+import '../../../../model/review_report.dart';
+import '../../../../model/owner_reviews_bundle.dart';
 
 /// หน้ารีวิวของฉัน (อ่านอย่างเดียว + report): โหลดรีวิวทุกหอ กรองตามหอ และ report รีวิว
 class MyReviewsController extends ChangeNotifier {
@@ -76,7 +76,7 @@ class MyReviewsController extends ChangeNotifier {
       _error = ArgumentError.value(
         reason,
         'reason',
-        'เหตุผลต้องมี 1–$maxReportReasonLength ตัวอักษร',
+        'The reason must be 1–$maxReportReasonLength characters',
       );
       notifyListeners();
       return false;

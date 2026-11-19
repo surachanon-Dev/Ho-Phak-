@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/session.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../dashboard/admin_dashboard_view.dart' show ActivityRowData;
-import '../services/admin_service.dart';
-import '../widgets/admin_page.dart';
-import 'admin_activity_log_controller.dart';
+import '../../../../app/session.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../dashboard/view/admin_dashboard_view.dart' show ActivityRowData;
+import '../../../../services/admin_service.dart';
+import '../../widgets/admin_page.dart';
+import '../controller/admin_activity_log_controller.dart';
 
 /// ประวัติการทำงานของแอดมิน 100 รายการล่าสุด (อ่านอย่างเดียว)
 class AdminLogsTab extends StatefulWidget {
@@ -51,11 +51,11 @@ class _AdminLogsTabState extends State<AdminLogsTab> {
     final actions = _c.availableActions;
 
     return AdminPage(
-      title: 'ประวัติการทำงาน',
-      subtitle: 'การกระทำของแอดมิน 100 รายการล่าสุด',
+      title: 'Activity log',
+      subtitle: 'The latest 100 admin actions',
       actions: [
         HeaderIconButton(
-          tooltip: 'รีเฟรช',
+          tooltip: 'Refresh',
           icon: Icons.refresh,
           onPressed: _c.isLoading ? null : _load,
         ),
@@ -67,7 +67,7 @@ class _AdminLogsTabState extends State<AdminLogsTab> {
               child: Row(
                 children: [
                   _FilterChip(
-                    label: 'ทั้งหมด',
+                    label: 'All',
                     selected: _c.action == null,
                     onTap: () => _c.setFilters(since: _c.since),
                   ),
@@ -86,8 +86,8 @@ class _AdminLogsTabState extends State<AdminLogsTab> {
           ? const EmptyState(
               icon: Icons.history_toggle_off,
               tone: Tone.neutral,
-              title: 'ยังไม่มีประวัติ',
-              message: 'เมื่อแอดมินอนุมัติ ปฏิเสธ หรือระงับรายการ จะแสดงที่นี่',
+              title: 'No activity yet',
+              message: 'Approvals, rejections and suspensions by admins will show here.',
             )
           : RefreshIndicator(
               onRefresh: _load,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/notifications_controller.dart';
-import '../../../shared/models/notification.dart';
+import '../controller/notifications_controller.dart';
+import '../../../model/notification.dart';
 import '../../../core/app_services.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../app/session.dart';
@@ -53,7 +53,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('การแจ้งเตือน')),
+      appBar: AppBar(title: const Text('Notifications')),
       body: RefreshIndicator(
         onRefresh: _c.load,
         child: _c.showFullLoader
@@ -62,7 +62,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ? ListView(
                 children: const [
                   SizedBox(height: 120),
-                  Center(child: Text('ยังไม่มีการแจ้งเตือน')),
+                  Center(child: Text('No notifications yet')),
                 ],
               )
             : ListView.separated(

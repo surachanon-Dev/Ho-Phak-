@@ -25,6 +25,17 @@ async function findForUpdate(id, conn = db) {
     return rows[0];
 }
 
+// นักศึกษาสมัครเป็นเจ้าของหอ: เปลี่ยน role และต้องยืนยันตัวตนใหม่
+async function promoteToOwner(id, conn = db) {
+    const [result] = await conn.query(
+        "UPDATE users SET role = 'owner', is_verified = 0 WHERE id = ? AND role = 'student'", [id]);
+    return result.affectedRows;
+}
+
+async function updatePasswordHash(id, hash, conn = db) {
+    await conn.query('UPDATE users SET password = ? WHERE id = ?', [hash, id]);
+}
+
 async function setVerified(id, value, conn = db) {
     await conn.query('UPDATE users SET is_verified = ? WHERE id = ?', [value, id]);
 }
@@ -61,4 +72,4 @@ async function listForAdmin({ role, status } = {}) {
     return rows;
 }
 
-module.exports = { findAuthState, findByPhone, insertStudent, findForUpdate, setVerified, suspend, restore, listForAdmin };
+module.exports = { findAuthState, findByPhone, insertStudent, findForUpdate, promoteToOwner, updatePasswordHash, setVerified, suspend, restore, listForAdmin };

@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../../auth/services/auth_service.dart';
-import '../services/owner_account_service.dart';
-import '../models/owner_profile.dart';
+import '../../../../services/auth_service.dart';
+import '../../../../services/owner_account_service.dart';
+import '../../../../model/owner_profile.dart';
 
 /// หน้า "โปรไฟล์" ของ owner: โหลดโปรไฟล์ (มี fallback เป็นชื่อผู้ใช้) และออกจากระบบ
 class OwnerProfileController extends ChangeNotifier {

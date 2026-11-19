@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'admin_settings_controller.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../app/session.dart';
-import '../../auth/screens/login_screen.dart';
-import '../../../core/utils/responsive.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../widgets/admin_page.dart';
+import '../controller/admin_settings_controller.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../app/session.dart';
+import '../../../auth/login/view/login_screen.dart';
+import '../../../../core/utils/responsive.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../widgets/admin_page.dart';
 
 /// หน้า Settings ของแอดมิน: ข้อมูลบัญชี, เปลี่ยนรหัสผ่าน (ผ่าน /api/me/password), ออกจากระบบ
 class AdminSettingsTab extends StatefulWidget {
@@ -73,7 +73,7 @@ class _AdminSettingsTabState extends State<AdminSettingsTab> {
       _newPasswordController.clear();
       _confirmPasswordController.clear();
       ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('เปลี่ยนรหัสผ่านแล้ว')));
+          .showSnackBar(const SnackBar(content: Text('Password changed')));
     } else {
       _report();
     }

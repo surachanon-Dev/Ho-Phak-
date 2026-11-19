@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/chat_list_controller.dart';
-import '../../../shared/models/chat.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../app/session.dart';
-import '../../../core/utils/format.dart';
-import 'chat_room_screen.dart';
+import '../controller/chat_list_controller.dart';
+import '../../../../model/chat.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../app/session.dart';
+import '../../../../core/utils/format.dart';
+import '../../chat_room/view/chat_room_screen.dart';
 
 /// รายการแชท (ใช้ทั้งฝั่ง owner และ student) — หน้าตาตาม Figma O-6:
 /// หัวข้อใหญ่ + คำใบ้ปัดลบ + ชิปกรองตามหอ + การ์ดต่อแชท
@@ -96,20 +96,35 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // นักศึกษาเปิดหน้านี้ทับหน้าอื่น (กดไอคอนแชท) จึงต้องมีปุ่มย้อนกลับ
+    // ส่วนเจ้าของหอใช้เป็นแท็บใน OwnerShell ซึ่งย้อนกลับไม่ได้ ปุ่มจะไม่แสดง
+    final canGoBack = ModalRoute.of(context)?.canPop ?? false;
     return Scaffold(
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
-              child: Text(
-                'Chat',
-                style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF111827),
-                ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(canGoBack ? 8 : 20, 16, 20, 0),
+              child: Row(
+                children: [
+                  if (canGoBack) ...[
+                    IconButton(
+                      tooltip: 'Back',
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.of(context).maybePop(),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                  const Text(
+                    'Chat',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                ],
               ),
             ),
             if (_c.items.isNotEmpty) ...[

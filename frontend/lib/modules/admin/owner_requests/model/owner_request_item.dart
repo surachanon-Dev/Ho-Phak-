@@ -1,5 +1,5 @@
-import '../user_detail/admin_user_detail_controller.dart';
-import 'admin_owner_requests_controller.dart';
+import '../../user_detail/controller/admin_user_detail_controller.dart';
+import '../controller/admin_owner_requests_controller.dart';
 
 /// คำขอเป็นเจ้าของหอ 1 รายการ ในรูปที่หน้า Owner requests ใช้แสดงผล
 class OwnerRequestItem {

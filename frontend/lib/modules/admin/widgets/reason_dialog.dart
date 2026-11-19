@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
-import '../../../shared/widgets/ui/ui.dart';
+import '../../../widgets/ui/ui.dart';
 
 /// ป๊อปอัปขอเหตุผลก่อนทำรายการ (ปฏิเสธ/ระงับ) คืน null ถ้ากดยกเลิก
 Future<String?> showReasonDialog(
@@ -13,12 +13,67 @@ Future<String?> showReasonDialog(
   IconData icon = Icons.report_gmailerrorred_rounded,
   Tone tone = Tone.danger,
   int maxLength = 300,
-}) async {
-  final controller = TextEditingController();
-  final reason = await showDialog<String>(
+}) {
+  return showDialog<String>(
     context: context,
     barrierColor: const Color(0x8C0F172A),
-    builder: (ctx) => AlertDialog(
+    builder: (_) => _ReasonDialog(
+      title: title,
+      message: message,
+      hint: hint,
+      confirmLabel: confirmLabel,
+      icon: icon,
+      tone: tone,
+      maxLength: maxLength,
+    ),
+  );
+}
+
+/// ตัวป๊อปอัปเป็น StatefulWidget เพื่อให้ TextEditingController ถูก dispose
+/// หลังป๊อปอัปปิดเสร็จจริง (ถ้า dispose ทันทีหลัง pop ช่องข้อความที่ยังเล่นแอนิเมชันปิดอยู่จะ error)
+class _ReasonDialog extends StatefulWidget {
+  const _ReasonDialog({
+    required this.title,
+    required this.message,
+    required this.hint,
+    required this.confirmLabel,
+    required this.icon,
+    required this.tone,
+    required this.maxLength,
+  });
+
+  final String title;
+  final String? message;
+  final String hint;
+  final String confirmLabel;
+  final IconData icon;
+  final Tone tone;
+  final int maxLength;
+
+  @override
+  State<_ReasonDialog> createState() => _ReasonDialogState();
+}
+
+class _ReasonDialogState extends State<_ReasonDialog> {
+  final controller = TextEditingController();
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ctx = context;
+    final title = widget.title;
+    final message = widget.message;
+    final hint = widget.hint;
+    final confirmLabel = widget.confirmLabel;
+    final icon = widget.icon;
+    final tone = widget.tone;
+    final maxLength = widget.maxLength;
+    return AlertDialog(
       icon: IconBadge(icon: icon, tone: tone, size: 44),
       title: Text(title, textAlign: TextAlign.center),
       content: ConstrainedBox(
@@ -65,8 +120,6 @@ Future<String?> showReasonDialog(
           child: Text(confirmLabel),
         ),
       ],
-    ),
-  );
-  controller.dispose();
-  return reason;
+    );
+  }
 }

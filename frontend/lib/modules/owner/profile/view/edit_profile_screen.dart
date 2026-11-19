@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../validation/owner_account_rules.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../app/session.dart';
-import '../models/owner_profile.dart';
-import '../controllers/edit_profile_controller.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../widgets/owner_ui.dart';
+import '../../validation/owner_account_rules.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../app/session.dart';
+import '../../../../model/owner_profile.dart';
+import '../controller/edit_profile_controller.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../widgets/owner_ui.dart';
 
 /// แก้โปรไฟล์ (Figma O-8a): ชื่อ, นามสกุล, เบอร์, รหัสผ่าน (ใช้เมื่อเปลี่ยนเบอร์), รูป
 /// pop(true) เมื่อบันทึกแล้ว

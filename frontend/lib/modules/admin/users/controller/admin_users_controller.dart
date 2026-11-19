@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../services/admin_service.dart';
-import '../../../core/network/api_client.dart';
+import '../../../../services/admin_service.dart';
+import '../../../../core/network/api_client.dart';
 
 /// หน้า Users ของแอดมิน: โหลดผู้ใช้ (กรองด้วย role/status) ระงับ และยกเลิกการระงับ
 class AdminUsersController extends ChangeNotifier {
@@ -76,9 +76,9 @@ class AdminUsersController extends ChangeNotifier {
 
   static String? validateReason(String reason) {
     final text = reason.trim();
-    if (text.isEmpty) return 'ต้องระบุเหตุผลการระงับ';
+    if (text.isEmpty) return 'Please enter a suspension reason';
     if (text.length > maxReasonLength)
-      return 'เหตุผลยาวเกิน $maxReasonLength ตัวอักษร';
+      return 'The reason must be at most $maxReasonLength characters';
     return null;
   }
 

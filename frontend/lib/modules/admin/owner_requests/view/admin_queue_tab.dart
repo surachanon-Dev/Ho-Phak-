@@ -2,17 +2,17 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import '../../../app/session.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/responsive.dart';
-import '../../../shared/widgets/document_viewer.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../services/admin_service.dart';
-import '../widgets/admin_page.dart';
-import 'admin_owner_requests_controller.dart';
+import '../../../../app/session.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
+import '../../../../widgets/document_viewer.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../../../services/admin_service.dart';
+import '../../widgets/admin_page.dart';
+import '../controller/admin_owner_requests_controller.dart';
 
-import 'owner_request_item.dart';
+import '../model/owner_request_item.dart';
 import 'widgets/owner_request_widgets.dart';
 import 'widgets/owner_request_detail_views.dart';
 import 'widgets/reject_request_dialog.dart';

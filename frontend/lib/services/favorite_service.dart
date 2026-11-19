@@ -1,5 +1,5 @@
-import '../../../shared/models/favorite.dart';
-import '../../../core/network/api_client.dart';
+import '../model/favorite.dart';
+import '../core/network/api_client.dart';
 
 class FavoriteService {
   FavoriteService(this._api);

@@ -6,10 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:hopak_frontend/core/app_services.dart';
 import 'package:hopak_frontend/core/network/api_client.dart';
 import 'package:hopak_frontend/core/theme/app_theme.dart';
-import 'package:hopak_frontend/features/admin/admin_home_screen.dart';
-import 'package:hopak_frontend/features/owner/screens/owner_shell.dart';
-import 'package:hopak_frontend/features/student/screens/student_shell.dart';
-import 'package:hopak_frontend/shared/models/user.dart';
+import 'package:hopak_frontend/modules/admin/admin_home_screen.dart';
+import 'package:hopak_frontend/modules/auth/welcome/view/welcome_screen.dart';
+import 'package:hopak_frontend/modules/owner/shell/view/owner_shell.dart';
+import 'package:hopak_frontend/modules/student/shell/view/student_shell.dart';
+import 'package:hopak_frontend/model/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
@@ -76,6 +77,11 @@ class _Picker extends StatelessWidget {
           spacing: 12,
           runSpacing: 12,
           children: [
+            OutlinedButton(
+              key: const Key('welcome'),
+              onPressed: () => go(WelcomeScreen(services: services)),
+              child: const Text('Welcome'),
+            ),
             FilledButton(
               key: const Key('admin'),
               onPressed: () => go(AdminHomeScreen(services: services)),
@@ -397,6 +403,15 @@ http.Response? _studentRoute(http.Request req) {
         ],
         'images': [],
       },
+    });
+  }
+  if (p == '/api/reviews/me') {
+    return _json({
+      'reviews': [
+        {'id': 1, 'dormitory_id': 1, 'dormitory_name': 'หอพักบ้านสวนแม่ฟ้า', 'rating': 5, 'body': 'Clean rooms and a kind owner.', 'status': 'published', 'created_at': '2026-11-02T10:00:00Z'},
+        {'id': 3, 'dormitory_id': 3, 'dormitory_name': 'คชพล เพลส', 'rating': 3, 'body': 'Wi-Fi is slow at night.', 'status': 'pending', 'created_at': '2026-11-12T10:00:00Z'},
+        {'id': 4, 'dormitory_id': 6, 'dormitory_name': 'The Nest MFU', 'rating': 1, 'body': 'Call me for cheap rooms!!!', 'status': 'hidden', 'moderation_reason': 'Advertising is not allowed in reviews.', 'created_at': '2026-11-05T10:00:00Z'},
+      ],
     });
   }
   if (p == '/api/favorites') {

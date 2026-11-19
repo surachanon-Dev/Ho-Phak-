@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../shared/models/dormitory.dart';
+import '../../model/dormitory.dart';
 
 /// สีของชิปสถานะหอพัก (พื้นสีอ่อน + ตัวอักษรเข้ม; Suspended เป็นพื้นเข้ม)
 ({Color bg, Color fg}) statusStyle(String status) => switch (status) {

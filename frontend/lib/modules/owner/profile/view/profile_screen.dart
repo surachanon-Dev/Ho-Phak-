@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/models/user.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../auth/screens/login_screen.dart';
-import 'change_password_screen.dart';
+import '../../../../model/user.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../auth/login/view/login_screen.dart';
+import '../../change_password/view/change_password_screen.dart';
 import 'edit_profile_screen.dart';
-import 'my_reviews_screen.dart';
-import 'notification_settings_screen.dart';
-import 'verification_screen.dart';
-import '../controllers/owner_profile_controller.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../widgets/owner_ui.dart';
+import '../../my_reviews/view/my_reviews_screen.dart';
+import '../../notification_settings/view/notification_settings_screen.dart';
+import '../../verification/view/verification_screen.dart';
+import '../controller/owner_profile_controller.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../widgets/owner_ui.dart';
 
 /// แท็บ Profile ของเจ้าของ
 /// ข้อมูลที่ API ให้มีแค่ username และสถานะยืนยัน (GET /api/me)

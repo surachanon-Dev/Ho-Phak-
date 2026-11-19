@@ -4,7 +4,7 @@ library;
 
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_theme.dart';
+import '../../core/theme/app_theme.dart';
 
 /// โทนสีของป้าย ไอคอน และการ์ดสถิติ
 enum Tone { primary, success, warning, danger, info, violet, neutral }
@@ -412,14 +412,14 @@ class ErrorState extends StatelessWidget {
     return EmptyState(
       icon: Icons.cloud_off_outlined,
       tone: Tone.danger,
-      title: 'โหลดข้อมูลไม่สำเร็จ',
+      title: 'Could not load data',
       message: message,
       action: onRetry == null
           ? null
           : FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('ลองใหม่'),
+              label: const Text('Try again'),
             ),
     );
   }

@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/models/dormitory.dart';
-import '../../../core/app_services.dart';
-import '../controllers/owner_dorm_detail_controller.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../app/session.dart';
-import '../../../core/utils/status_style.dart';
-import '../../../core/utils/format.dart';
-import '../../../shared/widgets/dorm_map.dart';
-import 'dashboard_screen.dart' show formatBaht;
-import 'my_reviews_screen.dart';
-import 'dormitory_form_screen.dart';
-import '../models/dorm_utilities.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../widgets/owner_ui.dart';
+import '../../../../model/dormitory.dart';
+import '../../../../core/app_services.dart';
+import '../controller/owner_dorm_detail_controller.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../app/session.dart';
+import '../../../../core/utils/status_style.dart';
+import '../../../../core/utils/format.dart';
+import '../../../../widgets/dorm_map.dart';
+import '../../dashboard/view/dashboard_screen.dart' show formatBaht;
+import '../../my_reviews/view/my_reviews_screen.dart';
+import '../../dorm_form/view/dormitory_form_screen.dart';
+import '../../../../model/dorm_utilities.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../widgets/owner_ui.dart';
 
 /// รายละเอียดหอพักฝั่งเจ้าของ: สถานะ, สวิตช์แสดงให้นักศึกษาเห็น,
 /// ห้อง/ค่าน้ำ-ค่าไฟ, รีวิว (อ่านอย่างเดียว) และแก้ไข
@@ -283,7 +283,7 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    dorm.zone,
+                    zoneLabel(dorm.zone),
                     style: const TextStyle(color: AppColors.textMuted),
                   ),
                 ],

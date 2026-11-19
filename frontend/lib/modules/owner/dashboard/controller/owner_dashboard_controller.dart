@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../shared/models/dormitory.dart';
-import '../services/dormitory_service.dart';
-import '../models/dormitory_summary.dart';
+import '../../../../model/dormitory.dart';
+import '../../../../services/dormitory_service.dart';
+import '../../../../model/dormitory_summary.dart';
 
 /// หน้า Dashboard ของเจ้าของ: รายการหอทั้งหมดของเจ้าของ และสรุปสถานะ
 class OwnerDashboardController extends ChangeNotifier {

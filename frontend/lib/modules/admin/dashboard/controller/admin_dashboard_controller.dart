@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../services/admin_service.dart';
+import '../../../../services/admin_service.dart';
 
 /// ตัวเลขบนหน้า Dashboard และ badge ของเมนูซ้ายของแอดมิน (ดึงจาก backend จริง)
 class AdminDashboardController extends ChangeNotifier {

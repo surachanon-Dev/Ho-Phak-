@@ -12,9 +12,8 @@ void showApiError(
 }) {
   if (error is ApiException && error.isUnauthorized) {
     onUnauthorized();
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      const SnackBar(content: Text('กรุณาเข้าสู่ระบบใหม่อีกครั้ง')),
-    );
+    ScaffoldMessenger.maybeOf(context)
+        ?.showSnackBar(const SnackBar(content: Text('Please sign in again')));
     return;
   }
 

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/login_controller.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../app/session.dart';
-import '../../../app/home_router.dart';
-import 'register_screen.dart';
+import '../controller/login_controller.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../app/session.dart';
+import '../../../../app/home_router.dart';
+import '../../register/view/register_screen.dart';
+import '../../forgot_password/view/forgot_password_screen.dart';
 
 /// หน้า Sign In ตามดีไซน์: เข้าด้วยเบอร์โทรและรหัสผ่าน (ใช้ได้ทุก role)
 class LoginScreen extends StatefulWidget {
@@ -88,12 +89,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'เข้าสู่ระบบด้วยเบอร์โทรศัพท์',
+                    'Sign in with your phone number',
                     style: TextStyle(color: AppColors.textMuted),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-                  const Text('เบอร์โทรศัพท์', style: TextStyle(fontSize: 13)),
+                  const Text('Phone number', style: TextStyle(fontSize: 13)),
                   const SizedBox(height: 6),
                   TextFormField(
                     controller: _phone,
@@ -102,18 +103,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       hintText: '+66 000-0000000',
                     ),
                     validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'กรุณากรอกเบอร์โทรศัพท์'
+                        ? 'Please enter your phone number'
                         : null,
                   ),
                   const SizedBox(height: 16),
-                  const Text('รหัสผ่าน', style: TextStyle(fontSize: 13)),
+                  const Text('Password', style: TextStyle(fontSize: 13)),
                   const SizedBox(height: 6),
                   TextFormField(
                     controller: _password,
                     obscureText: true,
-                    decoration: const InputDecoration(hintText: 'กรอกรหัสผ่าน'),
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? 'กรุณากรอกรหัสผ่าน' : null,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter your password',
+                    ),
+                    validator: (v) => (v == null || v.isEmpty)
+                        ? 'Please enter your password'
+                        : null,
                     onFieldSubmitted: (_) => _submit(),
                   ),
                   if (_c.error != null) ...[
@@ -149,6 +153,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                       child: const Text('New here? Sign Up'),
+                    ),
+                  ),
+                  Center(
+                    child: TextButton(
+                      onPressed: _c.loading
+                          ? null
+                          : () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const ForgotPasswordScreen(),
+                              ),
+                            ),
+                      child: const Text('Forgot password?'),
                     ),
                   ),
                 ],

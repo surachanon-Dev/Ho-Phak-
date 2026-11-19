@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/session.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../owner_requests/widgets/reject_request_dialog.dart'
+import '../../../../app/session.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../owner_requests/view/widgets/reject_request_dialog.dart'
     show dangerButtonStyle, primaryElevatedStyle;
-import '../services/admin_service.dart';
-import '../widgets/admin_page.dart';
-import 'admin_amenities_controller.dart';
+import '../../../../services/admin_service.dart';
+import '../../widgets/admin_page.dart';
+import '../controller/admin_amenities_controller.dart';
 
 /// หน้า Amenities: รายการสิ่งอำนวยความสะดวก เพิ่ม/แก้ไข/ลบ
 class AdminAmenitiesTab extends StatefulWidget {

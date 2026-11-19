@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/responsive.dart';
-import '../../../shared/widgets/ui/ui.dart';
+import '../../../widgets/ui/ui.dart';
 
 /// ระยะขอบซ้ายขวาของเนื้อหาในหน้าของแอดมิน
 double adminPagePadding(BuildContext context) =>

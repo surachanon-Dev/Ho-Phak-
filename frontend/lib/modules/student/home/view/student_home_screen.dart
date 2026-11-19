@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../shared/models/dormitory.dart';
-import '../../../shared/models/user.dart';
-import '../../../shared/widgets/dorm_card.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../../owner/widgets/owner_ui.dart' show DormCover;
-import '../controllers/dorm_search_controller.dart';
-import '../controllers/student_home_controller.dart';
-import '../widgets/student_ui.dart';
-import 'search_screen.dart';
-import 'student_dorm_detail_screen.dart';
-import 'student_shell.dart' show StudentShortcuts;
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../model/dormitory.dart';
+import '../../../../model/user.dart';
+import '../../../../widgets/dorm_card.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../../owner/widgets/owner_ui.dart' show DormCover;
+import '../../search/controller/dorm_search_controller.dart';
+import '../controller/student_home_controller.dart';
+import '../../widgets/student_ui.dart';
+import '../../search/view/search_screen.dart';
+import '../../dorm_detail/view/student_dorm_detail_screen.dart';
+import '../../shell/view/student_shell.dart' show StudentShortcuts;
 
 /// เปิดหน้าค้นหาพร้อมตัวกรองเริ่มต้น (โซน / การเรียง)
 typedef OpenSearch = void Function({String? zone, String? sort});
@@ -116,8 +116,8 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     StudentHero(
-                      title: 'สวัสดี, ${widget.user.username ?? 'นักศึกษา'}',
-                      subtitle: 'กำลังมองหาหอพักที่ใช่อยู่ใช่ไหม?',
+                      title: 'Hello, ${widget.user.username ?? 'Student'}',
+                      subtitle: 'Looking for the right dorm?',
                       trailing: shortcuts == null
                           ? null
                           : Row(
@@ -125,13 +125,15 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                               children: [
                                 HeroIconButton(
                                   icon: Icons.chat_bubble_outline_rounded,
-                                  tooltip: 'ข้อความ',
+                                  count: shortcuts.unreadMessages,
+                                  tooltip: 'Messages',
                                   onPressed: shortcuts.openChats,
                                 ),
                                 const SizedBox(width: 6),
                                 HeroIconButton(
                                   icon: Icons.notifications_none_rounded,
-                                  tooltip: 'การแจ้งเตือน',
+                                  count: shortcuts.unreadNotifications,
+                                  tooltip: 'Notifications',
                                   onPressed: shortcuts.openNotifications,
                                 ),
                               ],
@@ -139,7 +141,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                       child: _SearchBox(onTap: () => _openSearch()),
                     ),
                     const SizedBox(height: 22),
-                    const SectionTitle('โซน', icon: Icons.place_outlined),
+                    const SectionTitle('Zones', icon: Icons.place_outlined),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,
@@ -152,7 +154,7 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                               size: 16,
                               color: AppColors.primary,
                             ),
-                            label: Text(z),
+                            label: Text(zoneLabel(z)),
                             onPressed: () => _openSearch(zone: z),
                           ),
                       ],
@@ -167,29 +169,30 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                       EmptyState(
                         icon: Icons.cloud_off_outlined,
                         tone: Tone.danger,
-                        title: 'โหลดหอพักไม่ได้',
+                        title: 'Could not load dorms',
                         message: _c.error.toString(),
                         action: FilledButton.icon(
                           onPressed: _c.load,
                           icon: const Icon(Icons.refresh, size: 18),
-                          label: const Text('ลองอีกครั้ง'),
+                          label: const Text('Try again'),
                         ),
                       )
                     else if (_c.isEmpty)
                       const EmptyState(
                         icon: Icons.apartment_rounded,
-                        title: 'ยังไม่มีหอพักที่เผยแพร่',
-                        message: 'เมื่อมีหอพักผ่านการตรวจสอบ จะแสดงที่นี่',
+                        title: 'No published dorms yet',
+                        message:
+                            'Dorms will show here once an admin approves them.',
                       )
                     else ...[
                       if (top.isNotEmpty) ...[
                         SectionTitle(
-                          'หอพักแนะนำ',
-                          subtitle: 'คะแนนรีวิวสูงสุด',
+                          'Recommended',
+                          subtitle: 'Highest rated',
                           icon: Icons.star_outline_rounded,
                           trailing: TextButton(
                             onPressed: () => _openSearch(sort: 'rating'),
-                            child: const Text('ดูทั้งหมด'),
+                            child: const Text('See all'),
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -210,12 +213,12 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                         const SizedBox(height: 22),
                       ],
                       SectionTitle(
-                        'ใกล้มหาวิทยาลัยแม่ฟ้าหลวง',
-                        subtitle: 'เรียงตามระยะทางจากมหาวิทยาลัย',
+                        'Near Mae Fah Luang University',
+                        subtitle: 'Sorted by distance from campus',
                         icon: Icons.school_outlined,
                         trailing: TextButton(
                           onPressed: () => _openSearch(sort: 'distance'),
-                          child: const Text('ดูทั้งหมด'),
+                          child: const Text('See all'),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -256,7 +259,7 @@ class _SearchBox extends StatelessWidget {
               Icon(Icons.search, size: 20, color: AppColors.textMuted),
               SizedBox(width: 10),
               Text(
-                'ค้นหาชื่อหอพัก...',
+                'Search by dorm name...',
                 style: TextStyle(color: AppColors.textFaint),
               ),
             ],

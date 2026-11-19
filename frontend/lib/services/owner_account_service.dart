@@ -1,6 +1,6 @@
 import 'owner_extras.dart';
-import '../models/owner_profile.dart';
-import '../models/notification_prefs.dart';
+import '../model/owner_profile.dart';
+import '../model/notification_prefs.dart';
 
 /// บัญชีของ owner: โปรไฟล์, เปลี่ยนรหัสผ่าน, ตั้งค่าแจ้งเตือน
 /// ทุกอย่างเดินผ่าน [OwnerExtras] (local หรือ API ตาม kLocalOwnerExtras)

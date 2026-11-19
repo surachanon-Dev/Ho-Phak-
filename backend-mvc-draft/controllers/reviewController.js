@@ -15,4 +15,8 @@ async function remove(req, res) {
     res.json({ message: 'ลบรีวิวแล้ว' });
 }
 
-module.exports = { create, update, remove };
+async function listMine(req, res) {
+    res.json({ reviews: await reviewService.listMine(req.user.id) });
+}
+
+module.exports = { create, update, remove, listMine };

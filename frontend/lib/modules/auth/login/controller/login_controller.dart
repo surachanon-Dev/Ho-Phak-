@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../shared/models/user.dart';
-import '../services/auth_service.dart';
+import '../../../../model/user.dart';
+import '../../../../services/auth_service.dart';
 
 /// หน้า Sign In: ตรวจค่าในฟอร์ม เรียก login และเก็บสถานะ
 class LoginController extends ChangeNotifier {
@@ -27,15 +27,17 @@ class LoginController extends ChangeNotifier {
   CurrentUser? get user => _user;
 
   static const invalidCredentialsMessage =
-      'เบอร์โทรหรือรหัสผ่านไม่ถูกต้อง กรุณาลองอีกครั้ง';
+      'Wrong phone number or password. Please try again.';
 
   /// ตรวจเบอร์: ต้องไม่ว่าง
   static String? validatePhone(String? value) =>
-      (value == null || value.trim().isEmpty) ? 'กรุณากรอกเบอร์โทรศัพท์' : null;
+      (value == null || value.trim().isEmpty)
+      ? 'Please enter your phone number'
+      : null;
 
   /// ตรวจรหัสผ่าน: ต้องไม่ว่าง
   static String? validatePassword(String? value) =>
-      (value == null || value.isEmpty) ? 'กรุณากรอกรหัสผ่าน' : null;
+      (value == null || value.isEmpty) ? 'Please enter your password' : null;
 
   /// login คืน true เมื่อสำเร็จ (ดู [user]) ค่าผิดพลาดดู [error] หรือ [failure]
   Future<bool> submit({required String phone, required String password}) async {

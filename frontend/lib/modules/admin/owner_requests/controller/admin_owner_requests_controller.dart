@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../services/admin_service.dart';
-import '../../../core/network/api_client.dart';
+import '../../../../services/admin_service.dart';
+import '../../../../core/network/api_client.dart';
 
 /// คำขอยืนยันตัวตนของเจ้าของ (แท็บ verification ของคิวตรวจ)
 /// แท็บ: pending (รอตรวจ) / approved (อนุมัติแล้ว) / rejected (ไม่ผ่าน)
@@ -94,9 +94,9 @@ class AdminOwnerRequestsController extends ChangeNotifier {
   /// คืนข้อความ error ของเหตุผลการปฏิเสธ หรือ null ถ้าใช้ได้
   static String? validateRejectReason(String reason) {
     final text = reason.trim();
-    if (text.isEmpty) return 'ต้องระบุเหตุผลการปฏิเสธ';
+    if (text.isEmpty) return 'Please enter a rejection reason';
     if (text.length > maxRejectReasonLength) {
-      return 'เหตุผลยาวเกิน $maxRejectReasonLength ตัวอักษร';
+      return 'The reason must be at most $maxRejectReasonLength characters';
     }
     return null;
   }

@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import '../../../core/network/api_client.dart';
+import '../core/network/api_client.dart';
 
 /// รายการที่รอตรวจจาก GET /api/admin/queue
 /// เก็บเป็น Map ดิบ เพราะ field ของแต่ละรายการยังไม่ได้ทำเป็นโมเดล
@@ -80,6 +80,16 @@ class AdminService {
   /// POST /api/admin/users/:id/suspend { reason } (ระงับ admin ไม่ได้)
   Future<void> suspendUser(int id, String reason) =>
       _api.post('/api/admin/users/$id/suspend', {'reason': reason});
+
+  /// POST /api/admin/users/:id/reset-password → { temporary_password }
+  /// ใช้เมื่อผู้ใช้ลืมรหัสผ่าน แอดมินแจ้งรหัสชั่วคราวให้ผู้ใช้เอง
+  Future<String> resetUserPassword(int id) async {
+    final data = await _api.post(
+      '/api/admin/users/$id/reset-password',
+      const {},
+    ) as Map<String, dynamic>;
+    return data['temporary_password'] as String;
+  }
 
   /// POST /api/admin/users/:id/restore
   Future<void> restoreUser(int id) =>

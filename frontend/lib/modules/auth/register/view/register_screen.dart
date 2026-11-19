@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../controllers/register_controller.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../app/session.dart';
+import '../controller/register_controller.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../app/session.dart';
 
 /// หน้า Sign Up ตามดีไซน์: ชื่อ, นามสกุล, เบอร์โทร, รหัสผ่าน, ยืนยันรหัสผ่าน
 /// backend สร้างบัญชีเป็นนักศึกษาเสมอ ชื่อ-นามสกุลถูกส่งเป็น username
@@ -62,12 +62,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Sign Up สำเร็จ'),
-          content: const Text('เข้าสู่ระบบด้วยเบอร์โทรและรหัสผ่านที่สมัครไว้'),
+          title: const Text('Sign up complete'),
+          content: const Text(
+            'Sign in with the phone number and password you registered.',
+          ),
           actions: [
             FilledButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('ตกลง'),
+              child: const Text('OK'),
             ),
           ],
         ),
@@ -113,30 +115,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'สร้างบัญชีใหม่',
+                    'Create a new account',
                     style: TextStyle(color: AppColors.textMuted),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
-                  _label('ชื่อ'),
+                  _label('First name'),
                   TextFormField(
                     controller: _first,
                     decoration: const InputDecoration(hintText: 'First name'),
                     validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'กรุณากรอกชื่อ'
+                        ? 'Please enter your first name'
                         : null,
                   ),
                   const SizedBox(height: 12),
-                  _label('นามสกุล'),
+                  _label('Last name'),
                   TextFormField(
                     controller: _surname,
                     decoration: const InputDecoration(hintText: 'Surname'),
                     validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'กรุณากรอกนามสกุล'
+                        ? 'Please enter your last name'
                         : null,
                   ),
                   const SizedBox(height: 12),
-                  _label('เบอร์โทรศัพท์'),
+                  _label('Phone number'),
                   TextFormField(
                     controller: _phone,
                     keyboardType: TextInputType.phone,
@@ -144,24 +146,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       hintText: '+66 000-0000000',
                     ),
                     validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'กรุณากรอกเบอร์โทรศัพท์'
+                        ? 'Please enter your phone number'
                         : null,
                   ),
                   const SizedBox(height: 12),
-                  _label('รหัสผ่าน'),
+                  _label('Password'),
                   TextFormField(
                     controller: _password,
                     obscureText: true,
                     decoration: const InputDecoration(
                       hintText: 'Enter password',
-                      helperText: 'อย่างน้อย 8 ตัวอักษร',
+                      helperText: 'At least 8 characters',
                     ),
                     validator: (v) => (v == null || v.length < 8)
-                        ? 'รหัสผ่านต้องยาวอย่างน้อย 8 ตัว'
+                        ? 'Password must be at least 8 characters'
                         : null,
                   ),
                   const SizedBox(height: 12),
-                  _label('ยืนยันรหัสผ่าน'),
+                  _label('Confirm password'),
                   TextFormField(
                     controller: _confirm,
                     obscureText: true,
@@ -169,7 +171,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       hintText: 'Confirm password',
                     ),
                     validator: (v) =>
-                        v != _password.text ? 'รหัสผ่านไม่ตรงกัน' : null,
+                        v != _password.text ? 'Passwords do not match' : null,
                   ),
                   if (_c.error != null) ...[
                     const SizedBox(height: 8),

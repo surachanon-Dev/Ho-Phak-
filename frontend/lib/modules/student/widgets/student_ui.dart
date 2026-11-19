@@ -48,7 +48,7 @@ class PriceText extends StatelessWidget {
           ),
         ),
         TextSpan(
-          text: ' บาท/เดือน',
+          text: ' baht/month',
           style: TextStyle(
             fontSize: size * 0.75,
             fontWeight: FontWeight.w600,
@@ -75,7 +75,7 @@ class RatingText extends StatelessWidget {
       const SizedBox(width: 2),
       Text(
         rating == null
-            ? 'ยังไม่มีรีวิว'
+            ? 'No reviews yet'
             : '${rating!.toStringAsFixed(1)} (${count ?? 0})',
         style: TextStyle(
           fontSize: 12.5,
@@ -188,11 +188,15 @@ class HeroIconButton extends StatelessWidget {
     required this.icon,
     required this.tooltip,
     required this.onPressed,
+    this.count = 0,
   });
 
   final IconData icon;
   final String tooltip;
   final VoidCallback onPressed;
+
+  /// จำนวนที่ยังไม่อ่าน (0 = ไม่แสดงตัวเลข)
+  final int count;
 
   @override
   Widget build(BuildContext context) => IconButton(
@@ -202,6 +206,10 @@ class HeroIconButton extends StatelessWidget {
       backgroundColor: const Color(0x26FFFFFF),
       foregroundColor: Colors.white,
     ),
-    icon: Icon(icon, size: 20),
+    icon: Badge(
+      isLabelVisible: count > 0,
+      label: Text(count > 99 ? '99+' : '$count'),
+      child: Icon(icon, size: 20),
+    ),
   );
 }

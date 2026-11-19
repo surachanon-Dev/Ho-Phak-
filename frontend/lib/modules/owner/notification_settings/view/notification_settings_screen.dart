@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../app/session.dart';
-import '../../notifications/screens/notifications_screen.dart';
-import '../models/notification_prefs.dart';
-import '../controllers/notification_settings_controller.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../widgets/owner_ui.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../app/session.dart';
+import '../../../notifications/view/notifications_screen.dart';
+import '../../../../model/notification_prefs.dart';
+import '../controller/notification_settings_controller.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../widgets/owner_ui.dart';
 
 /// ตั้งค่าแจ้งเตือน 3 สวิตช์ (Figma O-9) + ทางเข้าดูรายการแจ้งเตือนที่มีอยู่
 class NotificationSettingsScreen extends StatefulWidget {
-  const NotificationSettingsScreen({super.key, required this.services});
+  const NotificationSettingsScreen({
+    super.key,
+    required this.services,
+    this.forStudent = false,
+  });
 
   final AppServices services;
+
+  /// true = ข้อความสำหรับนักศึกษา (ไม่มีหัวข้อรีวิวใหม่ของหอ)
+  final bool forStudent;
 
   @override
   State<NotificationSettingsScreen> createState() =>
@@ -82,26 +89,33 @@ class _NotificationSettingsScreenState
                             Icons.chat_bubble_outline_rounded,
                             Tone.primary,
                             'New messages',
-                            'When a student sends you a message',
+                            widget.forStudent
+                                ? 'When a dorm owner replies to you'
+                                : 'When a student sends you a message',
                             p.messages,
                             (v) => _set(p.copyWith(messages: v)),
                           ),
                           _tile(
                             Icons.fact_check_outlined,
                             Tone.success,
-                            'Approval updates',
-                            'When admin approves or rejects your dorm or changes',
+                            widget.forStudent
+                                ? 'Review updates'
+                                : 'Approval updates',
+                            widget.forStudent
+                                ? 'When admin publishes or hides your review'
+                                : 'When admin approves or rejects your dorm or changes',
                             p.approvals,
                             (v) => _set(p.copyWith(approvals: v)),
                           ),
-                          _tile(
-                            Icons.star_outline_rounded,
-                            Tone.warning,
-                            'New reviews',
-                            'When a student reviews one of your dorms',
-                            p.reviews,
-                            (v) => _set(p.copyWith(reviews: v)),
-                          ),
+                          if (!widget.forStudent)
+                            _tile(
+                              Icons.star_outline_rounded,
+                              Tone.warning,
+                              'New reviews',
+                              'When a student reviews one of your dorms',
+                              p.reviews,
+                              (v) => _set(p.copyWith(reviews: v)),
+                            ),
                         ],
                       ),
                       const SizedBox(height: 16),

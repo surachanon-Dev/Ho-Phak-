@@ -1,5 +1,5 @@
-import '../../../shared/models/chat.dart';
-import '../../../core/network/api_client.dart';
+import '../model/chat.dart';
+import '../core/network/api_client.dart';
 
 class ChatService {
   ChatService(this._api);

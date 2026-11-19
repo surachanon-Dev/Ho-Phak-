@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../shared/models/dormitory.dart';
-import '../../../shared/widgets/dorm_card.dart';
-import '../../../shared/widgets/dorm_map.dart' show mfuCenter;
-import '../../../shared/widgets/ui/ui.dart';
-import '../controllers/student_home_controller.dart';
-import 'student_dorm_detail_screen.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../model/dormitory.dart';
+import '../../../../widgets/dorm_card.dart';
+import '../../../../widgets/dorm_map.dart' show mfuCenter;
+import '../../../../widgets/ui/ui.dart';
+import '../../home/controller/student_home_controller.dart';
+import '../../dorm_detail/view/student_dorm_detail_screen.dart';
 
 /// แผนที่หอพักที่เผยแพร่แล้ว
 /// หมุดแสดงราคา กดหมุดเพื่อดูการ์ดหอด้านล่าง กดการ์ดเพื่อเปิดรายละเอียด
@@ -71,7 +71,12 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
   Widget build(BuildContext context) {
     final selected = _selected;
     return Scaffold(
-      appBar: AppBar(title: const Text('แผนที่'), actions: widget.actions),
+      appBar: AppBar(
+        // อยู่ในแท็บของ StudentShell (มี actions) ไม่ต้องมีปุ่มย้อนกลับ
+        automaticallyImplyLeading: widget.actions == null,
+        title: const Text('Map'),
+        actions: widget.actions,
+      ),
       body: Stack(
         children: [
           FlutterMap(
@@ -144,7 +149,7 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
             top: 12,
             child: FloatingActionButton.small(
               heroTag: 'student_map_refresh',
-              tooltip: 'โหลดใหม่',
+              tooltip: 'Reload',
               onPressed: _c.loading ? null : _c.refresh,
               child: const Icon(Icons.refresh),
             ),
@@ -156,7 +161,7 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
               top: 12,
               child: NoticeBanner(
                 tone: Tone.warning,
-                message: 'โหลดหอพักไม่ได้ กดปุ่มด้านขวาเพื่อลองใหม่',
+                message: 'Could not load dorms. Tap the button on the right to try again.',
               ),
             ),
           if (selected != null)

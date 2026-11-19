@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../validation/owner_account_rules.dart';
-import '../services/owner_account_service.dart';
+import '../../validation/owner_account_rules.dart';
+import '../../../../services/owner_account_service.dart';
 
 /// หน้าเปลี่ยนรหัสผ่าน: ตรวจกติกาด้วย [OwnerAccountRules] และส่งคำขอ
 class ChangePasswordController extends ChangeNotifier {

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../core/network/api_client.dart';
-import '../services/auth_service.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../services/auth_service.dart';
 
 /// ข้อมูลฟอร์มสมัครสมาชิก
 class RegisterInput {
@@ -26,7 +26,7 @@ class RegisterController extends ChangeNotifier {
 
   final AuthService _auth;
 
-  static const duplicatePhoneMessage = 'เบอร์โทรนี้ถูกใช้แล้ว';
+  static const duplicatePhoneMessage = 'This phone number is already in use';
   static const minPasswordLength = 8;
 
   bool _loading = false;
@@ -50,11 +50,11 @@ class RegisterController extends ChangeNotifier {
 
   static String? validatePassword(String? value) =>
       (value == null || value.length < minPasswordLength)
-      ? 'รหัสผ่านต้องยาวอย่างน้อย $minPasswordLength ตัว'
+      ? 'Password must be at least $minPasswordLength characters'
       : null;
 
   static String? validateConfirm(String? value, String password) =>
-      value != password ? 'รหัสผ่านไม่ตรงกัน' : null;
+      value != password ? 'Passwords do not match' : null;
 
   /// เบอร์ซ้ำ: backend ตอบ 409 พร้อมข้อความที่มีคำว่า "เบอร์" หรือ "ถูกใช้"
   static bool isDuplicatePhone(Object error) {

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../services/admin_service.dart';
+import '../../../../services/admin_service.dart';
 
 class AdminActivityLogController extends ChangeNotifier {
   AdminActivityLogController(this._service);

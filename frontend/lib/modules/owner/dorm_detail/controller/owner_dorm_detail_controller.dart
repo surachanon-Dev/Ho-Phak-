@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../shared/models/dormitory.dart';
-import '../../../shared/models/review.dart';
-import '../services/dormitory_service.dart';
-import '../models/amenity.dart';
-import '../models/dorm_utilities.dart';
+import '../../../../model/dormitory.dart';
+import '../../../../model/review.dart';
+import '../../../../services/dormitory_service.dart';
+import '../../../../model/amenity.dart';
+import '../../../../model/dorm_utilities.dart';
 
 /// หน้ารายละเอียดหอของเจ้าของ: โหลดข้อมูลหอ รีวิว amenities และค่าน้ำ-ไฟ
 /// สลับการแสดงให้นักศึกษาเห็น และลบหอ

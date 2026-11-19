@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../core/utils/format.dart';
-import '../../../shared/models/dormitory.dart';
-import '../services/public_dormitory_service.dart';
+import '../../../../core/utils/format.dart';
+import '../../../../model/dormitory.dart';
+import '../../../../services/public_dormitory_service.dart';
 
 /// แปลงช่องราคาที่ผู้ใช้พิมพ์เป็นจำนวนเต็ม
 /// ค่าว่าง ค่าที่ไม่ใช่ตัวเลข หรือค่าติดลบ คืน null (= ไม่กรองด้านนั้น)
@@ -42,7 +42,7 @@ class SearchFilters {
     final min = minPrice;
     final max = maxPrice;
     if (min != null && max != null && min > max) {
-      return 'ราคาต่ำสุดต้องไม่มากกว่าราคาสูงสุด';
+      return 'Minimum price must not be more than maximum price';
     }
     return null;
   }
@@ -71,15 +71,15 @@ class DormSearchController extends ChangeNotifier {
 
   /// การเรียงที่ backend รองรับ (ส่งไปเป็น ?sort=)
   static const sortLabels = {
-    'newest': 'ใหม่ล่าสุด',
-    'price_asc': 'ราคาต่ำไปสูง',
-    'price_desc': 'ราคาสูงไปต่ำ',
+    'newest': 'Newest',
+    'price_asc': 'Price: low to high',
+    'price_desc': 'Price: high to low',
   };
 
   /// การเรียงที่ backend ยังไม่รองรับ แอปจึงเรียงผลลัพธ์เอง
   static const clientSortLabels = {
-    'rating': 'คะแนนรีวิว',
-    'distance': 'ใกล้มหาวิทยาลัย',
+    'rating': 'Top rated',
+    'distance': 'Closest to campus',
   };
 
   /// ตัวเลือกการเรียงทั้งหมดที่แสดงในหน้าจอ

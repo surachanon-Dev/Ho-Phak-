@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../models/dormitory.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/utils/format.dart';
-import '../../features/owner/widgets/owner_ui.dart' show DormCover;
-import '../../features/student/widgets/student_ui.dart';
+import '../model/dormitory.dart';
+import '../core/theme/app_theme.dart';
+import '../core/utils/format.dart';
+import '../modules/owner/widgets/owner_ui.dart' show DormCover;
+import '../modules/student/widgets/student_ui.dart';
 import 'ui/ui.dart';
 
 /// การ์ดหอพักฝั่งนักศึกษา (ธีมโครงใหม่): รูป ชื่อ โซน · ระยะจากมหาวิทยาลัย
@@ -67,7 +67,7 @@ class DormCard extends StatelessWidget {
                     const SizedBox(width: 3),
                     Expanded(
                       child: Text(
-                        '${d.zone} · $distance',
+                        '${zoneLabel(d.zone)} · $distance',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -84,7 +84,7 @@ class DormCard extends StatelessWidget {
                 Row(
                   children: [
                     ToneBadge(
-                      label: full ? 'เต็ม' : 'ว่าง ${d.availableRooms} ห้อง',
+                      label: full ? 'Full' : '${d.availableRooms} rooms free',
                       tone: full ? Tone.danger : Tone.success,
                       icon: full
                           ? Icons.block_rounded

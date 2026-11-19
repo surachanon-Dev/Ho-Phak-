@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../app/session.dart';
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/format.dart';
-import '../../../shared/models/chat.dart';
-import '../../../shared/models/dormitory.dart';
-import '../../../shared/widgets/dorm_map.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../../chat/screens/chat_room_screen.dart';
-import '../../owner/widgets/owner_ui.dart' show DormCover;
-import '../controllers/dorm_detail_controller.dart';
-import '../widgets/student_ui.dart';
+import '../../../../app/session.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/format.dart';
+import '../../../../model/chat.dart';
+import '../../../../model/dormitory.dart';
+import '../../../../widgets/dorm_map.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../../chat/chat_room/view/chat_room_screen.dart';
+import '../../../owner/widgets/owner_ui.dart' show DormCover;
+import '../controller/dorm_detail_controller.dart';
+import '../../widgets/student_ui.dart';
 import 'review_form_screen.dart';
 
 /// รายละเอียดหอพักฝั่งนักศึกษา: รูปหอ, ราคา, ระยะทาง, ค่าน้ำ-ไฟ,
@@ -75,9 +75,7 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
     final ok = await _c.toggleFavorite();
     if (!mounted) return;
     if (ok) {
-      _snack(
-        _c.isFavorite ? 'บันทึกเป็นรายการโปรดแล้ว' : 'นำออกจากรายการโปรดแล้ว',
-      );
+      _snack(_c.isFavorite ? 'Saved to favorites' : 'Removed from favorites');
     } else if (_c.error != null) {
       showApiError(context, widget.services, _c.error!);
     }
@@ -112,7 +110,7 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
   /// โทรหาเจ้าของ ถ้าอุปกรณ์โทรไม่ได้ (เช่น เปิดบนคอมพิวเตอร์) จะแสดงเบอร์ให้จดแทน
   Future<void> _call(Dormitory dorm) async {
     final phone = dorm.contactPhone?.trim() ?? '';
-    if (phone.isEmpty) return _snack('หอพักนี้ไม่ได้ระบุเบอร์ติดต่อ');
+    if (phone.isEmpty) return _snack('This dorm has no contact number');
     final uri = Uri(
       scheme: 'tel',
       path: phone.replaceAll(RegExp(r'[^0-9+]'), ''),
@@ -123,7 +121,8 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
     } catch (_) {
       ok = false;
     }
-    if (!ok && mounted) _snack('โทรออกไม่ได้บนอุปกรณ์นี้ เบอร์ติดต่อ: $phone');
+    if (!ok && mounted)
+      _snack('Calling is not available on this device. Phone: $phone');
   }
 
   Future<void> _writeReview(Dormitory dorm) async {
@@ -141,7 +140,8 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
         ),
       ),
     );
-    if (sent == true && mounted) _snack('ส่งรีวิวแล้ว รอแอดมินตรวจสอบ');
+    if (sent == true && mounted)
+      _snack('Review sent. It will show after an admin checks it.');
   }
 
   @override
@@ -149,15 +149,15 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
     final dorm = _c.dorm;
     if (dorm == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('รายละเอียดหอพัก')),
+        appBar: AppBar(title: const Text('Dorm details')),
         body: _c.loading
             ? const Center(child: CircularProgressIndicator())
             : EmptyState(
                 icon: Icons.apartment_outlined,
-                title: 'ไม่พบหอพักนี้',
+                title: 'Dorm not found',
                 action: OutlinedButton(
                   onPressed: _c.load,
-                  child: const Text('ลองอีกครั้ง'),
+                  child: const Text('Try again'),
                 ),
               ),
       );
@@ -178,8 +178,8 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
             actions: [
               IconButton(
                 tooltip: _c.isFavorite
-                    ? 'นำออกจากรายการโปรด'
-                    : 'บันทึกเป็นรายการโปรด',
+                    ? 'Remove from favorites'
+                    : 'Save to favorites',
                 style: IconButton.styleFrom(backgroundColor: AppColors.surface),
                 icon: Icon(
                   _c.isFavorite
@@ -237,19 +237,19 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
                             runSpacing: 8,
                             children: [
                               ToneBadge(
-                                label: dorm.zone,
+                                label: zoneLabel(dorm.zone),
                                 tone: Tone.primary,
                                 icon: Icons.place_outlined,
                               ),
                               ToneBadge(
-                                label: 'ห่างมหาวิทยาลัย $distance',
+                                label: '$distance from campus',
                                 tone: Tone.info,
                                 icon: Icons.directions_walk_rounded,
                               ),
                               ToneBadge(
                                 label: full
-                                    ? 'เต็มแล้ว'
-                                    : 'ว่าง ${dorm.availableRooms} จาก ${dorm.totalRooms} ห้อง',
+                                    ? 'Full'
+                                    : '${dorm.availableRooms} of ${dorm.totalRooms} rooms free',
                                 tone: full ? Tone.danger : Tone.success,
                                 icon: Icons.meeting_room_outlined,
                               ),
@@ -272,7 +272,7 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
                     ),
                     const SizedBox(height: 18),
                     const SectionTitle(
-                      'ค่าใช้จ่ายและที่อยู่',
+                      'Costs and address',
                       icon: Icons.receipt_long_outlined,
                     ),
                     const SizedBox(height: 10),
@@ -285,12 +285,12 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
                         children: [
                           InfoRow(
                             icon: Icons.water_drop_outlined,
-                            label: 'ค่าน้ำ',
+                            label: 'Water',
                             value: _rate(dorm.waterRate, dorm.waterBillingType),
                           ),
                           InfoRow(
                             icon: Icons.bolt_outlined,
-                            label: 'ค่าไฟ',
+                            label: 'Electricity',
                             value: _rate(
                               dorm.electricityRate,
                               dorm.electricityBillingType,
@@ -298,8 +298,8 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
                           ),
                           InfoRow(
                             icon: Icons.home_outlined,
-                            label: 'ที่อยู่',
-                            value: dorm.address ?? 'ไม่ระบุ',
+                            label: 'Address',
+                            value: dorm.address ?? 'Not given',
                           ),
                         ],
                       ),
@@ -307,7 +307,7 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
                     if (dorm.amenityNames.isNotEmpty) ...[
                       const SizedBox(height: 18),
                       const SectionTitle(
-                        'สิ่งอำนวยความสะดวก',
+                        'Amenities',
                         icon: Icons.check_circle_outline,
                       ),
                       const SizedBox(height: 10),
@@ -325,20 +325,17 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
                       ),
                     ],
                     const SizedBox(height: 18),
-                    const SectionTitle(
-                      'ตำแหน่งที่ตั้ง',
-                      icon: Icons.map_outlined,
-                    ),
+                    const SectionTitle('Location', icon: Icons.map_outlined),
                     const SizedBox(height: 10),
                     DormLocationMap(dorm: dorm, height: 190),
                     const SizedBox(height: 18),
                     SectionTitle(
-                      'รีวิว (${_c.reviews.length})',
+                      'Reviews (${_c.reviews.length})',
                       icon: Icons.reviews_outlined,
                       trailing: TextButton.icon(
                         onPressed: () => _writeReview(dorm),
                         icon: const Icon(Icons.edit_outlined, size: 18),
-                        label: const Text('เขียนรีวิว'),
+                        label: const Text('Write a review'),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -347,8 +344,8 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
                         child: EmptyState(
                           compact: true,
                           icon: Icons.rate_review_outlined,
-                          title: 'ยังไม่มีรีวิว',
-                          message: 'เป็นคนแรกที่รีวิวหอพักนี้',
+                          title: 'No reviews yet',
+                          message: 'Be the first to review this dorm.',
                         ),
                       )
                     else
@@ -408,7 +405,7 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () => _call(dorm),
                       icon: const Icon(Icons.call_outlined, size: 18),
-                      label: const Text('โทร'),
+                      label: const Text('Call'),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -420,7 +417,7 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
                         Icons.chat_bubble_outline_rounded,
                         size: 18,
                       ),
-                      label: const Text('แชทกับเจ้าของ'),
+                      label: const Text('Chat with owner'),
                     ),
                   ),
                 ],
@@ -433,8 +430,8 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
   }
 
   String _rate(double? rate, String? type) {
-    if (rate == null || type == null) return 'ไม่ได้ระบุ';
-    return '$rate บาท (${BillingType.label(type)})';
+    if (rate == null || type == null) return 'Not given';
+    return '$rate baht (${BillingType.label(type)})';
   }
 }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../services/admin_service.dart';
-import '../../../core/network/api_client.dart';
+import '../../../../services/admin_service.dart';
+import '../../../../core/network/api_client.dart';
 
 /// สิ่งอำนวยความสะดวก 1 รายการ (ตาราง amenities)
 @immutable

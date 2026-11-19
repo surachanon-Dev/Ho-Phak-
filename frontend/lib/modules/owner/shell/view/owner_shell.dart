@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_services.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/responsive.dart';
-import '../../../shared/models/user.dart';
-import '../../chat/screens/chat_list_screen.dart';
-import 'dashboard_screen.dart';
-import 'profile_screen.dart';
-import 'verification_screen.dart';
+import '../../../../core/app_services.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
+import '../../../../model/user.dart';
+import '../../../chat/chat_list/view/chat_list_screen.dart';
+import '../../dashboard/view/dashboard_screen.dart';
+import '../../profile/view/profile_screen.dart';
+import '../../verification/view/verification_screen.dart';
 
 /// โครงหลักของเจ้าของหอพัก: แท็บ หอพัก / แชท / โปรไฟล์
 /// จอแคบใช้แถบเมนูล่าง จอกว้างใช้แถบเมนูซ้าย

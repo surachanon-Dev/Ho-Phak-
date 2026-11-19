@@ -1,3 +1,5 @@
+const crypto = require('crypto');
+const argon2 = require('@node-rs/argon2');
 // service ของการทำงานของ admin ทุกการกระทำจะบันทึก admin_logs และแจ้งเตือนผู้เกี่ยวข้องในทรานแซกชันเดียวกัน
 const dormitoryModel = require('../models/dormitoryModel');
 const revisionModel = require('../models/revisionModel');
@@ -169,6 +171,32 @@ async function suspendUser(rawId, admin, rawReason) {
     });
 }
 
+// แอดมินรีเซ็ตรหัสผ่านให้ผู้ใช้ที่ลืมรหัส คืนรหัสชั่วคราวให้แอดมินแจ้งผู้ใช้
+async function resetUserPassword(rawId, admin) {
+    const temporary = temporaryPassword();
+    await withTransaction(async (conn) => {
+        const target = await lockUser(rawId, conn);
+        if (target.role === 'admin') fail(403, 'Admin passwords cannot be reset here');
+        await userModel.updatePasswordHash(target.id, argon2.hashSync(temporary), conn);
+        await adminLogModel.insert(admin, 'user.reset_password', 'user', target.id, null, conn);
+    });
+    return temporary;
+}
+
+// รหัสชั่วคราว 10 ตัว มีตัวพิมพ์ใหญ่ เล็ก และตัวเลข (ตัดตัวที่สับสนง่าย เช่น 0 O 1 l)
+function temporaryPassword() {
+    const sets = ['ABCDEFGHJKLMNPQRSTUVWXYZ', 'abcdefghijkmnpqrstuvwxyz', '23456789'];
+    const all = sets.join('');
+    const pick = (chars) => chars[crypto.randomInt(chars.length)];
+    const out = sets.map(pick);
+    while (out.length < 10) out.push(pick(all));
+    for (let i = out.length - 1; i > 0; i--) {
+        const j = crypto.randomInt(i + 1);
+        [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out.join('');
+}
+
 async function restoreUser(rawId, admin) {
     await withTransaction(async (conn) => {
         const target = await lockUser(rawId, conn);
@@ -292,6 +320,6 @@ async function deleteAmenity(rawId, admin) {
 module.exports = {
   verifications, listAmenities, createAmenity, renameAmenity, deleteAmenity,
     queue, approveDormitory, rejectDormitory, suspendDormitory, restoreDormitory,
-    approveVerification, rejectVerification, suspendUser, restoreUser,
+    approveVerification, rejectVerification, suspendUser, restoreUser, resetUserPassword,
     listReviews, publishReview, hideReview, logs, listDormitories, listUsers, verificationDocument, dormitoryDocument,
 };

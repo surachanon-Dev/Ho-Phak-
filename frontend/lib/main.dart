@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'app/home_router.dart';
 import 'core/app_services.dart';
 import 'core/theme/app_theme.dart';
-import 'features/auth/screens/welcome_screen.dart';
-import 'shared/models/user.dart';
+import 'modules/auth/welcome/view/welcome_screen.dart';
+import 'model/user.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

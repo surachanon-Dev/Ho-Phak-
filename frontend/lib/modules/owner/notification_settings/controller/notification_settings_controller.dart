@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../services/owner_account_service.dart';
-import '../models/notification_prefs.dart';
+import '../../../../services/owner_account_service.dart';
+import '../../../../model/notification_prefs.dart';
 
 /// หน้าตั้งค่าแจ้งเตือน: โหลดค่า สลับสวิตช์ และย้อนค่ากลับถ้าบันทึกไม่สำเร็จ
 class NotificationSettingsController extends ChangeNotifier {

@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../shared/models/chat.dart';
-import '../services/chat_service.dart';
-import '../../../core/utils/format.dart';
+import '../../../../model/chat.dart';
+import '../../../../services/chat_service.dart';
+import '../../../../core/utils/format.dart';
 
 /// ห้องแชท: โหลดข้อความ ส่งข้อความ และคำนวณข้อความแสดงเวลา/อ่านแล้ว
 class ChatRoomController extends ChangeNotifier {
@@ -58,7 +58,7 @@ class ChatRoomController extends ChangeNotifier {
     _validationError = null;
     if (text.isEmpty || _readOnly || _sending) return false;
     if (text.length > maxMessageLength) {
-      _validationError = 'ข้อความยาวเกิน $maxMessageLength ตัวอักษร';
+      _validationError = 'Messages can be at most $maxMessageLength characters';
       notifyListeners();
       return false;
     }

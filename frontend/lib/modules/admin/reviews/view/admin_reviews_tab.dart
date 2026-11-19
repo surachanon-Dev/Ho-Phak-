@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-import 'admin_reviews_controller.dart';
-import '../services/admin_service.dart';
-import '../../../core/app_services.dart';
-import '../../../app/session.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../owner_requests/widgets/owner_request_widgets.dart';
-import '../users/widgets/user_list_widgets.dart';
-import '../widgets/admin_page.dart';
-import '../widgets/reason_dialog.dart';
+import '../controller/admin_reviews_controller.dart';
+import '../../../../services/admin_service.dart';
+import '../../../../core/app_services.dart';
+import '../../../../app/session.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../owner_requests/view/widgets/owner_request_widgets.dart';
+import '../../users/view/widgets/user_list_widgets.dart';
+import '../../widgets/admin_page.dart';
+import '../../widgets/reason_dialog.dart';
 
 class AdminReviewsTab extends StatefulWidget {
   const AdminReviewsTab({super.key, required this.services});
@@ -63,7 +63,7 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
   }
 
   Future<void> _hide(int id) async {
-    final reason = await askReason(context, 'เหตุผลที่ซ่อนรีวิว');
+    final reason = await askReason(context, 'Reason for hiding the review');
     if (reason == null) return;
     final ok = await _c.hideReview(id, reason);
     if (!ok) _report();
@@ -108,7 +108,7 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
       subtitle: 'Decide whether reported reviews stay on the dorm page',
       actions: [
         HeaderIconButton(
-          tooltip: 'รีเฟรช',
+          tooltip: 'Refresh',
           icon: Icons.refresh,
           onPressed: _c.isLoading ? null : _load,
         ),
@@ -144,7 +144,7 @@ class _AdminReviewsTabState extends State<AdminReviewsTab> {
       return const EmptyState(
         icon: Icons.reviews_outlined,
         tone: Tone.neutral,
-        title: 'ไม่มีรีวิวในสถานะนี้',
+        title: 'No reviews with this status',
         message: 'Reviews that match this tab will appear here.',
       );
     }
@@ -388,8 +388,8 @@ Future<String?> askReason(BuildContext context, String title) async {
     context,
     title: title,
     message: 'Students will no longer see it. The owner is notified.',
-    hint: 'ระบุเหตุผล (จำเป็น)',
-    confirmLabel: 'ยืนยัน',
+    hint: 'Reason (required)',
+    confirmLabel: 'Confirm',
     icon: Icons.visibility_off_outlined,
   );
   final text = result?.trim();

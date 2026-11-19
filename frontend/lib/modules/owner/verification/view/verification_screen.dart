@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 
-import '../../../shared/models/verification.dart';
-import '../../../core/network/api_client.dart';
-import '../services/verification_service.dart';
-import '../../../core/app_services.dart';
-import '../../../app/session.dart';
-import '../../auth/screens/login_screen.dart';
-import '../controllers/verification_screen_controller.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../widgets/owner_ui.dart';
+import '../../../../model/verification.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../services/verification_service.dart';
+import '../../../../core/app_services.dart';
+import '../../../../app/session.dart';
+import '../../../auth/login/view/login_screen.dart';
+import '../controller/verification_screen_controller.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../widgets/owner_ui.dart';
 
 /// หน้าการยืนยันตัวตนเจ้าของหอพัก
 /// gate = true เมื่อยังไม่ได้ยืนยัน: แสดงเป็นหน้าหลักของแอปจนกว่าจะยืนยัน

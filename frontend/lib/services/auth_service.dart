@@ -1,6 +1,6 @@
-import '../../../shared/models/user.dart';
-import '../../../core/network/api_client.dart';
-import '../../../core/network/token_store.dart';
+import '../model/user.dart';
+import '../core/network/api_client.dart';
+import '../core/network/token_store.dart';
 
 class AuthService {
   AuthService(this._api, this._tokens);
@@ -32,7 +32,10 @@ class AuthService {
     final user = await currentUser();
     if (user.isSuspended) {
       await logout();
-      throw ApiException(403, 'บัญชีนี้ถูกระงับ ติดต่อแอดมิน');
+      throw ApiException(
+        403,
+        'This account is suspended. Please contact an admin.',
+      );
     }
     return user;
   }
@@ -43,6 +46,13 @@ class AuthService {
     final user = CurrentUser.fromJson(data['user'] as Map<String, dynamic>);
     userId = user.id;
     return user;
+  }
+
+  /// POST /api/me/become-owner: นักศึกษาสมัครเป็นเจ้าของหอ (ต้องยืนยันตัวตนต่อ)
+  /// แล้วโหลดข้อมูลผู้ใช้ใหม่ (role = owner, is_verified = false)
+  Future<CurrentUser> becomeOwner() async {
+    await _api.post('/api/me/become-owner', const {});
+    return currentUser();
   }
 
   /// POST /api/auth/register { phone, password, confirmPassword }

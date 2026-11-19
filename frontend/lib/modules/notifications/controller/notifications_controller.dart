@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../../shared/models/notification.dart';
-import '../services/notification_service.dart';
+import '../../../model/notification.dart';
+import '../../../services/notification_service.dart';
 
 /// การแจ้งเตือน: โหลดรายการ ทำเครื่องหมายว่าอ่านแล้ว และนับจำนวนที่ยังไม่อ่าน
 class NotificationsController extends ChangeNotifier {

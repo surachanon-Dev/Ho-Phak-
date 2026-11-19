@@ -4,18 +4,18 @@ import '../../app/session.dart';
 import '../../core/app_services.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/responsive.dart';
-import 'activity_log/admin_activity_log_controller.dart';
-import 'activity_log/admin_logs_tab.dart';
-import 'amenities/admin_amenities_tab.dart';
-import 'dashboard/admin_dashboard_controller.dart';
-import 'dashboard/admin_dashboard_view.dart';
-import 'dorms/admin_dorms_tab.dart';
-import 'owner_requests/admin_queue_tab.dart';
-import 'profile/admin_profile_tab.dart';
-import 'reviews/admin_reviews_tab.dart';
-import 'services/admin_service.dart';
-import 'settings/admin_settings_tab.dart';
-import 'users/admin_users_tab.dart';
+import 'activity_log/controller/admin_activity_log_controller.dart';
+import 'activity_log/view/admin_logs_tab.dart';
+import 'amenities/view/admin_amenities_tab.dart';
+import 'dashboard/controller/admin_dashboard_controller.dart';
+import 'dashboard/view/admin_dashboard_view.dart';
+import 'dorms/view/admin_dorms_tab.dart';
+import 'owner_requests/view/admin_queue_tab.dart';
+import 'profile/view/admin_profile_tab.dart';
+import 'reviews/view/admin_reviews_tab.dart';
+import '../../services/admin_service.dart';
+import 'settings/view/admin_settings_tab.dart';
+import 'users/view/admin_users_tab.dart';
 
 /// โครงหลักของ Ho-Phak Admin: เมนูซ้ายสีกรมท่า + สลับหน้าตามเมนู
 /// หน้า Dashboard อยู่ที่ dashboard/admin_dashboard_view.dart

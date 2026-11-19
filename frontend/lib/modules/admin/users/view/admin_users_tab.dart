@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/app_services.dart';
-import '../../../app/session.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/responsive.dart';
-import '../../../shared/widgets/ui/ui.dart';
-import '../widgets/admin_page.dart';
-import '../services/admin_service.dart';
-import '../user_detail/admin_user_detail_controller.dart';
-import '../user_detail/admin_user_detail_screen.dart';
-import 'admin_users_controller.dart';
+import '../../../../core/app_services.dart';
+import '../../../../app/session.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/responsive.dart';
+import '../../../../widgets/ui/ui.dart';
+import '../../widgets/admin_page.dart';
+import '../../../../services/admin_service.dart';
+import '../../user_detail/controller/admin_user_detail_controller.dart';
+import '../../user_detail/view/admin_user_detail_screen.dart';
+import '../controller/admin_users_controller.dart';
 import 'widgets/user_list_widgets.dart';
 
 //// หน้า Users: รายการผู้ใช้ ค้นหา/กรอง และเปิดรายละเอียด

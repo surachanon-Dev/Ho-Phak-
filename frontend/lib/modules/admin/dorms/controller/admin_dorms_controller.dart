@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../services/admin_service.dart';
-import '../../../core/network/api_client.dart';
+import '../../../../services/admin_service.dart';
+import '../../../../core/network/api_client.dart';
 
 /// หน้า Dorms ของแอดมิน
 /// - คิวรอตรวจ: หอใหม่ (pending) และฉบับแก้ไข (revisions) อนุมัติ/ปฏิเสธ
@@ -63,13 +63,13 @@ class AdminDormsController extends ChangeNotifier {
       _act(() => _service.approveDormitory(dormId));
 
   Future<bool> reject(int dormId, String reason) {
-    final problem = validateReason(reason, 'เหตุผลการปฏิเสธ');
+    final problem = validateReason(reason, 'rejection reason');
     if (problem != null) return _fail(problem);
     return _act(() => _service.rejectDormitory(dormId, reason.trim()));
   }
 
   Future<bool> suspend(int dormId, String reason) {
-    final problem = validateReason(reason, 'เหตุผลการระงับ');
+    final problem = validateReason(reason, 'suspension reason');
     if (problem != null) return _fail(problem);
     return _act(() => _service.suspendDormitory(dormId, reason.trim()));
   }
@@ -79,9 +79,9 @@ class AdminDormsController extends ChangeNotifier {
 
   static String? validateReason(String reason, String label) {
     final text = reason.trim();
-    if (text.isEmpty) return 'ต้องระบุ$label';
+    if (text.isEmpty) return 'Please enter a $label';
     if (text.length > maxReasonLength)
-      return '$label ยาวเกิน $maxReasonLength ตัวอักษร';
+      return 'The $label must be at most $maxReasonLength characters';
     return null;
   }
 

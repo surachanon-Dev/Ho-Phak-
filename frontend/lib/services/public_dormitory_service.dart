@@ -1,6 +1,6 @@
-import '../../../shared/models/dormitory.dart';
-import '../../../shared/models/review.dart';
-import '../../../core/network/api_client.dart';
+import '../model/dormitory.dart';
+import '../model/review.dart';
+import '../core/network/api_client.dart';
 
 /// endpoint สาธารณะของนักศึกษา (ไม่ต้อง login ก็เรียกได้)
 class PublicDormitoryService {
@@ -49,6 +49,24 @@ class PublicDormitoryService {
         .map((e) => OwnerReview.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  /// GET /api/reviews/me → { reviews } รีวิวทั้งหมดของฉัน (ทุกสถานะ)
+  Future<List<MyReview>> myReviews() async {
+    final data = await _api.get('/api/reviews/me') as Map<String, dynamic>;
+    return (data['reviews'] as List)
+        .map((e) => MyReview.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// PUT /api/reviews/:id { rating, body? } แก้แล้วต้องรอแอดมินตรวจใหม่
+  Future<void> updateReview(int reviewId, int rating, String? body) => _api.put(
+    '/api/reviews/$reviewId',
+    {'rating': rating, 'body': (body != null && body.isNotEmpty) ? body : null},
+  );
+
+  /// DELETE /api/reviews/:id
+  Future<void> deleteReview(int reviewId) =>
+      _api.delete('/api/reviews/$reviewId');
 
   /// POST /api/dormitories/:id/reviews { rating 1-5, body? } → รอแอดมินตรวจ (409 ถ้าเคยรีวิวแล้ว)
   Future<void> addReview(int id, int rating, String? body) => _api.post(
