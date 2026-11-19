@@ -324,7 +324,7 @@ class _DormCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cover = dorm.images.isEmpty ? null : dorm.images.first.fullUrl;
+    final cover = dorm.coverUrl; // รูปแรกใน images หรือ cover_image จากรายการ
     final hasRooms = dorm.availableRooms > 0;
     final ratio = dorm.totalRooms == 0
         ? 0.0

@@ -211,7 +211,10 @@ void main() {
   });
 
   testWidgets('REG-13 เบอร์ซ้ำ (409) แสดงข้อความใต้ฟอร์ม', (tester) async {
-    await open(tester, {'POST /api/auth/register': http.Response(jsonEncode({'message': 'เบอร์นี้ถูกใช้แล้ว'}), 409)}, []);
+    await open(tester, {
+      // ข้อความไทยต้องส่งเป็น bytes UTF-8 (http.Response แบบ String รองรับแค่ latin1)
+      'POST /api/auth/register': http.Response.bytes(utf8.encode(jsonEncode({'message': 'เบอร์นี้ถูกใช้แล้ว'})), 409),
+    }, []);
     await fill(tester);
     await submit(tester);
     expect(find.text(RegisterController.duplicatePhoneMessage), findsOneWidget);

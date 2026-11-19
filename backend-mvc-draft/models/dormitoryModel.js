@@ -52,7 +52,12 @@ async function findForUpdate(id, conn = db) {
 }
 
 async function listByOwner(ownerId) {
-    const [rows] = await db.query('SELECT * FROM dormitories WHERE owner_id = ? ORDER BY id DESC', [ownerId]);
+    // cover_image = รูปแรกของหอ ใช้แสดงบนการ์ดหน้า My Dorms
+    const [rows] = await db.query(
+        `SELECT d.*,
+                (SELECT di.file_path FROM dormitory_images di WHERE di.dormitory_id = d.id ORDER BY di.sort_order, di.id LIMIT 1) AS cover_image
+         FROM dormitories d WHERE d.owner_id = ? ORDER BY d.id DESC`,
+        [ownerId]);
     return rows;
 }
 
