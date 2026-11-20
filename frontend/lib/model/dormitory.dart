@@ -174,7 +174,9 @@ class Dormitory {
     description: _toStr(json['description']),
     address: _toStr(json['address']),
     contactPhone: _toStr(json['contact_phone']),
-    statusReason: _toStr(json['rejection_reason']),
+    // หอที่ถูกปฏิเสธใช้ rejection_reason ส่วนหอที่ถูกระงับใช้ status_reason
+    statusReason:
+        _toStr(json['rejection_reason']) ?? _toStr(json['status_reason']),
     ratingAvg: _toDoubleOrNull(json['rating_avg']),
     reviewCount: json['review_count'] == null
         ? null

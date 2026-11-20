@@ -21,9 +21,15 @@ class OwnerAccountRules {
   static String? phone(String? v) {
     final t = (v ?? '').trim();
     if (t.isEmpty) return 'Enter your phone number';
-    return RegExp(r'^[0-9+\- ]{9,15}$').hasMatch(t)
-        ? null
-        : 'Enter a valid phone number';
+    return isThaiMobile(t) ? null : 'Enter a valid phone number';
+  }
+
+  /// เบอร์มือถือไทย 10 หลักแบบเดียวกับ backend (`normalizePhone`): ตัดช่องว่างและ -
+  /// แปลง +66 เป็น 0 แล้วต้องเป็น 0 ตามด้วยตัวเลข 9 หลัก
+  static bool isThaiMobile(String value) {
+    var p = value.replaceAll(RegExp(r'[\s-]'), '');
+    if (p.startsWith('+66')) p = '0${p.substring(3)}';
+    return RegExp(r'^0\d{9}$').hasMatch(p);
   }
 
   /// ต้องกรอกรหัสผ่านเมื่อเปลี่ยนเบอร์โทร

@@ -34,7 +34,16 @@ class DormitoryService {
   /// GET /api/owner/dormitories/:id → { dormitory: {...}, latest_revision }
   Future<Dormitory> get(int id) async {
     final data = await _api.get('$_base/$id') as Map<String, dynamic>;
-    return Dormitory.fromJson(data['dormitory'] as Map<String, dynamic>);
+    final dorm = {...(data['dormitory'] as Map<String, dynamic>)};
+    // ฉบับแก้ไขล่าสุดที่ถูกปฏิเสธ: หอยังเป็น published/hidden จึงไม่มี rejection_reason
+    // ในแถวหอ ดึงเหตุผลจากฉบับแก้ไขมาแสดงแทน
+    final revision = data['latest_revision'];
+    if (dorm['rejection_reason'] == null &&
+        revision is Map<String, dynamic> &&
+        revision['status'] == 'rejected') {
+      dorm['rejection_reason'] = revision['rejection_reason'];
+    }
+    return Dormitory.fromJson(dorm);
   }
 
   /// POST /api/owner/dormitories → 201 { message, id } เข้าสถานะ pending
@@ -166,6 +175,7 @@ class DormitoryService {
     required Set<int> amenityIds,
     required DormUtilities utilities,
     DormDocument? document,
+    void Function(int id)? onCreated,
   }) async {
     final int dormId;
     if (id != null) {
@@ -173,6 +183,9 @@ class DormitoryService {
       await update(dormId, input);
     } else {
       dormId = await create(input);
+      // แจ้งผู้เรียกทันทีที่หอถูกสร้าง เพื่อให้บันทึกซ้ำเป็นการแก้ไขหอเดิม ไม่สร้างซ้ำ
+      // แม้ขั้นตอนเสริมด้านล่าง (amenities/ค่าน้ำไฟ/เอกสาร) จะล้มเหลว
+      onCreated?.call(dormId);
     }
     final extras = _extras;
     if (extras != null) {

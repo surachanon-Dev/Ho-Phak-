@@ -104,7 +104,7 @@ void main() {
     expect(post.url.path, '/api/dormitories/1/reviews');
     expect(jsonDecode(post.body), {'rating': 4, 'body': 'Nice owner'});
     expect(
-      find.text('Review sent. It will show after an admin checks it.'),
+      find.text('Review posted.'),
       findsOneWidget,
     );
   });

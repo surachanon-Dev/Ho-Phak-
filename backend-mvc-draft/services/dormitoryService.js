@@ -129,16 +129,19 @@ async function updateForOwner(rawId, ownerId, body) {
         return 'ส่งหอพักให้ admin ตรวจอีกครั้งแล้ว';
     }
 
+    // เก็บฉบับแก้ไขกับเปลี่ยนสถานะใน transaction เดียว ไม่ให้เหลือสถานะค้างครึ่งทาง
     const payload = JSON.stringify(data);
-    const pending = await revisionModel.findPending(dorm.id);
-    if (pending) {
-        await revisionModel.updatePayload(pending.id, payload);
-    } else {
-        await revisionModel.insert(dorm.id, ownerId, payload);
-    }
-    if (dorm.status === 'published') {
-        await dormitoryModel.updateStatus(dorm.id, { status: 'changes_pending' });
-    }
+    await withTransaction(async (conn) => {
+        const pending = await revisionModel.findPending(dorm.id, conn, true);
+        if (pending) {
+            await revisionModel.updatePayload(pending.id, payload, conn);
+        } else {
+            await revisionModel.insert(dorm.id, ownerId, payload, conn);
+        }
+        if (dorm.status === 'published') {
+            await dormitoryModel.updateStatus(dorm.id, { status: 'changes_pending' }, conn);
+        }
+    });
     return 'ส่งการแก้ไขให้ admin ตรวจแล้ว นักศึกษายังเห็นฉบับเดิมจนกว่าจะอนุมัติ';
 }
 

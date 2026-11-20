@@ -75,7 +75,7 @@ async function listByStatus(status) {
 }
 
 async function findForUpdate(id, conn = db) {
-    const [rows] = await conn.query('SELECT id FROM reviews WHERE id = ? FOR UPDATE', [id]);
+    const [rows] = await conn.query('SELECT id, user_id, dormitory_id FROM reviews WHERE id = ? FOR UPDATE', [id]);
     return rows[0];
 }
 

@@ -14,6 +14,7 @@ class ReviewFormScreen extends StatefulWidget {
     required this.onSubmit,
     this.initialRating = 0,
     this.initialBody,
+    this.isHidden = false,
   });
 
   final String dormName;
@@ -22,6 +23,7 @@ class ReviewFormScreen extends StatefulWidget {
   /// ค่าเดิมเมื่อแก้ไขรีวิว (0 = เขียนใหม่)
   final int initialRating;
   final String? initialBody;
+  final bool isHidden;
 
   bool get isEdit => initialRating > 0;
 
@@ -136,9 +138,17 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const NoticeBanner(
-                  message: 'Your review will appear after an admin checks it.',
-                ),
+                if (widget.isHidden)
+                  const NoticeBanner(
+                    tone: Tone.warning,
+                    message:
+                        'This review is currently hidden by an admin. Editing saves your changes, but it stays hidden until an admin unhides it.',
+                  )
+                else
+                  const NoticeBanner(
+                    message:
+                        'Your review is posted right away. An admin only looks at it if the owner reports it.',
+                  ),
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: _busy ? null : _submit,

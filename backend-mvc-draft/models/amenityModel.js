@@ -48,6 +48,14 @@ async function remove(id, conn = db) {
     return result.affectedRows;
 }
 
+// เจ้าของหอที่ใช้สิ่งอำนวยความสะดวกนี้อยู่ (ใช้แจ้งเตือนเมื่อ admin เปลี่ยนหรือลบ)
+async function ownerIdsUsing(amenityId, conn = db) {
+    const [rows] = await conn.query(
+        `SELECT DISTINCT d.owner_id FROM dormitory_amenities da
+         JOIN dormitories d ON d.id = da.dormitory_id WHERE da.amenity_id = ?`, [amenityId]);
+    return rows.map((r) => r.owner_id);
+}
+
 module.exports = {
-    forDormitory, countExisting, replaceForDormitory, listAll, findById, insert, rename, remove,
+    forDormitory, countExisting, replaceForDormitory, listAll, findById, insert, rename, remove, ownerIdsUsing,
 };

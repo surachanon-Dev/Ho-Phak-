@@ -69,7 +69,7 @@ void main() {
     await tester.tap(find.text('Kept'));
     await tester.pumpAndSettle();
 
-    expect(statuses, ['pending', 'published']);
+    expect(statuses, ['open', 'published']);
     expect(find.text('Kept Dorm'), findsOneWidget);
     expect(find.text('Hillview Dorm'), findsNothing);
   });

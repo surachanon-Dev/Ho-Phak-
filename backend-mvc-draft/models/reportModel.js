@@ -11,7 +11,8 @@ async function findOwnedReview(reviewId, ownerId) {
 
 async function listByOwner(ownerId) {
     const [rows] = await db.query(
-        'SELECT review_id, reason FROM review_reports WHERE owner_id = ? ORDER BY created_at, id', [ownerId]);
+        "SELECT review_id, reason FROM review_reports WHERE owner_id = ? AND status = 'open' ORDER BY created_at, id",
+        [ownerId]);
     return rows;
 }
 

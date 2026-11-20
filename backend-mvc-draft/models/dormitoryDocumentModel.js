@@ -16,4 +16,10 @@ async function latestForDormitory(dormitoryId) {
     return rows[0];
 }
 
-module.exports = { insert, latestForDormitory };
+// ที่เก็บไฟล์เอกสารทุกฉบับของหอ ใช้ลบไฟล์เมื่อหอถูกลบ
+async function listPaths(dormitoryId) {
+    const [rows] = await db.query('SELECT document_url FROM dormitory_documents WHERE dormitory_id = ?', [dormitoryId]);
+    return rows.map((r) => r.document_url);
+}
+
+module.exports = { insert, latestForDormitory, listPaths };

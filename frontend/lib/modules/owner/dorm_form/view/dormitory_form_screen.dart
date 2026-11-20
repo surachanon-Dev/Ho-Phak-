@@ -904,6 +904,7 @@ class _DormitoryFormScreenState extends State<DormitoryFormScreen> {
                               TextFormField(
                                 controller: _contactPhone,
                                 keyboardType: TextInputType.phone,
+                                validator: (_) => _c.validateContactPhone(),
                                 decoration: const InputDecoration(
                                   hintText: '08X-XXX-XXXX',
                                 ),

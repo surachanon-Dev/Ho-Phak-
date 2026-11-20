@@ -5,6 +5,7 @@ import '../../../../model/dormitory.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../services/dormitory_service.dart';
 import '../../validation/dormitory_rules.dart';
+import '../../validation/owner_account_rules.dart';
 import '../../../../model/amenity.dart';
 import '../../../../model/dorm_utilities.dart';
 import '../../../../model/dorm_document.dart';
@@ -68,6 +69,7 @@ class OwnerDormFormController extends ChangeNotifier {
   DormDocument? _document;
   final List<UploadFile> _pending = [];
   List<DormImage> _images;
+  int? _createdId; // id ของหอที่สร้างไปแล้วในรอบที่บันทึกไม่ครบ (กันสร้างซ้ำ)
   bool _saving = false;
   bool _busyImages = false;
   Object? _error;
@@ -173,9 +175,17 @@ class OwnerDormFormController extends ChangeNotifier {
       ? DormitoryRules.billing(_electricityType, _electricityRate)
       : null;
 
+  /// เบอร์ติดต่อเว้นว่างได้ แต่ถ้ากรอกต้องเป็นเบอร์มือถือไทย 10 หลักตามที่ backend รับ
+  String? validateContactPhone() {
+    final t = _contactPhone.trim();
+    if (t.isEmpty || OwnerAccountRules.isThaiMobile(t)) return null;
+    return 'Enter a 10-digit Thai mobile number';
+  }
+
   /// ฟอร์มผ่านทั้งหมดหรือไม่ (ไม่รวมกติกาเรื่องรูปตอนเพิ่มหอใหม่)
   bool get isValid =>
       validateName() == null &&
+      validateContactPhone() == null &&
       validatePrice() == null &&
       validateTotalRooms() == null &&
       validateAvailableRooms() == null &&
@@ -249,7 +259,9 @@ class OwnerDormFormController extends ChangeNotifier {
         existingAmenityIds: existing?.amenityIds ?? const [],
       );
       final dormId = await _dorms.save(
-        id: existing?.id,
+        // บันทึกครั้งก่อนสร้างหอสำเร็จแต่ขั้นท้ายพลาด → ครั้งนี้แก้หอเดิม ไม่สร้างซ้ำ
+        id: existing?.id ?? _createdId,
+        onCreated: (id) => _createdId = id,
         input: input,
         amenityIds: _amenityIds,
         utilities: DormUtilities(

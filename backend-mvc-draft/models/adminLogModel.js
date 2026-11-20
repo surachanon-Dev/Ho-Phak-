@@ -12,4 +12,20 @@ async function listRecent() {
     return rows;
 }
 
-module.exports = { insert, listRecent };
+// log ล่าสุดของ action หนึ่งบนเป้าหมายหนึ่ง (details แปลงเป็น object แล้ว หรือ null)
+async function findLatest(action, targetType, targetId, conn = db) {
+    const [rows] = await conn.query(
+        'SELECT details FROM admin_logs WHERE action = ? AND target_type = ? AND target_id = ? ORDER BY id DESC LIMIT 1',
+        [action, targetType, targetId]);
+    if (!rows[0]) return null;
+    const { details } = rows[0];
+    if (details === null || details === undefined) return {};
+    if (typeof details !== 'string') return details;
+    try {
+        return JSON.parse(details);
+    } catch {
+        return {};
+    }
+}
+
+module.exports = { insert, listRecent, findLatest };

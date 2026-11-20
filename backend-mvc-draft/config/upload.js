@@ -18,19 +18,14 @@ fs.mkdirSync(PRIVATE_UPLOAD_DIR, { recursive: true });
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const DOCUMENT_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 
-// ตั้งชื่อไฟล์ใหม่ด้วย UUID เพื่อไม่ให้ชื่อจาก client ไปปนกับไฟล์อื่น
-function makeStorage(dir) {
-    return multer.diskStorage({
-        destination: dir,
-        filename: (req, file, cb) => {
-            cb(null, crypto.randomUUID() + path.extname(file.originalname).toLowerCase());
-        },
-    });
-}
-
 // ชนิดไฟล์ตามนามสกุล ใช้เมื่อ client ส่ง content-type มาเป็น application/octet-stream
 const EXTENSION_TYPES = {
     '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.pdf': 'application/pdf',
+};
+
+// นามสกุลที่ใช้เก็บไฟล์ ได้จากชนิดไฟล์ที่ผ่านการตรวจเท่านั้น ไม่เอาจากชื่อไฟล์ที่ client ส่งมา
+const TYPE_EXTENSIONS = {
+    'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'application/pdf': '.pdf',
 };
 
 function effectiveType(file) {
@@ -38,6 +33,16 @@ function effectiveType(file) {
         return EXTENSION_TYPES[path.extname(file.originalname).toLowerCase()] || file.mimetype;
     }
     return file.mimetype;
+}
+
+// ตั้งชื่อไฟล์ใหม่ด้วย UUID + นามสกุลตามชนิดที่ตรวจแล้ว กันไฟล์ .html/.js ถูกเสิร์ฟจาก /uploads
+function makeStorage(dir) {
+    return multer.diskStorage({
+        destination: dir,
+        filename: (req, file, cb) => {
+            cb(null, crypto.randomUUID() + (TYPE_EXTENSIONS[effectiveType(file)] || ''));
+        },
+    });
 }
 
 function fileFilter(allowedTypes, message) {

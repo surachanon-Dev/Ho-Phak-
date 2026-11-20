@@ -234,12 +234,14 @@ class _Hero extends StatelessWidget {
                   children: [
                     Icon(Icons.school_rounded, size: 15, color: Colors.white),
                     SizedBox(width: 6),
-                    Text(
-                      'For Mae Fah Luang University students',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
+                    Flexible(
+                      child: Text(
+                        'For Mae Fah Luang University students',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],

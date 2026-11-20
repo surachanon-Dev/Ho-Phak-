@@ -59,6 +59,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
           dormName: r.dormitoryName,
           initialRating: r.rating,
           initialBody: r.body,
+          isHidden: r.isHidden,
           onSubmit: (rating, body) async {
             final ok = await _c.update(r.id, rating: rating, body: body);
             if (!ok && mounted && _c.error != null) {
@@ -70,7 +71,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
       ),
     );
     if (saved == true && mounted) {
-      _snack('Review updated. It will show again after an admin checks it.');
+      _snack('Review updated.');
     }
   }
 

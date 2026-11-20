@@ -21,7 +21,7 @@ void main() {
         final controller = _reviews((request) async {
           final status = request.url.queryParameters['status'];
           requestedStatuses.add(status);
-          if (status == 'pending') return open.future;
+          if (status == 'open') return open.future;
           return jsonResponse({
             'reviews': [
               {...reviewFixture, 'id': 12, 'status': 'published'},
@@ -38,7 +38,7 @@ void main() {
         );
         await first;
 
-        expect(requestedStatuses, ['pending', 'published']);
+        expect(requestedStatuses, ['open', 'published']);
         expect(controller.status, AdminReviewStatus.kept);
         expect(controller.reviews.single['id'], 12);
         expect(controller.isLoading, isFalse);

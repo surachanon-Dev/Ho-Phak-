@@ -1,7 +1,13 @@
 // service ของฟีเจอร์เจ้าของที่แอปเรียกผ่าน ApiOwnerExtras:
 // ค่าน้ำ/ค่าไฟ, ลบหอ, รายการ report รีวิว
+const fs = require('fs');
+const path = require('path');
 const dormitoryModel = require('../models/dormitoryModel');
+const revisionModel = require('../models/revisionModel');
+const imageModel = require('../models/imageModel');
+const dormitoryDocumentModel = require('../models/dormitoryDocumentModel');
 const reportModel = require('../models/reportModel');
+const { ROOT } = require('../config/upload');
 const { fail } = require('../utils/AppError');
 const { toInt } = require('../utils/validators');
 
@@ -52,12 +58,36 @@ function plan(mode, rate, billing, label) {
     return { mode: toDbMode(mode), rate: null, billing: null };
 }
 
+// ค่าที่เจ้าของเพิ่งกรอกในฟอร์มหอ: หอที่เผยแพร่แล้วเก็บเป็นฉบับรอตรวจ แถวจริงยังไม่มีอัตราใหม่
+// จึงใช้อัตราจากฉบับรอตรวจก่อน ถ้าไม่มีฉบับรอตรวจค่อยใช้แถวจริง
+async function currentRates(dorm) {
+    const pending = await revisionModel.findPending(dorm.id);
+    if (pending) {
+        try {
+            const p = typeof pending.payload === 'string' ? JSON.parse(pending.payload) : pending.payload;
+            if (p && typeof p === 'object') {
+                return {
+                    waterRate: p.water_rate, waterBilling: p.water_billing_type,
+                    electricityRate: p.electricity_rate, electricityBilling: p.electricity_billing_type,
+                };
+            }
+        } catch {
+            // payload เสีย: ใช้ค่าในแถวจริงแทน
+        }
+    }
+    return {
+        waterRate: dorm.water_rate, waterBilling: dorm.water_billing_type,
+        electricityRate: dorm.electricity_rate, electricityBilling: dorm.electricity_billing_type,
+    };
+}
+
 async function updateUtilities(rawDormId, ownerId, body) {
     const dorm = await ownedDormOrFail(rawDormId, ownerId);
     const water = checkMode(body.water, 'น้ำ');
     const electricity = checkMode(body.electricity, 'ไฟ');
-    const w = plan(water, dorm.water_rate, dorm.water_billing_type, 'น้ำ');
-    const e = plan(electricity, dorm.electricity_rate, dorm.electricity_billing_type, 'ไฟ');
+    const rates = await currentRates(dorm);
+    const w = plan(water, rates.waterRate, rates.waterBilling, 'น้ำ');
+    const e = plan(electricity, rates.electricityRate, rates.electricityBilling, 'ไฟ');
 
     await dormitoryModel.updateUtilities(dorm.id, {
         waterMode: w.mode, waterRate: w.rate, waterBilling: w.billing,
@@ -68,7 +98,15 @@ async function updateUtilities(rawDormId, ownerId, body) {
 
 async function deleteDormitory(rawDormId, ownerId) {
     const dorm = await ownedDormOrFail(rawDormId, ownerId);
+    // เก็บที่อยู่ไฟล์ไว้ก่อนลบแถว (FK cascade ลบรายการรูป/เอกสารไปด้วย) แล้วค่อยลบไฟล์หลังลบสำเร็จ
+    const images = await imageModel.forDormitory(dorm.id);
+    const documentPaths = await dormitoryDocumentModel.listPaths(dorm.id);
     await dormitoryModel.deleteById(dorm.id);
+    for (const rel of [...images.map((i) => i.file_path), ...documentPaths]) {
+        // path ใน DB ขึ้นต้นด้วย /uploads/ หรือ private_uploads/ ตัด / นำหน้าให้ join ภายใต้ ROOT เท่านั้น
+        const full = path.resolve(ROOT, String(rel).replace(/^\/+/, ''));
+        if (full.startsWith(ROOT + path.sep)) fs.unlink(full, () => {});
+    }
 }
 
 async function listReviewReports(ownerId) {

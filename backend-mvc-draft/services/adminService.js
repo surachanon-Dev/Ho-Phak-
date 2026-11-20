@@ -94,9 +94,12 @@ async function suspendDormitory(rawId, admin, rawReason) {
     const reason = requireReason(rawReason, 'ต้องระบุเหตุผลการระงับ');
     await withTransaction(async (conn) => {
         const dorm = await lockDormitory(rawId, conn);
+        if (dorm.status === 'suspended') fail(409, 'หอพักนี้ถูกระงับอยู่แล้ว');
         await dormitoryModel.updateStatus(dorm.id,
             { status: 'suspended', statusReason: reason, changedBy: admin.id }, conn);
-        await adminLogModel.insert(admin, 'dormitory.suspend', 'dormitory', dorm.id, { reason }, conn);
+        // เก็บสถานะก่อนระงับไว้ใน log เพื่อคืนสถานะเดิมตอน restore
+        await adminLogModel.insert(admin, 'dormitory.suspend', 'dormitory', dorm.id,
+            { reason, from: dorm.status }, conn);
         await notificationModel.insert(dorm.owner_id, {
             type: 'dormitory_suspended', title: 'หอพักถูกระงับ', body: reason,
             relatedType: 'dormitory', relatedId: dorm.id,
@@ -104,15 +107,21 @@ async function suspendDormitory(rawId, admin, rawReason) {
     });
 }
 
+const RESTORABLE_STATUSES = ['pending', 'published', 'changes_pending', 'rejected', 'hidden'];
+
 async function restoreDormitory(rawId, admin) {
     await withTransaction(async (conn) => {
         const dorm = await lockDormitory(rawId, conn);
         if (dorm.status !== 'suspended') fail(409, 'หอพักนี้ไม่ได้ถูกระงับ');
+        // คืนสถานะก่อนระงับ (หอที่ยังไม่เคยอนุมัติหรือที่เจ้าของซ่อนไว้ต้องไม่ขึ้นสาธารณะเอง)
+        // ไม่มี log เดิม (ระงับก่อนมีการเก็บสถานะ) → กลับไปรอตรวจเพื่อความปลอดภัย
+        const suspendLog = await adminLogModel.findLatest('dormitory.suspend', 'dormitory', dorm.id, conn);
+        const nextStatus = RESTORABLE_STATUSES.includes(suspendLog?.from) ? suspendLog.from : 'pending';
         await dormitoryModel.updateStatus(dorm.id,
-            { status: 'published', statusReason: null, changedBy: admin.id }, conn);
-        await adminLogModel.insert(admin, 'dormitory.restore', 'dormitory', dorm.id, null, conn);
+            { status: nextStatus, statusReason: null, changedBy: admin.id }, conn);
+        await adminLogModel.insert(admin, 'dormitory.restore', 'dormitory', dorm.id, { to: nextStatus }, conn);
         await notificationModel.insert(dorm.owner_id, {
-            type: 'dormitory_restored', title: 'หอพักกลับมาแสดงแล้ว', body: dorm.name,
+            type: 'dormitory_restored', title: 'หอพักถูกคืนสถานะแล้ว', body: dorm.name,
             relatedType: 'dormitory', relatedId: dorm.id,
         }, conn);
     });
@@ -169,6 +178,10 @@ async function suspendUser(rawId, admin, rawReason) {
         if (target.role === 'admin') fail(403, 'ระงับบัญชี admin ไม่ได้');
         await userModel.suspend(target.id, reason, admin.id, conn);
         await adminLogModel.insert(admin, 'user.suspend', 'user', target.id, { reason }, conn);
+        await notificationModel.insert(target.id, {
+            type: 'account_suspended', title: 'บัญชีถูกระงับ', body: reason,
+            relatedType: 'user', relatedId: target.id,
+        }, conn);
     });
 }
 
@@ -180,6 +193,12 @@ async function resetUserPassword(rawId, admin) {
         if (target.role === 'admin') fail(403, 'Admin passwords cannot be reset here');
         await userModel.updatePasswordHash(target.id, argon2.hashSync(temporary), conn);
         await adminLogModel.insert(admin, 'user.reset_password', 'user', target.id, null, conn);
+        // ไม่ใส่รหัสชั่วคราวในแจ้งเตือน (admin แจ้งผู้ใช้เอง)
+        await notificationModel.insert(target.id, {
+            type: 'password_reset', title: 'รหัสผ่านถูกรีเซ็ตโดย admin',
+            body: 'ติดต่อ admin เพื่อรับรหัสผ่านชั่วคราว แล้วเปลี่ยนรหัสผ่านหลังเข้าสู่ระบบ',
+            relatedType: 'user', relatedId: target.id,
+        }, conn);
     });
     return temporary;
 }
@@ -204,6 +223,10 @@ async function restoreUser(rawId, admin) {
         if (target.status !== 'suspended') fail(409, 'บัญชีนี้ไม่ได้ถูกระงับ');
         await userModel.restore(target.id, conn);
         await adminLogModel.insert(admin, 'user.restore', 'user', target.id, null, conn);
+        await notificationModel.insert(target.id, {
+            type: 'account_restored', title: 'บัญชีถูกคืนสถานะแล้ว', body: 'คุณใช้งานบัญชีได้ตามปกติ',
+            relatedType: 'user', relatedId: target.id,
+        }, conn);
     });
 }
 
@@ -222,6 +245,10 @@ async function publishReview(rawId, admin) {
         await reviewModel.setModeration(id, { status: 'published', reviewerId: admin.id }, conn);
         await reportModel.resolveForReview(id, conn);
         await adminLogModel.insert(admin, 'review.publish', 'review', id, null, conn);
+        await notificationModel.insert(review.user_id, {
+            type: 'review_kept', title: 'รีวิวของคุณยังแสดงอยู่', body: 'admin ตรวจแล้วและคงรีวิวไว้',
+            relatedType: 'review', relatedId: id,
+        }, conn);
     });
 }
 
@@ -234,6 +261,10 @@ async function hideReview(rawId, admin, rawReason) {
         await reviewModel.setModeration(id, { status: 'hidden', reason, reviewerId: admin.id }, conn);
         await reportModel.resolveForReview(id, conn);
         await adminLogModel.insert(admin, 'review.hide', 'review', id, { reason }, conn);
+        await notificationModel.insert(review.user_id, {
+            type: 'review_hidden', title: 'รีวิวของคุณถูกซ่อน', body: reason,
+            relatedType: 'review', relatedId: id,
+        }, conn);
     });
 }
 
@@ -310,15 +341,31 @@ async function renameAmenity(rawId, admin, rawName) {
         await amenityModel.rename(amenity.id, name, conn);
         await adminLogModel.insert(admin, 'amenity.rename', 'amenity', amenity.id,
             { from: amenity.name, to: name }, conn);
+        // แจ้งเจ้าของหอที่ใช้สิ่งอำนวยความสะดวกนี้ว่าชื่อเปลี่ยน
+        for (const ownerId of await amenityModel.ownerIdsUsing(amenity.id, conn)) {
+            await notificationModel.insert(ownerId, {
+                type: 'amenity_renamed', title: 'ชื่อสิ่งอำนวยความสะดวกเปลี่ยน', body: `${amenity.name} → ${name}`,
+                relatedType: 'amenity', relatedId: amenity.id,
+            }, conn);
+        }
     });
 }
 
 async function deleteAmenity(rawId, admin) {
     const amenity = await amenityOrFail(rawId);
     await withTransaction(async (conn) => {
+        // ต้องหาเจ้าของก่อนลบ เพราะลบแล้วความสัมพันธ์กับหอหายตาม FK
+        const ownerIds = await amenityModel.ownerIdsUsing(amenity.id, conn);
         await amenityModel.remove(amenity.id, conn);
         await adminLogModel.insert(admin, 'amenity.delete', 'amenity', amenity.id,
             { name: amenity.name }, conn);
+        for (const ownerId of ownerIds) {
+            await notificationModel.insert(ownerId, {
+                type: 'amenity_deleted', title: 'สิ่งอำนวยความสะดวกถูกลบ',
+                body: `${amenity.name} ถูกเอาออกจากหอของคุณ`,
+                relatedType: 'amenity', relatedId: amenity.id,
+            }, conn);
+        }
     });
 }
 

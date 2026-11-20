@@ -114,4 +114,19 @@ void main() {
     );
     verify(() => dorms.addReview(1, 4, 'Clean room')).called(1);
   });
+
+  test(
+    '6. submitReview reloads the reviews because they go live at once',
+    () async {
+      backendHas();
+      when(() => dorms.addReview(any(), any(), any())).thenAnswer((_) async {});
+
+      expect(await controller.submitReview(rating: 5, body: 'Nice'), isTrue);
+
+      verify(() => dorms.reviews(1)).called(1);
+      verify(() => dorms.detail(1)).called(1);
+      expect(controller.reviews, hasLength(1));
+      expect(controller.error, isNull);
+    },
+  );
 }

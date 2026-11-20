@@ -245,7 +245,11 @@ class _DormitoryDetailScreenState extends State<DormitoryDetailScreen> {
         dorm.statusReason != null &&
         dorm.statusReason!.isNotEmpty &&
         (dorm.status == DormStatus.rejected ||
-            dorm.status == DormStatus.changesPending);
+            dorm.status == DormStatus.changesPending ||
+            dorm.status == DormStatus.suspended ||
+            // เผยแพร่/ซ่อนอยู่แต่ฉบับแก้ไขล่าสุดถูกปฏิเสธ
+            dorm.status == DormStatus.published ||
+            dorm.status == DormStatus.hidden);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

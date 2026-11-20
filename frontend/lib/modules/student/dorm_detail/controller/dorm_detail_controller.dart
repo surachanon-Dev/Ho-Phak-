@@ -111,7 +111,7 @@ class DormDetailController extends ChangeNotifier {
     }
   }
 
-  /// ส่งรีวิว (rating ต้องอยู่ 1–5) รอแอดมินตรวจก่อนแสดง คืน true เมื่อสำเร็จ
+  /// ส่งรีวิว (rating ต้องอยู่ 1–5) รีวิวขึ้นทันที จึงโหลดรายการรีวิว/คะแนนใหม่ คืน true เมื่อส่งสำเร็จ
   Future<bool> submitReview({required int rating, String? body}) async {
     if (rating < 1 || rating > 5) {
       _error = ArgumentError.value(rating, 'rating', 'must be 1–5');
@@ -125,6 +125,9 @@ class DormDetailController extends ChangeNotifier {
         rating,
         (text == null || text.isEmpty) ? null : text,
       );
+      _error = null;
+      // รีวิวขึ้นทันที: โหลดใหม่เพื่อให้เห็นรีวิวและคะแนนล่าสุด (ถ้าโหลดไม่สำเร็จ การส่งก็ยังถือว่าสำเร็จ)
+      await load();
       _error = null;
       return true;
     } catch (e) {

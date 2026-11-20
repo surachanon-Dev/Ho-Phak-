@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hopak_frontend/modules/admin/profile/view/admin_profile_tab.dart';
-import 'package:hopak_frontend/modules/auth/login/view/login_screen.dart';
+import 'package:hopak_frontend/modules/auth/welcome/view/welcome_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../plem_test_helpers.dart';
@@ -11,7 +11,7 @@ import '../plem_test_helpers.dart';
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  testWidgets('the admin account confirms sign-out and returns to Login', (
+  testWidgets('the admin account confirms sign-out and returns to Welcome', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({'jwt_token': 'widget-test-token'});
@@ -37,7 +37,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(writes, ['/api/auth/logout']);
     expect(services.tokens.token, isNull);
-    expect(find.byType(LoginScreen), findsOneWidget);
+    expect(find.byType(WelcomeScreen), findsOneWidget);
   });
 
   testWidgets('Profile ไม่ overflow บนจอมือถือ', (tester) async {

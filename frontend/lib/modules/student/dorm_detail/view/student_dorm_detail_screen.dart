@@ -141,7 +141,7 @@ class _StudentDormDetailScreenState extends State<StudentDormDetailScreen> {
       ),
     );
     if (sent == true && mounted)
-      _snack('Review sent. It will show after an admin checks it.');
+      _snack('Review posted.');
   }
 
   @override
