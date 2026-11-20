@@ -7,6 +7,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../app/session.dart';
 import '../../../../core/utils/status_style.dart';
 import '../../../../core/utils/format.dart';
+import '../../../../widgets/dorm_gallery.dart';
 import '../../../../widgets/dorm_map.dart';
 import '../../dashboard/view/dashboard_screen.dart' show formatBaht;
 import '../../my_reviews/view/my_reviews_screen.dart';
@@ -661,21 +662,29 @@ class _Metric extends StatelessWidget {
 }
 
 /// หัวหน้า: รูปปกเต็มความกว้าง + ปุ่มย้อนกลับกลม + ตัวนับรูป
-class _CoverHeader extends StatelessWidget {
+class _CoverHeader extends StatefulWidget {
   const _CoverHeader({required this.dorm, required this.onBack});
 
   final Dormitory dorm;
   final VoidCallback onBack;
 
   @override
+  State<_CoverHeader> createState() => _CoverHeaderState();
+}
+
+class _CoverHeaderState extends State<_CoverHeader> {
+  int _page = 0;
+
+  @override
   Widget build(BuildContext context) {
-    final cover = dorm.images.isEmpty ? null : dorm.images.first.fullUrl;
+    final dorm = widget.dorm;
+    final onBack = widget.onBack;
     return SizedBox(
       height: 250,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          cover == null
+          dorm.images.isEmpty
               ? Container(
                   decoration: const BoxDecoration(
                     gradient: AppColors.brandGradient,
@@ -697,13 +706,9 @@ class _CoverHeader extends StatelessWidget {
                     ],
                   ),
                 )
-              : Image.network(
-                  cover,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => const ColoredBox(
-                    color: Color(0xFFDDE2EA),
-                    child: Icon(Icons.broken_image_outlined),
-                  ),
+              : DormGallery(
+                  images: dorm.images,
+                  onPageChanged: (i) => setState(() => _page = i),
                 ),
           SafeArea(
             child: Padding(
@@ -747,7 +752,7 @@ class _CoverHeader extends StatelessWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      '1 / ${dorm.images.length}',
+                      '${_page + 1} / ${dorm.images.length}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,

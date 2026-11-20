@@ -7,6 +7,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/format.dart';
 import '../../../../model/chat.dart';
 import '../../../../model/dormitory.dart';
+import '../../../../widgets/dorm_gallery.dart';
 import '../../../../widgets/dorm_map.dart';
 import '../../../../widgets/ui/ui.dart';
 import '../../../chat/chat_room/view/chat_room_screen.dart';
@@ -453,11 +454,7 @@ class _Gallery extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        PageView.builder(
-          itemCount: images.length,
-          onPageChanged: onPage,
-          itemBuilder: (_, i) => DormCover(url: images[i].fullUrl, radius: 0),
-        ),
+        DormGallery(images: images, onPageChanged: onPage),
         Positioned(
           right: 12,
           bottom: 12,
